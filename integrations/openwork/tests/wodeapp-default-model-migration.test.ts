@@ -52,7 +52,7 @@ describe("WodeApp default model migration", () => {
     expect(shouldMigrateLegacyWodeAppDefault(WODEAPP_DEFAULT_MODEL)).toBe(false);
     expect(WODEAPP_DEFAULT_MODEL).toEqual({
       providerID: "wodeapp",
-      modelID: "wode/kimi-code-k3-256k",
+      modelID: "wode/deepseek-v4-flash",
     });
   });
 

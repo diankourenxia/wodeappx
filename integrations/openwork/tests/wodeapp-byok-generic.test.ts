@@ -58,19 +58,19 @@ function providerList(connected: Array<{ id: string; models: string[] }>) {
 }
 
 describe("generic BYOK workbench normalize", () => {
-  test("unauthorized openrouter falls back to platform default", () => {
+  test("unauthorized openrouter falls back to empty ref (needs-key state)", () => {
     expect(
       normalizeWodeAppModelRefForWorkbench({
         providerID: "openrouter",
         modelID: "anthropic/claude-sonnet-4",
       }),
-    ).toEqual(WODEAPP_DEFAULT_MODEL);
+    ).toEqual({ providerID: "", modelID: "" });
     expect(
       normalizeWodeAppModelRefForWorkbench(
         { providerID: "openrouter", modelID: "anthropic/claude-sonnet-4" },
         { connectedProviderIds: ["wodeapp"] },
       ),
-    ).toEqual(WODEAPP_DEFAULT_MODEL);
+    ).toEqual({ providerID: "", modelID: "" });
   });
 
   test("authorized openrouter BYOK is kept", () => {
@@ -86,13 +86,14 @@ describe("generic BYOK workbench normalize", () => {
     expect(isAuthorizedByokModelRef(byok, ["wodeapp", "openrouter"])).toBe(true);
   });
 
-  test("empty current does not steal to WodeApp when a local vendor is connected", () => {
+  test("empty current stays empty when no local vendor connected (OSS first-run)", () => {
     expect(normalizeWodeAppModelRefForWorkbench(null, {
       connectedProviderIds: ["volcano"],
     })).toEqual({ providerID: "", modelID: "" });
-    expect(normalizeWodeAppModelRefForWorkbench(null)).toEqual(WODEAPP_DEFAULT_MODEL);
+    // OSS first-run / empty key: no default cloud model
+    expect(normalizeWodeAppModelRefForWorkbench(null)).toEqual({ providerID: "", modelID: "" });
     expect(normalizeWodeAppModelRefForWorkbench({ providerID: "", modelID: "" })).toEqual(
-      WODEAPP_DEFAULT_MODEL,
+      { providerID: "", modelID: "" },
     );
   });
 
@@ -122,10 +123,11 @@ describe("generic BYOK workbench normalize", () => {
     });
   });
 
-  test("resolvePreferredWorkbenchModel remaps disconnected BYOK to platform", () => {
+  test("resolvePreferredWorkbenchModel returns null for disconnected BYOK when no platform", () => {
     const list = providerList([
       { id: "wodeapp", models: ["wode/kimi-code-k3-256k"] },
     ]);
+    // OSS first-run / empty key: disconnected BYOK without WodeApp signed-in returns null
     expect(resolvePreferredWorkbenchModel(list, {
       providerID: "openrouter",
       modelID: "anthropic/claude-sonnet-4",
@@ -133,6 +135,12 @@ describe("generic BYOK workbench normalize", () => {
       providerID: "wodeapp",
       modelID: "wode/kimi-code-k3-256k",
     });
+    // When no WodeApp provider is connected, return null instead
+    const emptyList = providerList([]);
+    expect(resolvePreferredWorkbenchModel(emptyList, {
+      providerID: "openrouter",
+      modelID: "anthropic/claude-sonnet-4",
+    })).toEqual(null);
   });
 
   test("WodeApp is a peer vendor: empty current prefers local, remembered WodeApp stays", () => {
@@ -159,6 +167,23 @@ describe("generic BYOK workbench normalize", () => {
       providerID: "openrouter",
       modelID: "moonshotai/kimi-k2.5",
     });
+  });
+
+  test("OSS first-run with no API key stays in needs-key state", () => {
+    // Empty provider list (no WodeApp, no BYOK)
+    const emptyList = providerList([]);
+    
+    // Empty current model should return empty ref
+    expect(resolvePreferredWorkbenchModel(emptyList, null)).toEqual(null);
+    expect(resolvePreferredWorkbenchModel(emptyList, { providerID: "", modelID: "" })).toEqual(null);
+    
+    // resolveConnectedWodeAppPromptModel should also return empty
+    expect(resolveConnectedWodeAppPromptModel(null, emptyList)).toEqual({ providerID: "", modelID: "" });
+    expect(resolveConnectedWodeAppPromptModel({ providerID: "", modelID: "" }, emptyList)).toEqual({ providerID: "", modelID: "" });
+    
+    // normalizeWodeAppModelRefForWorkbench should return empty
+    expect(normalizeWodeAppModelRefForWorkbench(null)).toEqual({ providerID: "", modelID: "" });
+    expect(normalizeWodeAppModelRefForWorkbench({ providerID: "", modelID: "" })).toEqual({ providerID: "", modelID: "" });
   });
 });
 

@@ -298,7 +298,8 @@ export function resolveManagedDefaultModel(models, overrideInput) {
   const userDefault = String(override?.default ?? "").trim();
   if (userDefault && keys.includes(userDefault)) return userDefault;
   if (keys.includes(WODEAPP_PREFERRED_MODEL)) return WODEAPP_PREFERRED_MODEL;
-  return keys[0] || WODEAPP_PREFERRED_MODEL;
+  // OSS first-run / empty key: return empty string instead of cloud model fallback
+  return keys[0] || "";
 }
 
 function platformOrigin(env = {}) {
@@ -466,10 +467,9 @@ export function managedWodeAppProviderConfig(env = {}, overrideInput) {
     ...(wodeappEnabled ? [WODEAPP_PROVIDER_ID] : []),
     ...Object.keys(customProviders),
   ];
+  const resolvedDefaultModelId = wodeappEnabled ? resolveManagedDefaultModel(models, override) : "";
   const defaultModel = local.defaultModel
-    || (wodeappEnabled
-      ? `${WODEAPP_PROVIDER_ID}/${resolveManagedDefaultModel(models, override)}`
-      : "");
+    || (resolvedDefaultModelId ? `${WODEAPP_PROVIDER_ID}/${resolvedDefaultModelId}` : "");
   return {
     "$schema": "https://opencode.ai/config.json",
     ...(defaultModel ? { model: defaultModel } : {}),

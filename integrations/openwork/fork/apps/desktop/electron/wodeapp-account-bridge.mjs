@@ -302,7 +302,9 @@ async function sessionFetch(ses, url, init = {}, timeoutMs = FETCH_TIMEOUT_MS) {
 
 function preferredModel(modelIds) {
   const preferred = "wode/deepseek-v4-flash";
-  return modelIds.includes(preferred) ? preferred : modelIds[0] || preferred;
+  // Empty modelIds means no WodeApp API key / signed-out: do not persist cloud model
+  if (!modelIds || modelIds.length === 0) return "";
+  return modelIds.includes(preferred) ? preferred : modelIds[0] || "";
 }
 
 function signedInResponse(account) {

@@ -186,6 +186,7 @@ export function resolveConnectedWodeAppPromptModel(
   const connectedProviderIds = connectedProviderIdsFromList(providerList);
   const resolved = resolvePreferredWorkbenchModel(providerList, preferred);
   if (resolved) return resolved;
+  // OSS first-run / empty key: return empty ref instead of defaulting to cloud model
   return normalizeWodeAppModelRefForWorkbench(preferred, { connectedProviderIds });
 }
 
@@ -228,7 +229,8 @@ export function resolvePreferredWorkbenchModel(
   }
 
   return resolveAvailableByokChatModel(providerList)
-    ?? resolveAvailableWodeAppModel(providerList, WODEAPP_DEFAULT_MODEL);
+    // OSS first-run / empty key: return null instead of cloud model fallback
+    ?? null;
 }
 
 export function wodeAppDefaultModelRef(
@@ -275,11 +277,10 @@ export function normalizeWodeAppModelRefForWorkbench(
   current: ModelRef | null | undefined,
   options?: NormalizeWorkbenchModelOptions,
 ): ModelRef {
+  // OSS first-run / empty key: no model unless there's a local BYOK provider or explicit choice
   if (!current?.providerID || !String(current.modelID ?? "").trim()) {
-    if (hasLocalConnectedProviders(options?.connectedProviderIds)) {
-      return { providerID: "", modelID: "" };
-    }
-    return { ...WODEAPP_DEFAULT_MODEL };
+    // Return empty ref (needs-key state) instead of defaulting to cloud model
+    return { providerID: "", modelID: "" };
   }
 
   if (isAuthorizedByokModelRef(current, options?.connectedProviderIds)) {
@@ -290,7 +291,8 @@ export function normalizeWodeAppModelRefForWorkbench(
     if (hasLocalConnectedProviders(options?.connectedProviderIds)) {
       return { providerID: current.providerID, modelID: current.modelID };
     }
-    return { ...WODEAPP_DEFAULT_MODEL };
+    // Non-WodeApp provider without connected providers → empty (needs-key state)
+    return { providerID: "", modelID: "" };
   }
 
   const normalized = normalizeWodeAppModelRef(current);
