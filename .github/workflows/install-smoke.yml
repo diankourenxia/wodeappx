@@ -2,6 +2,11 @@ name: Install smoke
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: Version tag to test (e.g., v1.0.1)
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -11,8 +16,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  resolve-version:
+    name: Resolve version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      version_number: ${{ steps.resolve.outputs.version_number }}
+    steps:
+      - name: Resolve version
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ -n "${{ github.event.inputs.version }}" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="$(gh release list -R diankourenxia/wodeappx --limit 1 --exclude-drafts --exclude-pre-releases | awk '{print $1}' | head -1)"
+          fi
+          if [[ -z "$VERSION" ]]; then
+            echo "Failed to resolve version" >&2
+            exit 1
+          fi
+          VERSION_NUMBER="${VERSION#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "version_number=$VERSION_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "Testing version: $VERSION ($VERSION_NUMBER)"
+
   windows:
     name: Windows NSIS install + hello
+    needs: resolve-version
     runs-on: windows-latest
     timeout-minutes: 35
     steps:
@@ -21,14 +53,18 @@ jobs:
       - name: Download installer
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.resolve-version.outputs.version }}
+          VERSION_NUMBER: ${{ needs.resolve-version.outputs.version_number }}
         run: |
-          gh release download v1.0.1 -R diankourenxia/wodeappx -p "wodeappx-win-x64-1.0.1.exe" --dir "$env:RUNNER_TEMP\qa"
+          gh release download $env:VERSION -R diankourenxia/wodeappx -p "wodeappx-win-x64-$env:VERSION_NUMBER.exe" --dir "$env:RUNNER_TEMP\qa"
           Get-ChildItem "$env:RUNNER_TEMP\qa" | Format-Table Name, Length
 
       - name: Silent install
         shell: pwsh
+        env:
+          VERSION_NUMBER: ${{ needs.resolve-version.outputs.version_number }}
         run: |
-          $exe = Join-Path $env:RUNNER_TEMP "qa\wodeappx-win-x64-1.0.1.exe"
+          $exe = Join-Path $env:RUNNER_TEMP "qa\wodeappx-win-x64-$env:VERSION_NUMBER.exe"
           Unblock-File $exe
           $p = Start-Process -FilePath $exe -ArgumentList "/S" -PassThru -Wait
           if ($p.ExitCode -ne 0) { throw "NSIS exit $($p.ExitCode)" }
@@ -104,6 +140,7 @@ jobs:
 
   linux:
     name: Linux AppImage extract
+    needs: resolve-version
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -115,20 +152,23 @@ jobs:
       - name: Download AppImage
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.resolve-version.outputs.version }}
+          VERSION_NUMBER: ${{ needs.resolve-version.outputs.version_number }}
         run: |
           mkdir -p "$RUNNER_TEMP/qa"
-          gh release download v1.0.1 -R diankourenxia/wodeappx -p "wodeappx-linux-x86_64-1.0.1.AppImage" --dir "$RUNNER_TEMP/qa"
+          gh release download "$VERSION" -R diankourenxia/wodeappx -p "wodeappx-linux-x86_64-${VERSION_NUMBER}.AppImage" --dir "$RUNNER_TEMP/qa"
           ls -lh "$RUNNER_TEMP/qa"
 
       - name: Extract, launch, CDP
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION_NUMBER: ${{ needs.resolve-version.outputs.version_number }}
         run: |
           set -euo pipefail
           QA="$RUNNER_TEMP/wodeappx-linux-qa"
           mkdir -p "$QA/home" "$QA/userdata" "$QA/extract" "$QA/report"
-          chmod +x "$RUNNER_TEMP/qa/wodeappx-linux-x86_64-1.0.1.AppImage"
-          (cd "$QA/extract" && "$RUNNER_TEMP/qa/wodeappx-linux-x86_64-1.0.1.AppImage" --appimage-extract)
+          chmod +x "$RUNNER_TEMP/qa/wodeappx-linux-x86_64-${VERSION_NUMBER}.AppImage"
+          (cd "$QA/extract" && "$RUNNER_TEMP/qa/wodeappx-linux-x86_64-${VERSION_NUMBER}.AppImage" --appimage-extract)
           BIN="$(find "$QA/extract/squashfs-root" -maxdepth 3 -type f \( -name WodeAppX -o -name wodeappx -o -name '@openworkdesktop' \) -perm -u+x | head -1)"
           test -n "$BIN"
           echo "bin=$BIN"
