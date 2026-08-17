@@ -2954,15 +2954,17 @@ async function applyBrandingPatch() {
       [
         'const RELEASE_DOWNLOAD_BASE_URL = "https://github.com/different-ai/openwork/releases/latest/download"',
         'const RELEASE_DOWNLOAD_BASE_URL = "https://github.com/wodeapp/wodeappx/releases/latest/download"',
+        'const RELEASE_DOWNLOAD_BASE_URL = "https://gitea.com/diankourenxia/wodeappx/releases/latest/download"',
       ],
-      'const RELEASE_DOWNLOAD_BASE_URL = "https://gitea.com/diankourenxia/wodeappx/releases/latest/download"',
+      'const RELEASE_DOWNLOAD_BASE_URL = "https://github.com/diankourenxia/wodeappx/releases/latest/download"',
     ],
     [
       [
         'const RELEASE_PAGE_URL = "https://github.com/different-ai/openwork/releases/latest"',
         'const RELEASE_PAGE_URL = "https://github.com/wodeapp/wodeappx/releases/latest"',
+        'const RELEASE_PAGE_URL = "https://gitea.com/diankourenxia/wodeappx/releases/latest"',
       ],
-      'const RELEASE_PAGE_URL = "https://gitea.com/diankourenxia/wodeappx/releases/latest"',
+      'const RELEASE_PAGE_URL = "https://github.com/diankourenxia/wodeappx/releases/latest"',
     ],
     ['const DOCS_PAGE_URL = "https://openworklabs.com/docs"', 'const DOCS_PAGE_URL = "https://wodeapp.cn"'],
     [
@@ -4017,7 +4019,7 @@ const candidates = [
     [["productName: OpenWork", "productName: WodeAppX", "productName: 我的AppX", "productName: WodeAppX", "productName: 小灵通", "productName: WodeAppX AI", "productName: 店智囊"], "productName: WodeAppX"],
     [["  - name: OpenWork", "  - name: WodeAppX", "  - name: 我的AppX", "  - name: WodeAppX", "  - name: 小灵通", "  - name: WodeAppX AI", "  - name: 店智囊"], "  - name: WodeAppX"],
     ["artifactName: openwork-${os}-${arch}-${version}.${ext}", "artifactName: wodeappx-${os}-${arch}-${version}.${ext}"],
-    ["    owner: different-ai", "    owner: wodeapp"],
+    ["    owner: different-ai", "    owner: diankourenxia"],
     ["    repo: openwork", "    repo: wodeappx"],
     [
       [
@@ -4122,15 +4124,17 @@ const candidates = [
         variants: [
           '  stable: "https://github.com/different-ai/openwork/releases/latest/download",',
           '  stable: "https://github.com/wodeapp/wodeappx/releases/latest/download",',
+          '  stable: "https://gitea.com/diankourenxia/wodeappx/releases/latest/download",',
         ],
-        to: '  stable: "https://gitea.com/diankourenxia/wodeappx/releases/latest/download",',
+        to: '  stable: "https://github.com/diankourenxia/wodeappx/releases/latest/download",',
       },
       {
         variants: [
           '  alpha: "https://github.com/different-ai/openwork/releases/download/alpha-macos-latest",',
           '  alpha: "https://github.com/wodeapp/wodeappx/releases/download/alpha-macos-latest",',
+          '  alpha: "https://gitea.com/diankourenxia/wodeappx/releases/download/alpha-macos-latest",',
         ],
-        to: '  alpha: "https://gitea.com/diankourenxia/wodeappx/releases/download/alpha-macos-latest",',
+        to: '  alpha: "https://github.com/diankourenxia/wodeappx/releases/download/alpha-macos-latest",',
       },
     ]) {
       const r = replaceAnyOrKeep(content, replacement, file);

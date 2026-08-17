@@ -76,7 +76,7 @@ assertIncludes(builder, "shortcutName: WodeAppX", "Windows Start Menu shortcut m
 assertIncludes(builder, "artifactName: wodeappx-${os}-${arch}-${version}.${ext}", "artifact naming must include product, OS, arch, and version");
 assertIncludes(builder, "from: resources/native-hosts", "desktop package must include browser native-host resources");
 assertIncludes(builder, "wodeappx-browser-native-host*", "desktop package must include the arch-specific browser native host");
-assertIncludes(builder, "owner: wodeapp", "electron-builder publish owner");
+assertIncludes(builder, "owner: diankourenxia", "electron-builder publish owner");
 assertIncludes(builder, "repo: wodeappx", "electron-builder publish repo");
 
 for (const marker of [
@@ -90,13 +90,13 @@ for (const marker of [
   assertIncludes(builder, marker, `mac release resource ${marker}`);
 }
 
-assertIncludes(main, "https://gitea.com/diankourenxia/wodeappx/releases/latest/download", "architecture download feed");
-assertIncludes(main, "https://gitea.com/diankourenxia/wodeappx/releases/latest", "architecture release page");
+assertIncludes(main, "https://github.com/diankourenxia/wodeappx/releases/latest/download", "architecture download feed");
+assertIncludes(main, "https://github.com/diankourenxia/wodeappx/releases/latest", "architecture release page");
 assertIncludes(main, "wodeappx-${platformDownloadSlug()}-${downloadAssetArch(targetArch)}-${version}.${downloadAssetExtension()}", "architecture fallback asset name");
 assertNotIncludes(main, "openwork-${platformDownloadSlug()}-${downloadAssetArch(targetArch)}", "architecture fallback must not use upstream asset name");
 
-assertIncludes(updater, "https://gitea.com/diankourenxia/wodeappx/releases/latest/download", "stable updater feed");
-assertIncludes(updater, "https://gitea.com/diankourenxia/wodeappx/releases/download/alpha-macos-latest", "alpha updater feed");
+assertIncludes(updater, "https://github.com/diankourenxia/wodeappx/releases/latest/download", "stable updater feed");
+assertIncludes(updater, "https://github.com/diankourenxia/wodeappx/releases/download/alpha-macos-latest", "alpha updater feed");
 
 assertIncludes(main, 'const APP_IDENTIFIER_PRODUCTION = "com.differentai.openwork";', "production app data identifier must remain stable for conversation compatibility");
 assertIncludes(main, 'path.join(app.getPath("appData"), APP_IDENTIFIER_PRODUCTION)', "user data path must be based on the stable production app identifier");

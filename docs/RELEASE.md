@@ -19,14 +19,16 @@ Publish every supported build for the same app version on the same GitHub releas
 
 | Platform | Architecture | Artifact | Built by |
 |----------|--------------|----------|----------|
-| macOS | arm64 | `wodeappx-mac-arm64-<version>.dmg` | Local Mac (`pnpm release:macos`) |
-| macOS | x64 | `wodeappx-mac-x64-<version>.dmg` | Local Mac (`pnpm release:macos`) |
+| macOS | arm64 | `wodeappx-mac-arm64-<version>.dmg` + `.zip` | Local Mac (`pnpm release:macos`) |
+| macOS | x64 | `wodeappx-mac-x64-<version>.dmg` + `.zip` | Local Mac (`pnpm release:macos`) |
 | Windows | x64 | `wodeappx-win-x64-<version>.exe` | GitHub Actions |
 | Linux | x64 | `wodeappx-linux-x64-<version>.AppImage` (+ `.tar.gz`) | GitHub Actions |
 
 Primary release targets are **macOS arm64** (local DMG; notarized when release credentials are available), **Windows x64** (CI), and **Linux x64** (CI AppImage). Windows remains unsigned until Authenticode secrets exist.
 
-The app also publishes Electron updater manifests on the same release. The architecture mismatch gate reads those manifests to route users to the correct package.
+**Important:** macOS builds must include BOTH `.dmg` (for manual installation) and `.zip` (for auto-update). electron-builder generates both when the Mac target includes `zip`. The auto-updater requires `latest-mac.yml` plus the `.zip` archive; DMG-only releases cannot auto-update Mac users.
+
+The app also publishes Electron updater manifests (`latest-mac.yml`, `latest-linux.yml`, `latest.yml`) on the same release. The architecture mismatch gate reads those manifests to route users to the correct package.
 
 ## 3. Conversation Compatibility
 
@@ -45,13 +47,13 @@ This means a user can replace the Intel build with the ARM build, or upgrade bet
 
 ## 4. Update Source
 
-WodeAppX builds must use the public Gitea release feed (mirrored from monorepo CI):
+WodeAppX builds use the public GitHub release feed as the canonical auto-update source:
 
 ```text
-https://gitea.com/diankourenxia/wodeappx/releases/latest/download
+https://github.com/diankourenxia/wodeappx/releases/latest/download
 ```
 
-Monorepo CI publishes installers to `diankourenxia/wodeapp` GitHub Releases under tag `wodeappx-v<version>`, then optionally mirrors the same assets to Gitea for public download and Electron updater.
+The public repository `diankourenxia/wodeappx` on GitHub is the source of truth for releases and the Electron updater feed. Gitea may be used as an optional download mirror for users in mainland China, but it is NOT the canonical updater feed.
 
 ### Public download page
 
@@ -59,10 +61,10 @@ Monorepo CI publishes installers to `diankourenxia/wodeapp` GitHub Releases unde
 |-------|-----|
 | Product landing | `https://wodeapp.ai/wodeappx/`（英文默认）· `https://wodeapp.cn/wodeappx/`（中文默认）；旧路径 `/xiaolingtong` 仍指向同一下载页 |
 | Latest metadata API | `GET /mainserver/api/downloads/wodeappx-desktop` |
-| Public mirror | `https://gitea.com/diankourenxia/wodeappx/releases` |
-| CI / GitHub release | `https://github.com/diankourenxia/wodeapp/releases`（tag `wodeappx-v*`） |
+| GitHub release (canonical) | `https://github.com/diankourenxia/wodeappx/releases` |
+| Public mirror (optional) | `https://gitea.com/diankourenxia/wodeappx/releases` |
 
-The landing page reads the metadata API (Gitea first, then GitHub), then links users to installers. It does **not** host installer binaries. After each tagged release and successful Gitea mirror, the page updates automatically.
+The landing page reads the metadata API (GitHub first, then Gitea mirror), then links users to installers. It does **not** host installer binaries. GitHub releases are the source of truth for the Electron auto-updater.
 
 ## 5. Automated Release Workflow
 
