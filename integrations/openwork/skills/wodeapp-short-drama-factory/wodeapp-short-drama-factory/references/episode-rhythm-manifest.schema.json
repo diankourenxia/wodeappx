@@ -1,0 +1,556 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wodeapp.cn/schemas/episode-rhythm-manifest.v1.2.json",
+  "title": "EpisodeRhythmManifest",
+  "description": "Machine-checkable episode timing truth source for WodeApp short-drama production. Shots are authored by dramatic need (durationSec), not by a preselected video model. Engine choice is resolved later from modelRequirements. Human storyboard scripts and engine prompts are adapter outputs — not the source of truth.",
+  "type": "object",
+  "required": ["version", "episode", "durationSec", "rhythmPreset", "beats", "shots"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "enum": ["1.0", "1.1", "1.2"]
+    },
+    "seriesId": {
+      "type": "string",
+      "description": "Optional series or project slug."
+    },
+    "episode": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string"
+    },
+    "scriptLanguage": {
+      "type": "string",
+      "enum": ["zh-CN", "en-US"],
+      "default": "zh-CN",
+      "description": "Authoring language for script, dialogue, and default prompt adapter output."
+    },
+    "promptLanguage": {
+      "type": "string",
+      "enum": ["zh-CN", "en-US"],
+      "description": "Optional override when prompts should differ from scriptLanguage."
+    },
+    "durationSec": {
+      "type": "number",
+      "minimum": 4,
+      "description": "Target episode runtime in seconds. v1.2+ allows frame-level decimals (e.g. 32.25)."
+    },
+    "timingMeta": {
+      "$ref": "#/$defs/timingMeta",
+      "description": "v1.2+: video-stage timing provenance. Not used for script-stage estimates."
+    },
+    "dialogueLedger": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dialogueLedgerEntry" },
+      "description": "v1.2+: stable dialogue/audio identity ledger for dedupe gates."
+    },
+    "audioPlan": {
+      "$ref": "#/$defs/audioPlan",
+      "description": "v1.2+: derived-ready audio track plan (dialogue, ambience, sfx, music)."
+    },
+    "maxClipDurationSec": {
+      "type": "integer",
+      "minimum": 4,
+      "maximum": 60,
+      "description": "Deprecated execution hint only. Do not use this to author shot durations. Prefer per-shot durationSec plus modelRequirements; resolve provider limits at execution time."
+    },
+    "targetClipDurationSec": {
+      "type": "integer",
+      "minimum": 4,
+      "maximum": 30,
+      "default": 15,
+      "description": "Execution-planning target for auto-splitting or loose outlines. Default 15s for continuity. This is not a provider limit and does not override per-shot dramatic durationSec."
+    },
+    "aspectRatio": {
+      "type": "string",
+      "enum": ["9:16", "16:9", "1:1", "4:5"],
+      "default": "9:16"
+    },
+    "rhythmPreset": {
+      "type": "string",
+      "enum": [
+        "hongguo爽剧",
+        "na_micro_drama",
+        "suspense_ladder",
+        "emotional_wave",
+        "product_reveal",
+        "brand_story",
+        "custom"
+      ],
+      "description": "Mid-level rhythm anchor preset. Presets suggest beat anchor times; they do not force uniform clip durations."
+    },
+    "rhythmPresetNotes": {
+      "type": "string",
+      "description": "Custom preset notes when rhythmPreset is custom."
+    },
+    "entityState": {
+      "type": "object",
+      "description": "Episode-opening continuity snapshot. Updated after each shot during production.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "value": {},
+          "sinceShotId": { "type": "string" }
+        },
+        "required": ["value"]
+      }
+    },
+    "beats": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/beat" }
+    },
+    "shots": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/shot" }
+    },
+    "review": {
+      "$ref": "#/$defs/review"
+    },
+    "episodeEmotionalMode": {
+      "type": "string",
+      "enum": ["buildup", "payoff", "bridge", "mixed"],
+      "description": "This episode's emotional job. buildup = accumulate only; payoff = major release; bridge = light pressure + hook; mixed = small release + bigger hook."
+    },
+    "carriesPressureFromEpisodes": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 1 },
+      "description": "Earlier episodes whose emotional_pressure feeds this episode's payoff."
+    }
+  },
+  "$defs": {
+    "beat": {
+      "type": "object",
+      "required": ["beatId", "atSec", "type", "goal"],
+      "additionalProperties": false,
+      "properties": {
+        "beatId": {
+          "type": "string",
+          "pattern": "^E\\d{2,3}-B\\d{2,3}$",
+          "description": "Example: E01-B03"
+        },
+        "atSec": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Anchor time on the episode timeline."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "cold_open",
+            "setup",
+            "small_climax",
+            "twist",
+            "satisfaction",
+            "dialogue",
+            "prop_reveal",
+            "transform",
+            "transition",
+            "cliffhanger",
+            "product_reveal",
+            "emotional_pressure",
+            "emotional_release",
+            "emotional_peak",
+            "custom"
+          ]
+        },
+        "goal": {
+          "type": "string",
+          "description": "Narrative function at this anchor."
+        },
+        "emotionalGoal": {
+          "type": "string",
+          "description": "Natural language: what the audience should feel at this anchor. Not an enum — e.g. quiet endurance, watching from afar, numb relief, jealous hope."
+        },
+        "audienceQuestion": {
+          "type": "string",
+          "description": "Concrete question the audience should be able to say out loud."
+        },
+        "presetTag": {
+          "type": "string",
+          "description": "Optional link to a preset anchor label, e.g. hongguo_30s_burst."
+        }
+      }
+    },
+    "classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "narrativeFunction": { "type": "string" },
+        "framing": {
+          "type": "string",
+          "enum": ["wide", "medium", "close_up", "insert", "empty", "custom"]
+        },
+        "temporalMode": {
+          "type": "string",
+          "enum": ["present", "flashback", "flash_forward", "memory_echo", "overlay"]
+        },
+        "audioMode": {
+          "type": "string",
+          "enum": [
+            "live_dialogue",
+            "inner_monologue",
+            "archived_recording",
+            "narration",
+            "room_tone",
+            "sfx_only",
+            "custom"
+          ]
+        },
+        "subjectPresence": {
+          "type": "string",
+          "enum": ["none", "character", "prop", "environment", "mixed"]
+        },
+        "transitionMode": {
+          "type": "string",
+          "enum": ["hard_cut", "match_on_action", "sound_bridge", "dip_to_black", "wipe", "custom"]
+        },
+        "displayType": {
+          "type": "string",
+          "description": "Optional UI label mapped from the dimensional tuple (e.g. dialogue, empty_shot)."
+        }
+      }
+    },
+    "timingMeta": {
+      "type": "object",
+      "required": ["estimatedDurationSec", "timingSource", "stale"],
+      "additionalProperties": false,
+      "properties": {
+        "estimatedDurationSec": { "type": "number", "minimum": 0 },
+        "timingSource": {
+          "type": "string",
+          "enum": [
+            "model_review",
+            "tts_measured",
+            "manual_review",
+            "mixed_measured",
+            "unknown"
+          ]
+        },
+        "scriptHash": { "type": "string" },
+        "dialogueHash": { "type": "string" },
+        "timingInputHash": {
+          "type": "string",
+          "description": "v1.2+: hash of dialogueLedger + audioPlan + shot timing slots. Mismatch auto-stales render."
+        },
+        "estimatedAt": { "type": "string", "format": "date-time" },
+        "stale": { "type": "boolean" },
+        "notes": { "type": "string" }
+      }
+    },
+    "dialogueLedgerEntry": {
+      "type": "object",
+      "required": ["dialogueId", "speaker", "sourceType", "shotId"],
+      "additionalProperties": false,
+      "properties": {
+        "dialogueId": {
+          "type": "string",
+          "pattern": "^[A-Z0-9][A-Z0-9_-]{2,}$"
+        },
+        "speaker": { "type": "string" },
+        "sourceType": {
+          "type": "string",
+          "enum": [
+            "live_dialogue",
+            "inner_monologue",
+            "archived_recording",
+            "narration",
+            "sfx_cue"
+          ]
+        },
+        "line": { "type": "string" },
+        "shotId": { "type": "string" },
+        "atSec": { "type": "number", "minimum": 0 },
+        "audioAssetId": { "type": "string" },
+        "allowRepeat": { "type": "boolean", "default": false },
+        "captionCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "audioTrack": {
+      "type": "object",
+      "required": ["trackId", "startSec", "durationSec"],
+      "additionalProperties": false,
+      "properties": {
+        "trackId": { "type": "string" },
+        "startSec": { "type": "number", "minimum": 0 },
+        "durationSec": { "type": "number", "minimum": 0 },
+        "audioAssetId": { "type": "string" },
+        "dialogueId": { "type": "string" },
+        "shotId": { "type": "string" },
+        "volume": { "type": "number", "minimum": 0, "maximum": 1 },
+        "label": { "type": "string" }
+      }
+    },
+    "audioPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dialogueTracks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/audioTrack" }
+        },
+        "ambienceTracks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/audioTrack" }
+        },
+        "sfxTracks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/audioTrack" }
+        },
+        "musicTracks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/audioTrack" }
+        }
+      }
+    },
+    "timeSlot": {
+      "type": "object",
+      "required": ["startSec", "endSec", "function"],
+      "additionalProperties": false,
+      "properties": {
+        "startSec": { "type": "number", "minimum": 0 },
+        "endSec": { "type": "number", "minimum": 0 },
+        "function": {
+          "type": "string",
+          "enum": [
+            "establish",
+            "introduce_subject",
+            "develop",
+            "climax",
+            "resolve",
+            "dialogue",
+            "reaction",
+            "bridge",
+            "empty_shot",
+            "insert",
+            "overlay"
+          ]
+        },
+        "slotKind": {
+          "type": "string",
+          "enum": ["segment", "empty_shot", "insert", "overlay", "reaction"],
+          "description": "v1.2+: short inserts and empty openings live inside parent shots, not as overlapping top-level shots."
+        },
+        "slotId": {
+          "type": "string",
+          "pattern": "^[A-Z0-9][A-Z0-9_-]{2,}$",
+          "description": "Stable insert/slot identity for scene-pack binding and HTML data-slot-id."
+        },
+        "executionMode": {
+          "type": "string",
+          "enum": ["static_asset", "inherit_parent", "separate_generation"],
+          "description": "v1.2+ execution hint: static_asset uses scene-pack still; inherit_parent rides parent video task; separate_generation gets its own video task."
+        },
+        "classification": { "$ref": "#/$defs/classification" },
+        "dialogueId": { "type": "string" },
+        "label": { "type": "string" },
+        "visualDescription": { "type": "string" },
+        "camera": { "type": "string" },
+        "action": { "type": "string" },
+        "audio": { "type": "string" }
+      }
+    },
+    "entityDelta": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "description": "State change notation, e.g. prop:coffee_stain=new, emotion:hero=suppress→ignite"
+      }
+    },
+    "modelRequirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minDurationSec": {
+          "type": "number",
+          "minimum": 4,
+          "description": "Minimum clip length this shot needs. Usually equals shot.durationSec."
+        },
+        "requiresLongClip": {
+          "type": "boolean",
+          "description": "True when durationSec > 15 and the shot should stay unsplit because cutting would hurt continuity."
+        },
+        "executionTier": {
+          "type": "string",
+          "enum": ["universal", "long_clip", "must_split"],
+          "description": "UI/routing badge derived from durationSec. universal <=15s and preferred for normal execution; long_clip 16-30s for continuity-critical shots; must_split >30s until split into child shots."
+        }
+      }
+    },
+    "shot": {
+      "type": "object",
+      "required": [
+        "shotId",
+        "beatId",
+        "index",
+        "startSec",
+        "endSec",
+        "durationSec",
+        "narrativeFunction",
+        "openingShot",
+        "endingShot"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "shotId": {
+          "type": "string",
+          "pattern": "^E\\d{2,3}-S\\d{2,3}(?:[a-z])?$",
+          "description": "Example: E01-S04 or E01-S04a after beat split."
+        },
+        "beatId": {
+          "type": "string",
+          "pattern": "^E\\d{2,3}-B\\d{2,3}$"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "startSec": { "type": "number", "minimum": 0 },
+        "endSec": { "type": "number", "minimum": 0 },
+        "durationSec": {
+          "type": "number",
+          "minimum": 4,
+          "maximum": 120,
+          "description": "Dramatic duration for this shot. Author by story breathing, not provider ceiling. Prefer 12-15s for normal executable scenes when possible; shots >30s must be split into child shots before execution."
+        },
+        "narrativeFunction": {
+          "type": "string",
+          "description": "What this clip accomplishes in one phrase."
+        },
+        "classification": {
+          "$ref": "#/$defs/classification",
+          "description": "v1.2+: dimensional shot typing. displayType is adapter/UI only."
+        },
+        "beatType": {
+          "type": "string",
+          "description": "Usually mirrors parent beat.type; may be more specific."
+        },
+        "camera": { "type": "string" },
+        "openingShot": { "type": "string" },
+        "endingShot": { "type": "string" },
+        "bridgeHint": {
+          "type": "string",
+          "description": "How this shot hands off to the next shot visually or sonically."
+        },
+        "causalLinkToNext": {
+          "type": "string",
+          "description": "Story cause that motivates the next shot."
+        },
+        "continuityFlags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "LOOK codes, prop states, wounds, location geometry to preserve."
+        },
+        "entityDelta": { "$ref": "#/$defs/entityDelta" },
+        "timeSlots": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/timeSlot" },
+          "description": "Internal micro-timing inside the clip. Adapter may render to Seedance timestamps or semantic shot blocks."
+        },
+        "dialogue": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["speaker", "line"],
+            "properties": {
+              "speaker": { "type": "string" },
+              "delivery": { "type": "string" },
+              "line": { "type": "string" },
+              "atSec": { "type": "number" },
+              "dialogueId": { "type": "string" }
+            }
+          }
+        },
+        "dialogueWordBudget": {
+          "type": "object",
+          "description": "Optional spoken dialogue cap for this shot. Build validates against locale defaults when omitted.",
+          "required": ["max", "unit"],
+          "properties": {
+            "max": { "type": "integer", "minimum": 0 },
+            "unit": { "type": "string", "enum": ["words", "chars"] }
+          }
+        },
+        "audioCues": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "actionBeats": {
+          "type": "array",
+          "maxItems": 2,
+          "items": { "type": "string" },
+          "description": "At most 1-2 visible action beats per provider clip."
+        },
+        "modelRequirements": {
+          "$ref": "#/$defs/modelRequirements",
+          "description": "Derived from durationSec at authoring time. Execution layer uses this to pick Seedance 2.0 / 2.5 / split / extend."
+        },
+        "videoMode": {
+          "type": "string",
+          "enum": [
+            "image2video",
+            "frames2video",
+            "multiframe2video",
+            "multimodal2video",
+            "extend"
+          ],
+          "default": "image2video"
+        },
+        "promptMode": {
+          "type": "string",
+          "enum": ["compact", "timestamp", "semantic_shots"],
+          "default": "compact"
+        },
+        "keyframeGate": {
+          "type": "string",
+          "enum": ["required", "optional", "skip"],
+          "default": "optional",
+          "description": "required = approve storyboard frame before video spend."
+        },
+        "transition": {
+          "type": "string",
+          "enum": [
+            "match_on_action",
+            "motivated_cut",
+            "hard_cut",
+            "sound_bridge",
+            "light_carryover",
+            "occlusion"
+          ]
+        },
+        "splitOf": {
+          "type": "string",
+          "description": "Parent shotId when this row is a provider-limit split."
+        },
+        "providerClipId": {
+          "type": "string",
+          "description": "Maps to WodeApp scene id after package build."
+        },
+        "riskNotes": { "type": "string" }
+      }
+    },
+    "reviewIssue": {
+      "type": "object",
+      "required": ["tier", "code", "message"],
+      "properties": {
+        "tier": { "type": "string", "enum": ["P0", "P1", "accepted_risk"] },
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "shotId": { "type": "string" }
+      }
+    },
+    "review": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "enum": ["pass", "warn", "fail"] },
+        "issues": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/reviewIssue" }
+        }
+      }
+    }
+  }
+}

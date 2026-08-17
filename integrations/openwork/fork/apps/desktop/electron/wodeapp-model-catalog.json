@@ -1,0 +1,181 @@
+[
+  {
+    "apiId": "wode/doubao-pro",
+    "opencodeKey": "wode-doubao-pro",
+    "name": "豆包 Seed 2.1 Pro",
+    "subtitle": "字节 · 旗舰 · 多模态",
+    "upstreamId": "bytedance/doubao-seed-2-1-pro",
+    "tier": "high",
+    "capabilities": [
+      "chat",
+      "vision"
+    ],
+    "mediaInput": {
+      "image": "native",
+      "video": "native",
+      "pdf": "native",
+      "office": "extract",
+      "remoteImageUrl": true
+    },
+    "region": "china"
+  },
+  {
+    "apiId": "wode/doubao-turbo",
+    "opencodeKey": "wode-doubao-turbo",
+    "name": "豆包 Seed 2.1 Turbo",
+    "subtitle": "字节 · 高吞吐 · 多模态",
+    "upstreamId": "bytedance/doubao-seed-2-1-turbo",
+    "tier": "mid",
+    "capabilities": [
+      "chat",
+      "vision"
+    ],
+    "mediaInput": {
+      "image": "native",
+      "video": "native",
+      "pdf": "native",
+      "office": "extract",
+      "remoteImageUrl": true
+    },
+    "region": "china"
+  },
+  {
+    "apiId": "wode/deepseek-v4-pro",
+    "opencodeKey": "wode-deepseek-v4-pro",
+    "name": "Wode DeepSeek V4 Pro",
+    "subtitle": "深度推理",
+    "upstreamId": "deepseek/deepseek-v4-pro",
+    "tier": "high",
+    "capabilities": [
+      "chat"
+    ],
+    "region": "china"
+  },
+  {
+    "apiId": "wode/deepseek-v4-flash",
+    "opencodeKey": "wode-deepseek-v4-flash",
+    "name": "Wode DeepSeek V4 Flash",
+    "subtitle": "快速对话",
+    "upstreamId": "deepseek/deepseek-v4-flash",
+    "tier": "low",
+    "capabilities": [
+      "chat"
+    ],
+    "region": "china"
+  },
+  {
+    "apiId": "wode/qwen3.8-max",
+    "opencodeKey": "wode-qwen3.8-max",
+    "name": "通义千问 3.8 Max",
+    "subtitle": "阿里 · 多模态 · 长上下文",
+    "upstreamId": "qwen3.8-max",
+    "tier": "high",
+    "capabilities": [
+      "chat",
+      "vision"
+    ],
+    "mediaInput": {
+      "image": "native",
+      "video": "native",
+      "pdf": "native",
+      "office": "extract",
+      "remoteImageUrl": true
+    },
+    "region": "china"
+  },
+  {
+    "apiId": "wode/minimax-m3",
+    "opencodeKey": "wode-minimax-m3",
+    "name": "MiniMax M3",
+    "subtitle": "MiniMax · 多模态 · Agent",
+    "upstreamId": "minimax/MiniMax-M3",
+    "tier": "high",
+    "capabilities": [
+      "chat",
+      "vision"
+    ],
+    "mediaInput": {
+      "image": "native",
+      "video": "native",
+      "pdf": "file_api",
+      "office": "file_api",
+      "remoteImageUrl": true
+    },
+    "region": "china"
+  },
+  {
+    "apiId": "wode/kimi-k3",
+    "opencodeKey": "wode-kimi-k3",
+    "name": "Kimi K3",
+    "subtitle": "Moonshot · 旗舰 · 1M 上下文",
+    "upstreamId": "moonshotai/kimi-k3",
+    "tier": "high",
+    "capabilities": [
+      "chat",
+      "vision"
+    ],
+    "mediaInput": {
+      "image": "native",
+      "video": "native",
+      "pdf": "file_api",
+      "office": "file_api",
+      "remoteImageUrl": false
+    },
+    "contextWindow": 1048576,
+    "region": "china"
+  },
+  {
+    "apiId": "wode/kimi-code-k3",
+    "opencodeKey": "wode-kimi-code-k3",
+    "name": "Kimi Code K3",
+    "subtitle": "Kimi Code · 1M 上下文 · 图/视频",
+    "upstreamId": "kimicode/k3",
+    "tier": "high",
+    "capabilities": [
+      "chat",
+      "vision"
+    ],
+    "mediaInput": {
+      "image": "native",
+      "video": "native",
+      "pdf": "extract",
+      "office": "extract",
+      "remoteImageUrl": false
+    },
+    "contextWindow": 1048576,
+    "region": "china"
+  },
+  {
+    "apiId": "wode/kimi-code-k3-256k",
+    "opencodeKey": "wode-kimi-code-k3-256k",
+    "name": "Kimi Code K3 256K",
+    "subtitle": "Kimi Code · 256K · 图（无视频）",
+    "upstreamId": "kimicode/k3-256k",
+    "tier": "high",
+    "capabilities": [
+      "chat",
+      "vision"
+    ],
+    "mediaInput": {
+      "image": "native",
+      "video": "unsupported",
+      "pdf": "extract",
+      "office": "extract",
+      "remoteImageUrl": false
+    },
+    "contextWindow": 262144,
+    "region": "china"
+  },
+  {
+    "apiId": "wode/glm-5.2",
+    "opencodeKey": "wode-glm-5.2",
+    "name": "GLM 5.2",
+    "subtitle": "Z.ai · 长上下文 · 代码",
+    "upstreamId": "z-ai/glm-5.2",
+    "tier": "high",
+    "capabilities": [
+      "chat"
+    ],
+    "region": "china"
+  }
+]

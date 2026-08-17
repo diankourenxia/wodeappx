@@ -1,0 +1,19 @@
+client_id = "0a73c83239124dd2a705a775b0b0094b"
+name = "wodeappx"
+application_url = "https://wodeapp.ai/mainserver/api/shopify/connect/start"
+embedded = false
+
+[webhooks]
+api_version = "2026-07"
+
+[access_scopes]
+scopes = "read_products,write_products,read_inventory,write_inventory,read_locations"
+optional_scopes = [ ]
+use_legacy_install_flow = true
+
+[auth]
+redirect_urls = [
+  "https://wodeapp.ai/mainserver/api/shopify/connect/callback",
+  "https://wodeapp.cn/mainserver/api/shopify/connect/callback",
+  "http://localhost:3100/mainserver/api/shopify/connect/callback"
+]

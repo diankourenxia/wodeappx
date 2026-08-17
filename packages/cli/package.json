@@ -1,0 +1,14 @@
+{
+  "name": "@wodeapp/app-cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "wodeapp CLI — onboard, chat, skill materialize",
+  "bin": {
+    "wodeapp": "src/cli.ts"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@wodeapp/app-core": "workspace:*"
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "WodeApp Short Drama Factory"
+  short_description: "Script-to-assets short drama pipeline"
+  default_prompt: "Use $wodeapp-short-drama-factory to create a full short-drama package, split episodes into clips, define characters, and batch-generate WodeApp assets."

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WodeAppX Browser Control E2E</title>
+    <style>
+      body {
+        max-width: 760px;
+        margin: 40px auto;
+        padding: 0 20px;
+        color: #172033;
+        font: 16px/1.5 system-ui, sans-serif;
+      }
+      section {
+        display: grid;
+        gap: 12px;
+        margin-top: 24px;
+        padding: 20px;
+        border: 1px solid #ccd4e0;
+        border-radius: 12px;
+      }
+      input,
+      select,
+      button {
+        min-height: 40px;
+        padding: 8px 12px;
+        font: inherit;
+      }
+      #event-log {
+        min-height: 48px;
+        padding: 12px;
+        background: #f3f6fa;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>WodeAppX 浏览器控制真实测试</h1>
+    <p id="test-state">idle</p>
+
+    <section aria-label="unique-actions">
+      <label for="name-input">测试名称</label>
+      <input id="name-input" name="name" placeholder="输入测试名称" autocomplete="off" />
+      <label for="secret-input">测试密码</label>
+      <input id="secret-input" name="secret" type="password" value="must-not-leak" />
+      <label for="mode-select">运行模式</label>
+      <select id="mode-select" name="mode">
+        <option value="safe">安全</option>
+        <option value="full">完整</option>
+      </select>
+      <button id="unique-action" type="button">执行唯一操作</button>
+    </section>
+
+    <section aria-label="ambiguous-actions">
+      <button class="duplicate-action" type="button">重复操作</button>
+      <button class="duplicate-action" type="button">重复操作</button>
+    </section>
+
+    <section aria-label="results">
+      <strong>事件日志</strong>
+      <output id="event-log">none</output>
+    </section>
+
+    <script>
+      const nameInput = document.querySelector("#name-input");
+      const testState = document.querySelector("#test-state");
+      const eventLog = document.querySelector("#event-log");
+
+      function record(value) {
+        testState.textContent = "changed";
+        eventLog.textContent = value;
+      }
+
+      nameInput.addEventListener("input", (event) => {
+        record(`input:${event.target.value}`);
+      });
+      nameInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") record(`enter:${event.target.value}`);
+      });
+      document.querySelector("#mode-select").addEventListener("change", (event) => {
+        record(`select:${event.target.value}`);
+      });
+      document.querySelector("#unique-action").addEventListener("click", () => {
+        record(`click:${nameInput.value || "empty"}`);
+      });
+      document.querySelectorAll(".duplicate-action").forEach((button, index) => {
+        button.addEventListener("click", () => record(`duplicate:${index + 1}`));
+      });
+    </script>
+  </body>
+</html>

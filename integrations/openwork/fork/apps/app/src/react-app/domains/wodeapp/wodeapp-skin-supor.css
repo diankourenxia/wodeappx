@@ -1,0 +1,737 @@
+/**
+ * Supor shell — kitchen-appliance brand desk over Appearance (light/dark).
+ * Brand orange: official SUPOR #FF6600 (display/accent).
+ * CTA / active fill: #C24F00 so white text stays WCAG AA.
+ * Appearance = html[data-theme=light|dark]; brand tokens ride on top.
+ * Contrast: solid AA tokens (see scripts/lib/skin-contrast.mjs).
+ */
+
+.wapp-workspace-shell.wapp-skin-supor {
+  color-scheme: light;
+  --supor-ink: #1A1A1A;
+  --supor-ink-soft: #2C2C2C;
+  --supor-secondary: #4A4A4A;
+  --supor-orange: #FF6600;
+  --supor-orange-deep: #C24F00;
+  --supor-orange-hover: #B34700;
+  --supor-link: #B34700;
+  --supor-orange-bright: #FF8533;
+  --supor-pearl: #F7F7F5;
+  --supor-sidebar: #FFFFFF;
+  --supor-sidebar-text: #1A1A1A;
+  --supor-sidebar-secondary: #B34700;
+  --supor-sidebar-meta: #4A4A4A;
+  --supor-sidebar-icon: #C24F00;
+  --supor-panel: #F7F7F5;
+  --supor-chip-bg: #FFFFFF;
+  --supor-topbar-bg: rgba(255, 255, 255, 0.94);
+  --supor-session-id-bg: #FFFFFF;
+  --supor-session-id-hover: #FFF8F4;
+  --supor-chip-hover: #FFF7F0;
+  --supor-scrollbar: #D6C4B4;
+  --supor-toggle: #4A4A4A;
+  --supor-toggle-hover-bg: rgba(194, 79, 0, 0.1);
+  --supor-cta-hover: #A64400;
+  --supor-on-accent: #FFFFFF;
+  /* Neutral hairlines — avoid orange borders stacking as “太多线” */
+  --supor-line: rgba(26, 26, 26, 0.08);
+  --supor-chip-border: rgba(26, 26, 26, 0.1);
+  --supor-sidebar-edge: rgba(26, 26, 26, 0.06);
+  grid-template-columns: 300px minmax(0, 1fr);
+  background:
+    radial-gradient(900px 420px at 82% -10%, rgba(255, 102, 0, 0.07), transparent 55%),
+    linear-gradient(165deg, #FFFFFF 0%, var(--supor-pearl) 48%, #F0EEEA 100%);
+  color: var(--supor-ink);
+}
+
+/* Skin grid (300px) outranks base .is-sidebar-collapsed — must restate collapse. */
+.wapp-workspace-shell.wapp-skin-supor.is-sidebar-collapsed {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+.wapp-skin-supor .wapp-nav-agent-group-label {
+  display: none !important;
+}
+
+.wapp-skin-supor > .wapp-sidebar {
+  position: relative;
+  z-index: 5;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--supor-sidebar-edge);
+  background-color: var(--supor-sidebar) !important;
+  background-image: none;
+  color: var(--supor-sidebar-text);
+  box-shadow: none;
+  contain: paint;
+}
+
+.wapp-skin-supor > .wapp-sidebar-toggle {
+  color: var(--supor-toggle);
+}
+
+.wapp-skin-supor > .wapp-sidebar-toggle:hover {
+  background: var(--supor-toggle-hover-bg);
+  color: var(--supor-ink);
+}
+
+.wapp-skin-supor.is-sidebar-collapsed > .wapp-sidebar-toggle {
+  color: var(--supor-toggle);
+}
+
+.wapp-skin-supor.is-sidebar-collapsed > .wapp-sidebar-toggle:hover {
+  background: var(--supor-toggle-hover-bg);
+  color: var(--supor-ink);
+}
+
+.wapp-skin-supor > .wapp-sidebar::before {
+  display: none;
+}
+
+.wapp-skin-supor > .wapp-workspace-main {
+  position: relative;
+  z-index: 1;
+  border-left: 0;
+  background: transparent;
+  overflow: hidden;
+  isolation: isolate;
+  contain: paint;
+}
+
+.wapp-skin-supor .wapp-main-panel,
+.wapp-skin-supor .wapp-content,
+.wapp-skin-supor .wapp-session-embed [data-slot="sidebar-inset"] {
+  background: transparent;
+}
+
+.wapp-skin-supor .wapp-sidebar-top {
+  padding: 18px 20px 0;
+}
+
+.wapp-skin-supor .wapp-brand-spacer {
+  display: grid;
+  align-content: end;
+  /* Extra clearance under traffic lights; room for SUPOR + 苏泊尔 lockup. */
+  height: 96px;
+  margin: 0 0 16px;
+  border-bottom: 0;
+}
+
+html.openwork-electron .wapp-skin-supor .wapp-brand-spacer {
+  height: 104px;
+}
+
+.wapp-skin-supor .wapp-brand-spacer::before {
+  display: block;
+  padding: 0 2px 8px;
+  content: "SUPOR";
+  color: var(--supor-sidebar-meta);
+  font-family: Arial, Helvetica, "Helvetica Neue", sans-serif;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.34em;
+  line-height: 1;
+}
+
+.wapp-skin-supor .wapp-brand-spacer::after {
+  display: block;
+  padding: 0 2px 14px;
+  content: "苏泊尔智能体";
+  color: var(--supor-orange);
+  font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+}
+
+.wapp-skin-supor .wapp-new-chat {
+  width: 100%;
+  min-height: 46px;
+  margin: 2px 0 18px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--supor-orange-deep);
+  color: var(--supor-on-accent);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.wapp-skin-supor .wapp-new-chat:hover {
+  background: var(--supor-cta-hover);
+  color: var(--supor-on-accent);
+}
+
+.wapp-skin-supor .wapp-sidebar-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 20px 20px;
+  background-color: var(--supor-sidebar);
+  scrollbar-color: var(--supor-scrollbar) transparent;
+}
+
+.wapp-skin-supor .wapp-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--supor-panel);
+}
+
+.wapp-skin-supor .wapp-nav-subtree {
+  margin: 4px 0 6px 4px;
+  padding: 6px 0 6px 10px;
+  border-left: 0;
+}
+
+.wapp-skin-supor .wapp-nav-item,
+.wapp-skin-supor .wapp-nav-toggle,
+.wapp-skin-supor .wapp-nav-subitem,
+.wapp-skin-supor .wapp-recent-item,
+.wapp-skin-supor .wapp-recent-group-head {
+  border-radius: 8px;
+  color: var(--supor-sidebar-text);
+}
+
+.wapp-skin-supor .wapp-nav-item span,
+.wapp-skin-supor .wapp-nav-subitem-title {
+  color: var(--supor-sidebar-text);
+}
+
+.wapp-skin-supor .wapp-nav-subitem-meta {
+  color: var(--supor-sidebar-meta);
+}
+
+.wapp-skin-supor .wapp-recent-title,
+.wapp-skin-supor .wapp-recent-item-head,
+.wapp-skin-supor .wapp-recent-group-head,
+.wapp-skin-supor .wapp-recent-group-title,
+.wapp-skin-supor .wapp-recent-group-label {
+  color: var(--supor-sidebar-text);
+}
+
+.wapp-skin-supor .wapp-recent-meta,
+.wapp-skin-supor .wapp-recent-count,
+.wapp-skin-supor .wapp-project-count,
+.wapp-skin-supor .wapp-recent-group-count {
+  color: var(--supor-sidebar-meta);
+}
+
+.wapp-skin-supor .wapp-nav-item:hover,
+.wapp-skin-supor .wapp-nav-subitem:hover,
+.wapp-skin-supor .wapp-recent-row:hover .wapp-recent-item {
+  background: var(--supor-orange-hover);
+  color: #FFFFFF;
+}
+
+.wapp-skin-supor .wapp-nav-item.is-active,
+.wapp-skin-supor .wapp-nav-subitem.is-active,
+.wapp-skin-supor .wapp-recent-row.is-active .wapp-recent-item {
+  background: var(--supor-orange-deep);
+  color: #FFFFFF;
+  box-shadow: inset 3px 0 0 var(--supor-orange);
+}
+
+.wapp-skin-supor .wapp-nav-item.is-active span,
+.wapp-skin-supor .wapp-nav-subitem.is-active .wapp-nav-subitem-title,
+.wapp-skin-supor .wapp-nav-item:hover span,
+.wapp-skin-supor .wapp-nav-subitem:hover .wapp-nav-subitem-title {
+  color: #FFFFFF;
+}
+
+/* contrast-gate:active-recent */
+.wapp-skin-supor .wapp-recent-row.is-active .wapp-recent-item,
+.wapp-skin-supor .wapp-recent-row.is-active .wapp-recent-item *,
+.wapp-skin-supor .wapp-recent-row:hover .wapp-recent-item,
+.wapp-skin-supor .wapp-recent-row:hover .wapp-recent-item * {
+  color: #FFFFFF;
+}
+
+.wapp-skin-supor .wapp-nav-icon {
+  color: var(--supor-sidebar-icon);
+}
+
+.wapp-skin-supor .wapp-sidebar-section {
+  margin-top: 2px;
+  padding: 10px 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--supor-panel);
+}
+
+.wapp-skin-supor .wapp-sidebar-label,
+.wapp-skin-supor .wapp-sidebar-label-row .wapp-sidebar-label {
+  color: var(--supor-sidebar-secondary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.wapp-skin-supor .wapp-recent-item {
+  min-height: 40px;
+  padding: 8px 10px;
+}
+
+.wapp-skin-supor .wapp-recent-title {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.wapp-skin-supor .wapp-recent-expand {
+  margin-top: 8px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--supor-chip-bg);
+  color: var(--supor-sidebar-text);
+}
+
+.wapp-skin-supor .wapp-topbar {
+  min-height: 48px;
+  padding: 0 36px;
+  border-bottom: 1px solid var(--supor-sidebar-edge);
+  background: var(--supor-topbar-bg);
+}
+
+.wapp-skin-supor .wapp-breadcrumb,
+.wapp-skin-supor .wapp-breadcrumb strong,
+.wapp-skin-supor .wapp-breadcrumb-link {
+  color: var(--supor-ink-soft);
+}
+
+.wapp-skin-supor .wapp-session-id {
+  border-color: var(--supor-line);
+  background: var(--supor-session-id-bg);
+  color: var(--supor-ink-soft);
+}
+
+.wapp-skin-supor .wapp-session-id:hover,
+.wapp-skin-supor .wapp-session-id:focus-visible {
+  border-color: var(--supor-orange);
+  background: var(--supor-session-id-hover);
+}
+
+.wapp-skin-supor .wapp-session-id-value {
+  color: var(--supor-ink);
+}
+
+.wapp-skin-supor .wapp-session-id-icon {
+  color: var(--supor-orange);
+}
+
+.wapp-skin-supor .wapp-session-report {
+  border-color: var(--supor-line);
+  background: var(--supor-session-id-bg);
+  color: var(--supor-ink-soft);
+}
+
+.wapp-skin-supor .wapp-session-report:hover,
+.wapp-skin-supor .wapp-session-report:focus-visible {
+  border-color: var(--supor-orange);
+  background: var(--supor-session-id-hover);
+  color: var(--supor-ink);
+}
+
+.wapp-skin-supor .wapp-session-report-icon {
+  color: var(--supor-orange);
+}
+
+.wapp-skin-supor .wapp-help-button,
+.wapp-skin-supor .wapp-mobile-button,
+.wapp-skin-supor .wapp-icon-button {
+  border-color: var(--supor-line) !important;
+  background: var(--supor-chip-bg);
+  color: var(--supor-link);
+  border-radius: 8px;
+}
+
+.wapp-skin-supor .wapp-session-surface {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--supor-pearl);
+  color: var(--supor-ink);
+}
+
+.wapp-skin-supor .wapp-session-embed,
+.wapp-skin-supor .wapp-session-embed [data-slot="sidebar-inset"],
+.wapp-skin-supor .wapp-main-panel,
+.wapp-skin-supor .wapp-content {
+  background: transparent !important;
+}
+
+.wapp-skin-supor .wapp-session-surface .wapp-composer-shell,
+.wapp-skin-supor .wapp-session-surface .shrink-0.px-0.pb-2.pt-2 {
+  background: transparent !important;
+  border-top: 0 !important;
+}
+
+.wapp-skin-supor .wapp-composer-dock-top .relative.overflow-visible.rounded-\[24px\],
+.wapp-skin-supor .wapp-composer-dock .relative.overflow-visible.rounded-\[24px\] {
+  border-color: var(--supor-line);
+  background: var(--supor-chip-bg);
+  box-shadow: none;
+}
+
+.wapp-skin-supor .wapp-session-surface > * {
+  position: relative;
+  z-index: 1;
+}
+
+.wapp-skin-supor .wapp-session-surface > .relative.min-h-0.flex-1 {
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.wapp-skin-supor .wapp-session-surface > .relative.min-h-0.flex-1 > .absolute.inset-0 {
+  z-index: 1;
+}
+
+.wapp-skin-supor .wapp-session-surface-top-composer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  padding: clamp(24px, 6vh, 64px) clamp(28px, 5vw, 48px);
+  background: transparent;
+  overflow: hidden;
+}
+
+.wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-hero-strip {
+  display: none;
+}
+
+.wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-composer-top {
+  width: min(100%, 760px);
+  margin: 0 auto;
+}
+
+.wapp-skin-supor .wapp-session-hero-copy {
+  grid-area: copy;
+  min-width: 0;
+}
+
+.wapp-skin-supor .wapp-session-hero-mirror {
+  display: none;
+}
+
+.wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--supor-link);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: none;
+}
+
+.wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-hero-kicker::before {
+  content: "";
+  width: 18px;
+  height: 2px;
+  background: var(--supor-orange);
+}
+
+.wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-hero-strip h1 {
+  max-width: 16ch;
+  margin-top: 8px;
+  color: var(--supor-ink);
+  font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: clamp(28px, 3.6vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+.wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-hero-strip p {
+  max-width: 36ch;
+  margin-top: 8px;
+  color: var(--supor-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-hero-chips {
+  grid-area: chips;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+
+.wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-hero-chip {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 36px;
+  max-width: 100%;
+  padding: 8px 14px;
+  border: 1px solid var(--supor-chip-border);
+  border-radius: 999px;
+  background: var(--supor-chip-bg);
+  color: var(--supor-ink);
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: none;
+}
+
+.wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-hero-chip::before {
+  content: none;
+}
+
+.wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-hero-chip:hover {
+  border-color: var(--supor-orange);
+  color: var(--supor-link);
+  background: var(--supor-chip-hover);
+}
+
+@media (max-width: 900px) {
+  .wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-hero-strip {
+    gap: 12px;
+  }
+
+  .wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-hero-chips {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .wapp-skin-supor .wapp-session-surface-top-composer .wapp-session-hero-chips {
+    flex-wrap: wrap;
+  }
+}
+
+/* Asset library + chrome: one Supor orange family (no teal / blue / purple accents). */
+.wapp-skin-supor {
+  --wx-asset-theme: #C24F00;
+  --wx-asset-theme-strong: #B34700;
+  --wx-asset-theme-rgb: 194 79 0;
+  --asset-accent: #C24F00;
+  --asset-brand-secondary: #FF6600;
+}
+
+.wapp-skin-supor .wapp-nav-icon,
+.wapp-skin-supor .wapp-nav-item svg,
+.wapp-skin-supor .wapp-nav-subitem svg,
+.wapp-skin-supor .wapp-nav-toggle svg {
+  color: var(--supor-sidebar-icon) !important;
+}
+
+.wapp-skin-supor .wapp-nav-item.is-active .wapp-nav-icon,
+.wapp-skin-supor .wapp-nav-item.is-active svg,
+.wapp-skin-supor .wapp-nav-item:hover .wapp-nav-icon,
+.wapp-skin-supor .wapp-nav-item:hover svg {
+  color: #FFFFFF !important;
+}
+
+.wapp-skin-supor.wapp-workspace-shell:has(.wx-asset-library) .wapp-new-chat {
+  border: 0;
+  background: var(--supor-orange-deep);
+  color: #FFFFFF;
+}
+
+.wapp-skin-supor.wapp-workspace-shell:has(.wx-asset-library) .wapp-nav-item.is-active {
+  background: var(--supor-orange-deep);
+  color: #FFFFFF;
+}
+
+.wapp-skin-supor .wx-surface-frame:has(.wx-asset-library),
+.wapp-skin-supor .wx-surface-frame:has(.wx-asset-design-frame) {
+  --wx-asset-theme: #C24F00;
+  --wx-asset-theme-strong: #B34700;
+  --wx-asset-theme-rgb: 194 79 0;
+}
+
+.wapp-skin-supor .wx-surface-frame:has(.wx-asset-library) > header {
+  border-bottom-color: rgba(26, 26, 26, 0.08);
+}
+
+.wapp-skin-supor .wapp-surface-toolbar-button.is-primary,
+.wapp-skin-supor .wx-asset-footer-actions button.is-primary,
+.wapp-skin-supor .wx-asset-modal > footer button.is-primary,
+.wapp-skin-supor .wx-asset-modal.is-product-modal > footer button.is-primary,
+.wapp-skin-supor .wx-asset-modal.is-brand-modal > footer button.is-primary,
+.wapp-skin-supor .wx-feishu-commerce-button.is-primary,
+.wapp-skin-supor .wx-connector-btn.is-primary {
+  border-color: #C24F00 !important;
+  background: #C24F00 !important;
+  color: #FFFFFF !important;
+}
+
+.wapp-skin-supor .wapp-surface-toolbar-button.is-primary:hover,
+.wapp-skin-supor .wx-asset-footer-actions button.is-primary:hover:not(:disabled),
+.wapp-skin-supor .wx-asset-modal > footer button.is-primary:hover:not(:disabled),
+.wapp-skin-supor .wx-feishu-commerce-button.is-primary:hover:not(:disabled),
+.wapp-skin-supor .wx-connector-btn.is-primary:hover {
+  border-color: #B34700 !important;
+  background: #B34700 !important;
+  color: #FFFFFF !important;
+}
+
+.wapp-skin-supor .wx-asset-footer-actions button:hover:not(:disabled),
+.wapp-skin-supor .wx-asset-footer-actions button:focus-visible:not(:disabled) {
+  border-color: rgba(194, 79, 0, 0.38);
+  color: #B34700;
+}
+
+.wapp-skin-supor .wx-asset-footer-actions button.is-generate {
+  border-color: rgba(255, 102, 0, 0.35);
+  background: #FFF4EB;
+  color: #B34700;
+}
+
+.wapp-skin-supor .wx-asset-footer-actions button.is-generate:hover:not(:disabled),
+.wapp-skin-supor .wx-asset-footer-actions button.is-generate:focus-visible:not(:disabled) {
+  border-color: #C24F00;
+  background: #FFE8D6;
+  color: #C24F00;
+}
+
+.wapp-skin-supor .wx-asset-prompt-tile,
+.wapp-skin-supor .wx-asset-prompt-tile.is-video,
+.wapp-skin-supor .wx-asset-prompt-tile.is-image,
+.wapp-skin-supor .wx-asset-prompt-tile.is-people {
+  --asset-accent: #C24F00;
+  --asset-bg-1: #FFF9F5;
+  --asset-bg-2: #FFF1E6;
+}
+
+.wapp-skin-supor .wx-asset-hero-actions button.is-feishu,
+.wapp-skin-supor .wx-asset-hero-actions button.is-material,
+.wapp-skin-supor .wx-asset-create-bar button.is-material,
+.wapp-skin-supor .wx-asset-create-bar button.is-feishu {
+  border-color: rgba(26, 26, 26, 0.12) !important;
+  background: #FFFFFF !important;
+  color: #1A1A1A !important;
+}
+
+.wapp-skin-supor .wx-asset-hero-actions button.is-feishu:hover,
+.wapp-skin-supor .wx-asset-hero-actions button.is-feishu:focus-visible,
+.wapp-skin-supor .wx-asset-hero-actions button.is-material:hover,
+.wapp-skin-supor .wx-asset-hero-actions button.is-material:focus-visible {
+  border-color: rgba(194, 79, 0, 0.35) !important;
+  background: #FFF7F0 !important;
+  color: #B34700 !important;
+}
+
+.wapp-skin-supor .wx-asset-hero-actions button.is-brand,
+.wapp-skin-supor .wx-asset-create-bar button.is-brand {
+  border-color: #C24F00 !important;
+  background: #C24F00 !important;
+  color: #FFFFFF !important;
+}
+
+.wapp-skin-supor .wx-runtime-card {
+  border-color: var(--supor-line);
+  background: var(--supor-chip-bg);
+  color: var(--supor-ink);
+}
+
+.wapp-skin-supor .wx-account-trigger,
+.wapp-skin-supor .wx-account-trigger-copy strong,
+.wapp-skin-supor .wx-account-trigger-copy span {
+  color: var(--supor-ink);
+}
+
+.wapp-skin-supor .wx-account-trigger-copy span {
+  color: var(--supor-secondary);
+}
+
+/*
+ * Appearance dark — brand accents stay Supor orange; surfaces invert.
+ * Marker: contrast-gate:supor-dark
+ */
+html[data-theme="dark"] .wapp-workspace-shell.wapp-skin-supor {
+  color-scheme: dark;
+  --supor-ink: #F5F5F2;
+  --supor-ink-soft: #E8E8E3;
+  --supor-secondary: #C9C9C4;
+  --supor-orange: #FF6600;
+  --supor-orange-deep: #C24F00;
+  --supor-orange-hover: #B34700;
+  --supor-link: #FF8533;
+  --supor-orange-bright: #FF9A4D;
+  --supor-pearl: #141413;
+  --supor-sidebar: #1C1C1A;
+  --supor-sidebar-text: #F5F5F2;
+  --supor-sidebar-secondary: #FF8533;
+  --supor-sidebar-meta: #C9C9C4;
+  --supor-sidebar-icon: #FF8533;
+  --supor-panel: #242422;
+  --supor-chip-bg: #242422;
+  --supor-topbar-bg: rgba(20, 20, 19, 0.94);
+  --supor-session-id-bg: #242422;
+  --supor-session-id-hover: #2E241C;
+  --supor-chip-hover: #2E241C;
+  --supor-scrollbar: #5A4030;
+  --supor-toggle: #C9C9C4;
+  --supor-toggle-hover-bg: rgba(255, 133, 51, 0.16);
+  --supor-cta-hover: #A64400;
+  --supor-on-accent: #FFFFFF;
+  --supor-line: rgba(245, 245, 242, 0.12);
+  --supor-chip-border: rgba(245, 245, 242, 0.14);
+  --supor-sidebar-edge: rgba(245, 245, 242, 0.08);
+  background:
+    radial-gradient(900px 420px at 82% -10%, rgba(255, 102, 0, 0.14), transparent 55%),
+    linear-gradient(165deg, #0F0F0E 0%, #141413 48%, #1A1612 100%);
+  color: var(--supor-ink);
+}
+
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-prompt-tile,
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-prompt-tile.is-video,
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-prompt-tile.is-image,
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-prompt-tile.is-people {
+  --asset-accent: #C24F00;
+  --asset-bg-1: #2A2018;
+  --asset-bg-2: #1F1812;
+}
+
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-footer-actions button.is-generate {
+  border-color: rgba(255, 133, 51, 0.4);
+  background: #2E241C;
+  color: #FF8533;
+}
+
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-footer-actions button.is-generate:hover:not(:disabled),
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-footer-actions button.is-generate:focus-visible:not(:disabled) {
+  border-color: #FF8533;
+  background: #3A2C20;
+  color: #FF9A4D;
+}
+
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-hero-actions button.is-feishu,
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-hero-actions button.is-material,
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-create-bar button.is-material,
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-create-bar button.is-feishu {
+  border-color: rgba(245, 245, 242, 0.14) !important;
+  background: #242422 !important;
+  color: #F5F5F2 !important;
+}
+
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-hero-actions button.is-feishu:hover,
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-hero-actions button.is-feishu:focus-visible,
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-hero-actions button.is-material:hover,
+html[data-theme="dark"] .wapp-skin-supor .wx-asset-hero-actions button.is-material:focus-visible {
+  border-color: rgba(255, 133, 51, 0.45) !important;
+  background: #2E241C !important;
+  color: #FF8533 !important;
+}
+
+html[data-theme="dark"] .wapp-skin-supor .wx-runtime-card {
+  border-color: var(--supor-line);
+  background: var(--supor-panel);
+  color: var(--supor-ink);
+}

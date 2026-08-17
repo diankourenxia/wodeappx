@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WodeAppX Browser Control — Store Screenshot</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+      body { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #172033; background: #dfe4eb; }
+      .browser { display: grid; grid-template-rows: 84px minmax(0, 1fr); width: 1280px; height: 800px; background: #fff; }
+      .chrome { display: grid; grid-template-rows: 38px 46px; border-bottom: 1px solid #cfd5dd; background: #f1f3f6; }
+      .tabs { display: flex; align-items: end; gap: 8px; padding: 0 14px; }
+      .traffic { display: flex; align-items: center; gap: 7px; padding: 0 5px 11px 2px; }
+      .traffic span { width: 10px; height: 10px; border-radius: 50%; background: #c8cdd5; }
+      .tab { display: flex; align-items: center; width: 250px; height: 32px; padding: 0 14px; border-radius: 10px 10px 0 0; background: #fff; font-size: 12px; color: #414b5c; }
+      .tab img { width: 17px; height: 17px; margin-right: 8px; border-radius: 4px; }
+      .toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 7px 14px; background: #fff; }
+      .address { height: 32px; padding: 7px 14px; overflow: hidden; border-radius: 17px; background: #f1f3f6; color: #505968; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+      .toolbar-actions { display: flex; align-items: center; gap: 10px; }
+      .toolbar-actions img { width: 27px; height: 27px; border-radius: 8px; box-shadow: 0 2px 8px rgba(23, 105, 224, 0.18); }
+      .profile { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 50%; background: #edf1f5; color: #5a6473; font-size: 11px; font-weight: 700; }
+      .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 422px; min-height: 0; }
+      .page { min-width: 0; overflow: hidden; background: #f5f7fa; }
+      .appbar { display: flex; align-items: center; justify-content: space-between; height: 62px; padding: 0 28px; border-bottom: 1px solid #e3e7ed; background: #fff; }
+      .appbrand { font-size: 16px; font-weight: 720; color: #1a2540; }
+      .appnav { display: flex; gap: 24px; color: #6e7786; font-size: 12px; }
+      .appnav strong { color: #1769e0; }
+      .page-inner { padding: 28px; }
+      .title-row { display: flex; align-items: start; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+      h1 { margin: 0; font-size: 26px; line-height: 1.2; letter-spacing: -0.02em; }
+      .subtitle { margin: 7px 0 0; color: #7b8492; font-size: 12px; }
+      .primary { min-height: 36px; padding: 8px 14px; border: 0; border-radius: 8px; background: #1769e0; color: #fff; font-weight: 650; }
+      .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+      .stat, .card { border: 1px solid #e2e6ec; border-radius: 11px; background: #fff; box-shadow: 0 4px 14px rgba(30, 41, 59, 0.04); }
+      .stat { padding: 15px 16px; }
+      .stat span { display: block; color: #7b8492; font-size: 11px; }
+      .stat strong { display: block; margin-top: 5px; font-size: 22px; }
+      .stat.warn strong { color: #bf4e30; }
+      .card { overflow: hidden; }
+      .card-head { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 16px; border-bottom: 1px solid #e8ebef; }
+      .card-head strong { font-size: 13px; }
+      .filter { color: #687181; font-size: 11px; }
+      table { width: 100%; border-collapse: collapse; font-size: 11px; }
+      th, td { padding: 12px 15px; border-bottom: 1px solid #edf0f3; text-align: left; }
+      th { color: #7b8492; font-weight: 620; background: #fbfcfd; }
+      td { color: #3c4657; }
+      .status { display: inline-flex; padding: 3px 7px; border-radius: 999px; background: #fff1e9; color: #a84426; font-weight: 650; }
+      .sideframe { min-width: 0; min-height: 0; border-left: 1px solid #d7dce3; background: #fff; box-shadow: -6px 0 20px rgba(30, 41, 59, 0.08); }
+      .sideframe iframe { display: block; width: 100%; height: 100%; border: 0; }
+      .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 20px; }
+      .field { min-width: 0; }
+      .field.full { grid-column: 1 / -1; }
+      .field label { display: block; margin-bottom: 6px; color: #626c7c; font-size: 11px; font-weight: 650; }
+      .field div { min-height: 38px; padding: 10px 11px; overflow: hidden; border: 1px solid #d8dde4; border-radius: 8px; background: #fff; color: #313b4b; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+      .notice { margin: 0 20px 20px; padding: 12px 14px; border: 1px solid #b8d7c8; border-radius: 9px; background: #f0faf5; color: #176a46; font-size: 12px; }
+      .export-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 18px; }
+      .file-icon { display: grid; place-items: center; width: 42px; height: 48px; border-radius: 8px; background: #edf5ff; color: #1769e0; font-size: 11px; font-weight: 750; }
+      .export-card h2 { margin: 0; font-size: 14px; }
+      .export-card p { margin: 5px 0 0; color: #748091; font-size: 11px; }
+      .complete { padding: 6px 9px; border-radius: 999px; background: #eaf8f1; color: #14764d; font-size: 10px; font-weight: 680; }
+    </style>
+  </head>
+  <body>
+    <div class="browser">
+      <header class="chrome">
+        <div class="tabs">
+          <div class="traffic"><span></span><span></span><span></span></div>
+          <div class="tab"><img src="/icons/icon32.png" alt="" /><span id="tabTitle">订单管理</span></div>
+        </div>
+        <div class="toolbar">
+          <div id="address" class="address">merchant.example.com/orders</div>
+          <div class="toolbar-actions"><img src="/icons/icon32.png" alt="WodeAppX Browser Control" /><span class="profile">W</span></div>
+        </div>
+      </header>
+      <div class="workspace">
+        <section class="page">
+          <div class="appbar">
+            <div class="appbrand">Merchant Center</div>
+            <div class="appnav"><strong>概览</strong><span>订单</span><span>客户</span><span>商品</span><span>设置</span></div>
+          </div>
+          <main id="pageContent" class="page-inner"></main>
+        </section>
+        <aside class="sideframe"><iframe id="sidepanel" title="WodeAppX Browser Control"></iframe></aside>
+      </div>
+    </div>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('demo') || 'empty';
+      const content = document.getElementById('pageContent');
+      const orders = `
+        <div class="title-row"><div><h1>订单管理</h1><p class="subtitle">查看并处理全部客户订单</p></div><button class="primary">导出订单</button></div>
+        <div class="stats"><div class="stat"><span>今日订单</span><strong>64</strong></div><div class="stat"><span>待处理</span><strong>18</strong></div><div class="stat warn"><span>已逾期</span><strong>3</strong></div></div>
+        <div class="card"><div class="card-head"><strong>待处理订单</strong><span class="filter">今天 · 全部区域</span></div><table><thead><tr><th>订单号</th><th>客户</th><th>区域</th><th>金额</th><th>状态</th></tr></thead><tbody><tr><td>WO-20260723-018</td><td>上海星汇</td><td>华东</td><td>¥ 3,280</td><td><span class="status">待发货</span></td></tr><tr><td>WO-20260723-017</td><td>广州拓品</td><td>华南</td><td>¥ 1,960</td><td><span class="status">待审核</span></td></tr><tr><td>WO-20260723-016</td><td>杭州新创</td><td>华东</td><td>¥ 5,420</td><td><span class="status">已逾期</span></td></tr><tr><td>WO-20260723-015</td><td>深圳众合</td><td>华南</td><td>¥ 2,740</td><td><span class="status">待发货</span></td></tr></tbody></table></div>`;
+      const form = `
+        <div class="title-row"><div><h1>新建客户</h1><p class="subtitle">填写客户的基础资料与收货信息</p></div><button class="primary">保存客户</button></div>
+        <div class="card"><div class="card-head"><strong>客户资料</strong><span class="filter">提交前请确认</span></div><div class="form-grid"><div class="field"><label>客户姓名</label><div>林嘉怡</div></div><div class="field"><label>公司</label><div>上海星汇贸易有限公司</div></div><div class="field"><label>联系电话</label><div>138 0000 7821</div></div><div class="field"><label>付款方式</label><div>请选择</div></div><div class="field full"><label>收货地址</label><div>上海市浦东新区金科路 2889 号</div></div><div class="field full"><label>备注</label><div>等待确认后填写</div></div></div><div class="notice">WodeAppX 已填写现有资料，尚未提交。</div></div>`;
+      const result = `
+        <div class="title-row"><div><h1>导出中心</h1><p class="subtitle">任务生成的文件与历史导出记录</p></div></div>
+        <div class="card"><div class="card-head"><strong>今日导出</strong><span class="filter">刚刚更新</span></div><div class="export-card"><div class="file-icon">CSV</div><div><h2>今日待处理订单.csv</h2><p>18 条记录 · 包含订单号、客户、区域、金额和状态</p></div><span class="complete">已完成</span></div></div>`;
+      if (mode === 'form') {
+        document.getElementById('tabTitle').textContent = '新建客户';
+        document.getElementById('address').textContent = 'merchant.example.com/customers/new';
+        content.innerHTML = form;
+      } else if (mode === 'result') {
+        document.getElementById('tabTitle').textContent = '导出中心';
+        document.getElementById('address').textContent = 'merchant.example.com/exports';
+        content.innerHTML = result;
+      } else {
+        content.innerHTML = orders;
+      }
+      document.getElementById('sidepanel').src = `/sidepanel.html?demo=${encodeURIComponent(mode)}`;
+    </script>
+  </body>
+</html>

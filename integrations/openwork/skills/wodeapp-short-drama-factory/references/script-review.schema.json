@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wodeapp.cn/schemas/script-review.v1.json",
+  "title": "ScriptReviewReport",
+  "description": "Merged Gate 0 + dual-model capacity/craft review from script.wodeapp.cn. Must match manifest timingMeta.scriptHash. Viewer audit cannot substitute this report.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "scriptHash",
+    "targetDurationSec",
+    "reviewPolicyVersion",
+    "gate0",
+    "dualModel",
+    "merged"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "1.0" },
+    "scriptHash": { "type": "string", "minLength": 1 },
+    "targetDurationSec": { "type": "number", "minimum": 0 },
+    "reviewPolicyVersion": { "type": "string" },
+    "dualModel": { "type": "boolean" },
+    "acceptedRisk": { "type": "boolean" },
+    "stale": { "type": "boolean" },
+    "gate0": {
+      "type": "object",
+      "required": ["ok"],
+      "properties": {
+        "ok": { "type": "boolean" },
+        "message": { "type": "string" },
+        "tooDense": { "type": "boolean" }
+      }
+    },
+    "merged": {
+      "type": "object",
+      "required": ["status", "canGenerate", "blocked"],
+      "properties": {
+        "status": { "type": "string", "enum": ["pass", "warn", "needs_confirm", "block"] },
+        "canGenerate": { "type": "boolean" },
+        "blocked": { "type": "boolean" },
+        "requiresAcceptRisk": { "type": "boolean" },
+        "summary": { "type": "string" },
+        "hardBlocks": { "type": "array" },
+        "confirmBlocks": { "type": "array" },
+        "suggestions": { "type": "array" }
+      }
+    },
+    "reviews": { "type": "array" },
+    "modelIds": { "type": "array", "items": { "type": "string" } },
+    "createdAt": { "type": "string" }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wodeappx.local/schemas/builtin-agents.schema.json",
+  "title": "WodeAppX builtin-agents.default.json",
+  "description": "Shipped Layer 0 default agents baked into the package. Same config family as brand-agents.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "agents"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "const": 1 },
+    "layer": { "const": "builtin" },
+    "description": { "type": "string" },
+    "agents": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/builtinAgent" }
+    }
+  },
+  "$defs": {
+    "slugId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,62}$"
+    },
+    "builtinAgent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "kind", "samplePrompt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slugId" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "meta": { "type": "string", "maxLength": 80 },
+        "kind": {
+          "type": "string",
+          "enum": ["capability", "workflow", "orchestrator", "integration", "industry", "brand"]
+        },
+        "abilityKind": {
+          "type": "string",
+          "enum": ["image", "video", "short-drama", "canvas", "multi-agent"]
+        },
+        "defaultUrl": { "type": "string", "maxLength": 500 },
+        "entryPrompt": { "type": "string", "maxLength": 500 },
+        "samplePrompt": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "runtimeProfileId": { "type": "string", "maxLength": 64 },
+        "demoUrl": { "type": "string", "maxLength": 500 },
+        "autoSend": { "type": "boolean" },
+        "enabled": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+<div
+  id="wodeapp-ai-chat-root"
+  data-shop="{{ shop.permanent_domain | escape }}"
+  data-token="{{ block.settings.public_token | escape }}"
+  data-api-base="{{ block.settings.api_base | escape }}"
+  data-enabled="{% if block.settings.public_token != blank %}true{% else %}false{% endif %}"
+></div>
+
+{{ 'wodeapp-chat.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'wodeapp-chat.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "WodeApp AI Chat",
+  "target": "body",
+  "settings": [
+    {
+      "type": "text",
+      "id": "public_token",
+      "label": "Chat public token",
+      "info": "Copy from WodeApp → Storefront AI Chat"
+    },
+    {
+      "type": "text",
+      "id": "api_base",
+      "label": "API base URL",
+      "default": "https://wodeapp.cn/mainserver/api/shopify/storefront-chat"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,32 @@
+type WorkspaceRouteOptions = {
+  reloadOpencodeEngine: (config: ServerConfig, workspace: WorkspaceInfo) => Promise<void>;
+};
+
+export function registerWorkspaceRoutes({
+    reloadOpencodeEngine,
+  }: WorkspaceRouteOptions) {
+  addRoute(routes, "POST", "/workspaces/:id/activate", "host", async (ctx) => {
+    const workspace = await resolveWorkspaceForRegistry(ctx.params.id);
+    const wasActive = config.workspaces[0]?.id === workspace.id;
+    const queryPersist = parseOptionalBoolean(ctx.url.searchParams.get("persist"), "persist");
+    const body = queryPersist === undefined ? await readOptionalJsonBody(ctx.request) : {};
+    const persist = queryPersist ?? (body.persist === true);
+    if (persist) ensureWritable(config);
+    config.workspaces = [
+      workspace,
+      ...config.workspaces.filter((entry) => entry.id !== workspace.id),
+    ];
+    const persisted = persist ? await persistServerWorkspaceState(config) : false;
+    if (persist) onWorkspacesChanged();
+    if (
+      !wasActive &&
+      workspace.workspaceType === "local" &&
+      resolveWorkspaceOpencodeConnection(config, workspace).baseUrl?.trim()
+    ) {
+      await reloadOpencodeEngine(config, workspace);
+    }
+    return jsonResponse({ activeId: workspace.id, workspace: serializeWorkspace(workspace), persisted });
+  });
+
+  addRoute(routes, "DELETE", "/workspaces/:id", "host", async () => {});
+}

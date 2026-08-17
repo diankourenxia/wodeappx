@@ -1,0 +1,7 @@
+{
+  "name": "WodeApp AI Chat",
+  "settings": {
+    "public_token": "Chat public token",
+    "api_base": "API base URL"
+  }
+}

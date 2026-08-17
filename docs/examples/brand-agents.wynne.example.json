@@ -1,0 +1,23 @@
+{
+  "$schema": "../schemas/brand-agents.schema.json",
+  "version": 1,
+  "agents": [
+    {
+      "id": "wynne-brand-agent",
+      "name": "Wynne 品牌智能体",
+      "meta": "飞书 · Shopify · 品牌知识",
+      "brandId": "wynne",
+      "connectorScopes": ["shopify", "feishu"],
+      "knowledgeScopes": ["wynne"],
+      "workbench": "wynne",
+      "policy": [
+        "Never invent store data, connection state, prices, inventory, orders, or brand policy.",
+        "Read operations may run directly. Any external write must use the existing preview and approval gate.",
+        "Protect customer and order privacy, especially in group-channel responses."
+      ],
+      "entryPrompt": "向 Wynne 品牌智能体提问；需要数据时再检索 Shopify、飞书或品牌知识库。",
+      "samplePrompt": "使用 Wynne Runtime Profile；按需发现工具与知识，不预载品牌知识。",
+      "enabled": true
+    }
+  ]
+}

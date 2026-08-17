@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WodeAppX Browser Control</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body {
+        width: 320px;
+        margin: 0;
+        padding: 14px;
+        background: Canvas;
+        color: CanvasText;
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      label {
+        display: block;
+        margin: 10px 0 6px;
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      input {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 34px;
+        padding: 7px 9px;
+        border: 1px solid color-mix(in srgb, CanvasText 20%, transparent);
+        border-radius: 6px;
+        background: Canvas;
+        color: CanvasText;
+        font: inherit;
+      }
+
+      .status {
+        min-height: 20px;
+        margin: 8px 0 2px;
+        font-size: 12px;
+        line-height: 1.45;
+        overflow-wrap: break-word;
+      }
+
+      .row {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      button {
+        min-width: 0;
+        min-height: 34px;
+        flex: 1;
+        border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+        border-radius: 6px;
+        background: ButtonFace;
+        color: ButtonText;
+        font: inherit;
+        font-weight: 650;
+        cursor: pointer;
+        transition: border-color 0.15s, opacity 0.15s;
+      }
+
+      button.primary {
+        background: #1769e0;
+        border-color: #1769e0;
+        color: white;
+      }
+
+      button:disabled {
+        cursor: default;
+        opacity: 0.55;
+      }
+
+      .meta {
+        margin-top: 10px;
+        font-size: 11px;
+        line-height: 1.4;
+        color: color-mix(in srgb, CanvasText 64%, transparent);
+        overflow-wrap: break-word;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>WodeAppX Browser Control</h1>
+    <div id="status" class="status">Checking bridge...</div>
+
+    <label for="bridgeUrl">Bridge URL</label>
+    <input id="bridgeUrl" spellcheck="false" value="http://127.0.0.1:17654" />
+
+    <label for="bridgeToken">Token</label>
+    <input id="bridgeToken" type="password" spellcheck="false" autocomplete="off" />
+
+    <div class="row">
+      <button id="save" class="primary">Save</button>
+      <button id="connect">Connect</button>
+    </div>
+
+    <div id="meta" class="meta"></div>
+    <script src="popup.js"></script>
+  </body>
+</html>

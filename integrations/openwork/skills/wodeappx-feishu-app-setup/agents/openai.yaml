@@ -1,0 +1,4 @@
+interface:
+  display_name: "飞书应用与经营工作台"
+  short_description: "配置飞书应用并生成可发布的电商经营工作台"
+  default_prompt: "使用 $wodeappx-feishu-app-setup 检查飞书应用、生成经营工作台，并在扩权或发布前让我确认。"

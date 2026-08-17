@@ -1,0 +1,40 @@
+# 独立 wodeappx 仓库的 gitignore
+# 与原仓库的区别：vendor/openwork 已纳入版本管理（不再 ignore），
+# 只排除其构建产物与依赖目录。
+
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+dist-electron/
+dist-electron-test/
+out/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Rust / Swift 原生构建产物
+target/
+native/**/.build/
+
+# 二进制资源（构建时生成或从 npm 拉取）
+apps/desktop/resources/sidecars/
+apps/desktop/resources/helpers/
+vendor/openwork/apps/desktop/resources/sidecars/
+vendor/openwork/apps/desktop/resources/helpers/
+
+# 本地环境与密钥
+.env
+.env.*
+!.env.example
+
+# 发布产物与测试输出
+release/
+release-archive/
+test-results/
+evals/results/
+*.log
+
+# 系统文件
+.DS_Store

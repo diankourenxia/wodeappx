@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设计稿 04 · 能力中心（浅色 · 可交互）</title>
+<style>
+  :root {
+    --bg: #f4f5f8; --panel: #fafbfc; --card: #ffffff; --border: #e3e6ee;
+    --text: #1d2433; --muted: #6b7280; --accent: #3f6fe0; --accent-soft: #eef3fd;
+    --green: #17975f; --green-soft: #e7f7ef; --amber: #b3740e; --amber-soft: #fbf3e2; --gold: #b8860b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: linear-gradient(180deg, #eef3fd 0%, var(--bg) 320px); color: var(--text);
+         font-family: -apple-system, "PingFang SC", "Segoe UI", sans-serif; font-size: 14px; }
+  .page { max-width: 1060px; margin: 0 auto; padding: 32px 40px 64px; }
+  .page-head { display: flex; align-items: flex-start; justify-content: space-between; }
+  .page-title { font-size: 22px; font-weight: 650; display: flex; align-items: center; gap: 11px; }
+  .page-title .ic { width: 32px; height: 32px; border-radius: 10px; background: var(--accent-soft); border: 1px solid #cfddfa; position: relative; }
+  .page-title .ic::after { content: ""; position: absolute; inset: 9px; border-radius: 5px; background: var(--accent); }
+  .page-sub { color: var(--muted); font-size: 13px; margin-top: 7px; }
+  .btn { border: 1.5px solid var(--border); background: #fff; color: var(--text); border-radius: 9px; padding: 7px 15px; font-size: 12.5px; cursor: pointer; transition: background .15s; }
+  .btn:hover { background: var(--panel); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 550; }
+  .btn.primary:hover { background: #3562cc; }
+  .btn.primary:disabled { background: #9db6ef; border-color: #9db6ef; cursor: default; }
+  .btn.ghost { color: var(--muted); }
+  .btn.block { width: 100%; padding: 9px 0; font-size: 13px; }
+  .btn.sm { padding: 5px 13px; font-size: 12px; border-radius: 8px; }
+
+  .overview { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+  .ov-card { flex: 1; min-width: 150px; background: var(--card); border: 1px solid var(--border); border-radius: 13px; padding: 13px 18px; display: flex; align-items: baseline; gap: 9px; box-shadow: 0 1px 2px rgba(20,30,60,.04); }
+  .ov-num { font-size: 22px; font-weight: 700; }
+  .ov-num.g { color: var(--green); }
+  .ov-label { color: var(--muted); font-size: 12.5px; }
+
+  .section-label { font-size: 12.5px; font-weight: 600; margin: 30px 0 14px; display: flex; align-items: center; gap: 10px; }
+  .section-label small { color: var(--muted); font-weight: 400; }
+  .section-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+  .conn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 900px) { .conn-grid { grid-template-columns: repeat(2, 1fr); } }
+  .conn { position: relative; border: 1.5px solid var(--border); border-radius: 16px; background: var(--card);
+          padding: 18px 18px 16px; overflow: hidden; transition: border .15s, transform .15s, box-shadow .15s; }
+  .conn:hover { border-color: #c6cede; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(20,30,60,.07); }
+  .conn::before { content: ""; position: absolute; inset: 0 0 auto; height: 72px; opacity: .12; pointer-events: none; }
+  .conn.c-blue::before   { background: linear-gradient(135deg, #3b6fe0, transparent); }
+  .conn.c-purple::before { background: linear-gradient(135deg, #8a5cf0, transparent); }
+  .conn.c-green::before  { background: linear-gradient(135deg, #2fbd85, transparent); }
+  .conn.c-lark::before   { background: linear-gradient(135deg, #3370ff, transparent); }
+  .conn.c-ding::before   { background: linear-gradient(135deg, #1e88e5, transparent); }
+  .conn.connected { border-color: #7fd4ae; }
+  .conn-top { display: flex; align-items: center; gap: 12px; position: relative; }
+  .conn-ic { width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+             font-weight: 700; font-size: 15px; color: #fff; box-shadow: 0 3px 10px rgba(20,30,60,.18); }
+  .ic-blue   { background: linear-gradient(135deg,#3b6fe0,#6b9bff); }
+  .ic-purple { background: linear-gradient(135deg,#7a4fd0,#a989ff); }
+  .ic-green  { background: linear-gradient(135deg,#249a6b,#3ed598); }
+  .ic-lark   { background: linear-gradient(135deg,#2a5fe0,#4d8dff); }
+  .ic-ding   { background: linear-gradient(135deg,#1a74d4,#43a5f5); }
+  .conn-name { font-weight: 650; font-size: 15px; }
+  .conn-sub  { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .st { margin-left: auto; font-size: 11.5px; border-radius: 8px; padding: 3px 9px; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .st::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .st.ok   { background: var(--green-soft); color: var(--green); }
+  .st.off  { background: #eef0f5; color: var(--muted); }
+  .st.warn { background: var(--amber-soft); color: var(--amber); }
+  .conn-desc { color: var(--muted); font-size: 12.5px; line-height: 1.65; margin: 14px 0 12px; min-height: 41px; position: relative; }
+  .conn-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; position: relative; }
+  .chip { font-size: 11px; color: var(--muted); background: var(--panel); border: 1px solid var(--border); border-radius: 7px; padding: 2px 8px; }
+  .chip.hl { color: var(--green); border-color: #a8e0c6; background: var(--green-soft); }
+  .conn-foot { display: flex; gap: 8px; position: relative; }
+  .conn-foot .btn { flex: 1; text-align: center; }
+  .conn-add { border-style: dashed; display: flex; align-items: center; justify-content: center; min-height: 190px; cursor: pointer; color: var(--muted); }
+  .conn-add:hover { color: var(--accent); border-color: var(--accent); }
+
+  .tabs { display: inline-flex; background: #eceef4; border: 1px solid var(--border); border-radius: 11px; padding: 3px; gap: 2px; }
+  .tab { padding: 6px 18px; border-radius: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  .tab.active { background: #fff; color: var(--text); font-weight: 550; box-shadow: 0 1px 3px rgba(20,30,60,.12); }
+  .tab .cnt { font-size: 11px; color: var(--accent); margin-left: 5px; }
+  .skill-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+  .search { width: 240px; background: #fff; border: 1.5px solid var(--border); border-radius: 9px; padding: 8px 13px; color: var(--text); font-size: 12.5px; outline: none; }
+  .search:focus { border-color: var(--accent); }
+  .search::placeholder { color: #a0a7b8; }
+
+  .skill-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+  @media (max-width: 900px) { .skill-grid { grid-template-columns: repeat(2, 1fr); } }
+  .skill { border: 1.5px solid var(--border); border-radius: 14px; background: var(--card); padding: 15px 16px 14px; transition: border .15s, transform .15s, box-shadow .15s; }
+  .skill:hover { border-color: #c6cede; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(20,30,60,.06); }
+  .skill-top { display: flex; align-items: center; gap: 11px; }
+  .sk-ic { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; }
+  .sk1 { background: linear-gradient(135deg,#c0392b,#e74c3c); }
+  .sk2 { background: linear-gradient(135deg,#2a5fe0,#4d8dff); }
+  .sk3 { background: linear-gradient(135deg,#7a4fd0,#a989ff); }
+  .sk4 { background: linear-gradient(135deg,#249a6b,#3ed598); }
+  .sk5 { background: linear-gradient(135deg,#b87a2a,#e0a44a); }
+  .sk6 { background: linear-gradient(135deg,#3aa6b9,#5fd0e0); }
+  .sk-name { font-weight: 600; font-size: 13.5px; }
+  .sk-by { color: #a0a7b8; font-size: 11px; margin-top: 2px; }
+  .src { margin-left: auto; font-size: 10.5px; border-radius: 6px; padding: 2px 7px; flex-shrink: 0; }
+  .src.builtin { background: var(--accent-soft); color: var(--accent); }
+  .src.community { background: var(--amber-soft); color: var(--gold); }
+  .sk-desc { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 11px 0; min-height: 38px; }
+  .sk-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .sk-stat { font-size: 11.5px; color: #a0a7b8; display: flex; gap: 10px; }
+  .sk-stat b { color: var(--muted); font-weight: 550; }
+  .tag-installed { font-size: 11.5px; color: var(--green); display: inline-flex; align-items: center; gap: 5px; }
+  .tag-installed::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+  .hub-banner { border-radius: 15px; padding: 18px 22px; margin-bottom: 16px; display: flex; align-items: center; gap: 16px;
+                background: linear-gradient(120deg, #e8effd, #efe9fb 60%, #e6f6ee); border: 1px solid #cfddfa; }
+  .hub-banner .hb-title { font-weight: 650; font-size: 14.5px; }
+  .hub-banner .hb-sub { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+  .hub-banner .btn { margin-left: auto; flex-shrink: 0; }
+
+  .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; }
+  .agent { border: 1.5px solid var(--border); border-radius: 13px; padding: 14px 15px; background: var(--card); cursor: pointer; transition: border .15s, transform .15s; }
+  .agent:hover { border-color: #c6cede; transform: translateY(-2px); }
+  .agent .a-ic { width: 28px; height: 28px; border-radius: 8px; margin-bottom: 10px; }
+  .t-green { background: #d7f0e4; } .t-purple { background: #e6dcf8; } .t-orange { background: #f5e8cf; }
+  .t-pink { background: #f8dfe9; } .t-red { background: #f8dede; }
+  .agent .a-name { font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .agent .a-kind { font-size: 10.5px; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 0 5px; }
+  .agent .a-meta { color: var(--muted); font-size: 12px; margin-top: 5px; }
+
+  .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1d2433; color: #fff; border-radius: 10px; padding: 11px 18px; font-size: 13px; display: flex; gap: 9px; align-items: center; box-shadow: 0 8px 28px rgba(20,30,60,.25); opacity: 0; transition: transform .25s, opacity .25s; z-index: 50; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; }
+  .hidden { display: none !important; }
+  .empty-tip { grid-column: 1 / -1; text-align: center; color: var(--muted); font-size: 12.5px; padding: 26px 0; border: 1.5px dashed var(--border); border-radius: 12px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-head">
+    <div>
+      <div class="page-title"><span class="ic"></span>能力中心</div>
+      <div class="page-sub">连接平台、安装技能、打开工作台——把你的经营工具箱攒齐。</div>
+    </div>
+    <button class="btn ghost" id="refreshAll">刷新状态</button>
+  </div>
+
+  <div class="overview">
+    <div class="ov-card"><span class="ov-num g" id="ovConn">1</span><span class="ov-label">已连连接器 / 共 5</span></div>
+    <div class="ov-card"><span class="ov-num" id="ovSkill">4</span><span class="ov-label">已安装技能</span></div>
+    <div class="ov-card"><span class="ov-num">128</span><span class="ov-label">SkillHub 社区技能</span></div>
+    <div class="ov-card"><span class="ov-num">5</span><span class="ov-label">内置智能体</span></div>
+  </div>
+
+  <div class="section-label">连接器 <small>连接后，智能体才能读写对应平台的数据</small></div>
+  <div class="conn-grid" id="connGrid">
+
+    <div class="conn c-blue connected" data-conn="platform" data-connected="1">
+      <div class="conn-top">
+        <div class="conn-ic ic-blue">W</div>
+        <div><div class="conn-name">WodeApp Platform</div><div class="conn-sub">wodeapp.cn · 平台主接口</div></div>
+        <span class="st ok">已连接</span>
+      </div>
+      <div class="conn-desc">建项目、编辑页面、一键发布站点。首次启动已按当前服务器地址自动接入。</div>
+      <div class="conn-stats"><span class="chip hl">25 个工具</span><span class="chip">延迟 86ms</span></div>
+      <div class="conn-foot"><button class="btn ghost" data-act="disconnect">断开</button><button class="btn" data-act="refresh">刷新</button></div>
+    </div>
+
+    <div class="conn c-purple" data-conn="project" data-connected="0">
+      <div class="conn-top">
+        <div class="conn-ic ic-purple">P</div>
+        <div><div class="conn-name">WodeApp Project</div><div class="conn-sub">项目运行时工具</div></div>
+        <span class="st off">未连接</span>
+      </div>
+      <div class="conn-desc">数据集合、工作流、AI 生成、素材库。启用后跟随当前项目自动生效。</div>
+      <div class="conn-stats"><span class="chip">数据</span><span class="chip">工作流</span><span class="chip">素材</span></div>
+      <div class="conn-foot"><button class="btn primary block" data-act="connect">一键启用</button></div>
+    </div>
+
+    <div class="conn c-green" data-conn="shopify" data-connected="0">
+      <div class="conn-top">
+        <div class="conn-ic ic-green">S</div>
+        <div><div class="conn-name">Shopify</div><div class="conn-sub">电商店铺</div></div>
+        <span class="st warn">需授权</span>
+      </div>
+      <div class="conn-desc">读取商品、订单与库存，配合智能体批量生成主图、详情页与营销素材。</div>
+      <div class="conn-stats"><span class="chip">商品</span><span class="chip">订单</span><span class="chip">营销素材</span></div>
+      <div class="conn-foot"><button class="btn primary block" data-act="connect">连接店铺</button></div>
+    </div>
+
+    <div class="conn c-lark" data-conn="feishu" data-connected="0">
+      <div class="conn-top">
+        <div class="conn-ic ic-lark">飞</div>
+        <div><div class="conn-name">飞书</div><div class="conn-sub">协作与多维表格</div></div>
+        <span class="st off">未连接</span>
+      </div>
+      <div class="conn-desc">把生成的内容与经营周报推送到飞书群、多维表格与云文档。</div>
+      <div class="conn-stats"><span class="chip">群消息</span><span class="chip">多维表格</span><span class="chip">云文档</span></div>
+      <div class="conn-foot"><button class="btn primary block" data-act="connect">一键启用</button></div>
+    </div>
+
+    <div class="conn c-ding" data-conn="dingtalk" data-connected="0">
+      <div class="conn-top">
+        <div class="conn-ic ic-ding">钉</div>
+        <div><div class="conn-name">钉钉</div><div class="conn-sub">企业协同</div></div>
+        <span class="st off">未连接</span>
+      </div>
+      <div class="conn-desc">生成结果推送到钉钉群机器人，支持任务提醒与审批消息。</div>
+      <div class="conn-stats"><span class="chip">群机器人</span><span class="chip">消息推送</span></div>
+      <div class="conn-foot"><button class="btn primary block" data-act="connect">一键启用</button></div>
+    </div>
+
+    <div class="conn conn-add" id="connAdd">
+      <div style="text-align:center;">
+        <div style="font-size: 22px; line-height: 1;">+</div>
+        <div style="font-size: 12.5px; margin-top: 8px;">添加 MCP 服务器</div>
+        <div style="font-size: 11px; margin-top: 4px; color:#a0a7b8;">企业微信 · 自定义 MCP · 更多</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">技能 <small>Skill 是可复用的任务剧本，安装后 Agent 自动学会</small></div>
+  <div class="skill-head">
+    <div class="tabs">
+      <div class="tab active" data-tab="installed">已安装<span class="cnt" id="tabInstalledCnt">4</span></div>
+      <div class="tab" data-tab="market">SkillHub 市场<span class="cnt">128</span></div>
+    </div>
+    <input class="search" id="skillSearch" placeholder="搜索技能，如：短剧、周报、详情页">
+  </div>
+
+  <div id="viewInstalled">
+    <div class="skill-grid" id="installedGrid">
+      <div class="skill" data-name="短剧工厂 剧本 分镜 竖屏">
+        <div class="skill-top"><div class="sk-ic sk1">剧</div>
+          <div><div class="sk-name">短剧工厂</div><div class="sk-by">WodeApp 官方</div></div>
+          <span class="src builtin">内置</span></div>
+        <div class="sk-desc">从一个创意批量产出竖屏短剧全套资产：剧本、分镜、角色与场景图。</div>
+        <div class="sk-foot"><span class="sk-stat"><b>v1.6</b> · 更新于 3 天前</span><span class="tag-installed">已启用</span></div>
+      </div>
+      <div class="skill" data-name="飞书电商经营工作台 周报 多维表格">
+        <div class="skill-top"><div class="sk-ic sk2">飞</div>
+          <div><div class="sk-name">飞书电商经营工作台</div><div class="sk-by">WodeApp 官方</div></div>
+          <span class="src builtin">内置</span></div>
+        <div class="sk-desc">搭建飞书自建应用，同步多维表格、生成经营周报并推送到群。</div>
+        <div class="sk-foot"><span class="sk-stat"><b>v1.2</b> · 需连接飞书</span><span class="tag-installed">已启用</span></div>
+      </div>
+      <div class="skill" data-name="商品图质检 主图 合规">
+        <div class="skill-top"><div class="sk-ic sk3">图</div>
+          <div><div class="sk-name">商品图质检</div><div class="sk-by">社区 · @aurora</div></div>
+          <span class="src community">社区</span></div>
+        <div class="sk-desc">批量检查主图合规：尺寸、留白、水印与平台规则，输出整改清单。</div>
+        <div class="sk-foot"><span class="sk-stat"><b>v0.9</b> · 下载 2.1k</span><span class="tag-installed">已启用</span></div>
+      </div>
+      <div class="skill" data-name="评价回复助手 客服 评价">
+        <div class="skill-top"><div class="sk-ic sk4">评</div>
+          <div><div class="sk-name">评价回复助手</div><div class="sk-by">社区 · @shopwiz</div></div>
+          <span class="src community">社区</span></div>
+        <div class="sk-desc">按星级与关键词生成买家评价回复，支持批量导出 Excel。</div>
+        <div class="sk-foot"><span class="sk-stat"><b>v1.0</b> · 下载 860</span><span class="tag-installed">已启用</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewMarket" class="hidden">
+    <div class="hub-banner">
+      <div>
+        <div class="hb-title">SkillHub 社区市场</div>
+        <div class="hb-sub">官方审核 + 社区贡献，一键下载安装；也可以把自己沉淀的剧本发布上来。</div>
+      </div>
+      <button class="btn primary" id="publishBtn">发布我的技能</button>
+    </div>
+    <div class="skill-grid" id="marketGrid">
+      <div class="skill" data-name="经营日报生成器 订单 流量 日报 飞书 钉钉">
+        <div class="skill-top"><div class="sk-ic sk5">报</div>
+          <div><div class="sk-name">经营日报生成器</div><div class="sk-by">官方精选</div></div>
+          <span class="src community">社区</span></div>
+        <div class="sk-desc">汇总订单、流量与投放数据，每天 9 点自动推送日报到飞书 / 钉钉。</div>
+        <div class="sk-foot"><span class="sk-stat">下载 <b>5.4k</b> · 评分 <b>4.9</b></span><button class="btn primary sm" data-act="install">获取</button></div>
+      </div>
+      <div class="skill" data-name="详情页一键翻新 长图 淘宝 抖店">
+        <div class="skill-top"><div class="sk-ic sk6">页</div>
+          <div><div class="sk-name">详情页一键翻新</div><div class="sk-by">社区 · @pixelcat</div></div>
+          <span class="src community">社区</span></div>
+        <div class="sk-desc">输入商品链接，重拍风格化详情页长图，适配淘宝 / 抖店尺寸。</div>
+        <div class="sk-foot"><span class="sk-stat">下载 <b>3.2k</b> · 评分 <b>4.7</b></span><button class="btn primary sm" data-act="install">获取</button></div>
+      </div>
+      <div class="skill" data-name="直播话术卡片 口播 直播">
+        <div class="skill-top"><div class="sk-ic sk1">播</div>
+          <div><div class="sk-name">直播话术卡片</div><div class="sk-by">社区 · @liveboost</div></div>
+          <span class="src community">社区</span></div>
+        <div class="sk-desc">按商品卖点生成直播口播稿与节奏卡，支持方言与风格设定。</div>
+        <div class="sk-foot"><span class="sk-stat">下载 <b>1.8k</b> · 评分 <b>4.6</b></span><button class="btn primary sm" data-act="install">获取</button></div>
+      </div>
+      <div class="skill" data-name="主图 AB 测试 点击率 主图">
+        <div class="skill-top"><div class="sk-ic sk4">测</div>
+          <div><div class="sk-name">主图 A/B 测试助手</div><div class="sk-by">社区 · @growthlab</div></div>
+          <span class="src community">社区</span></div>
+        <div class="sk-desc">批量生成主图变体并记录点击数据，自动推荐胜出版本。</div>
+        <div class="sk-foot"><span class="sk-stat">下载 <b>980</b> · 评分 <b>4.5</b></span><button class="btn primary sm" data-act="install">获取</button></div>
+      </div>
+      <div class="skill" data-name="竞品价格监控 比价 监控">
+        <div class="skill-top"><div class="sk-ic sk2">价</div>
+          <div><div class="sk-name">竞品价格监控</div><div class="sk-by">社区 · @dataminr</div></div>
+          <span class="src community">社区</span></div>
+        <div class="sk-desc">定时抓取竞品价格与促销，变动时推送到飞书群。</div>
+        <div class="sk-foot"><span class="sk-stat">下载 <b>2.6k</b> · 评分 <b>4.8</b></span><button class="btn primary sm" data-act="install">获取</button></div>
+      </div>
+      <div class="skill" data-name="短视频标题优化 标题 短视频">
+        <div class="skill-top"><div class="sk-ic sk3">题</div>
+          <div><div class="sk-name">短视频标题优化</div><div class="sk-by">社区 · @viralcat</div></div>
+          <span class="src community">社区</span></div>
+        <div class="sk-desc">按平台风格批量产出高点击标题与话题标签组合。</div>
+        <div class="sk-foot"><span class="sk-stat">下载 <b>1.1k</b> · 评分 <b>4.4</b></span><button class="btn primary sm" data-act="install">获取</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">内置智能体 <small>点击卡片打开工作台</small></div>
+  <div class="agent-grid" id="agentGrid">
+    <div class="agent" data-agent="商品图工作台"><div class="a-ic t-green"></div><div class="a-name">商品图工作台 <span class="a-kind">内置能力</span></div><div class="a-meta">AI 生成商品主图与场景图</div></div>
+    <div class="agent" data-agent="视频工作室"><div class="a-ic t-purple"></div><div class="a-name">视频工作室 <span class="a-kind">内置能力</span></div><div class="a-meta">分镜脚本到成片</div></div>
+    <div class="agent" data-agent="短剧工厂"><div class="a-ic t-orange"></div><div class="a-name">短剧工厂 <span class="a-kind">工作流</span></div><div class="a-meta">批量产出竖屏短剧资产</div></div>
+    <div class="agent" data-agent="画布搭建"><div class="a-ic t-pink"></div><div class="a-name">画布搭建 <span class="a-kind">内置能力</span></div><div class="a-meta">低代码页面搭建与发布</div></div>
+    <div class="agent" data-agent="多 Agent 编排"><div class="a-ic t-red"></div><div class="a-name">多 Agent 编排 <span class="a-kind">编排</span></div><div class="a-meta">多智能体协作任务</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="dot"></span><span id="toastText"></span></div>
+<script>
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+const toast = (msg) => {
+  $('#toastText').textContent = msg;
+  const t = $('#toast');
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2600);
+};
+
+/* ===== 连接器：状态流转 ===== */
+const TOOL_COUNTS = { platform: 25, project: 18, shopify: 12, feishu: 9, dingtalk: 5 };
+const CONN_NAMES = { platform: 'WodeApp Platform', project: 'WodeApp Project', shopify: 'Shopify', feishu: '飞书', dingtalk: '钉钉' };
+
+function updateConnOverview() {
+  $('#ovConn').textContent = $$('.conn[data-connected="1"]').length;
+}
+
+function setConnected(card, on) {
+  const id = card.dataset.conn;
+  card.dataset.connected = on ? '1' : '0';
+  const st = card.querySelector('.st');
+  const stats = card.querySelector('.conn-stats');
+  const foot = card.querySelector('.conn-foot');
+  if (on) {
+    card.classList.add('connected');
+    st.className = 'st ok';
+    st.textContent = '已连接';
+    stats.innerHTML = '<span class="chip hl">' + (TOOL_COUNTS[id] || 8) + ' 个工具</span><span class="chip">延迟 ' + (40 + Math.floor(Math.random() * 120)) + 'ms</span>';
+    foot.innerHTML = '<button class="btn ghost" data-act="disconnect">断开</button><button class="btn" data-act="refresh">刷新</button>';
+  } else {
+    card.classList.remove('connected');
+    st.className = id === 'shopify' ? 'st warn' : 'st off';
+    st.textContent = id === 'shopify' ? '需授权' : '未连接';
+    foot.innerHTML = '<button class="btn primary block" data-act="connect">' + (id === 'shopify' ? '连接店铺' : '一键启用') + '</button>';
+  }
+  updateConnOverview();
+}
+
+$('#connGrid').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const card = btn.closest('.conn');
+  const id = card.dataset.conn;
+  const name = CONN_NAMES[id];
+  const act = btn.dataset.act;
+  if (act === 'connect') {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 连接中…';
+    setTimeout(() => {
+      setConnected(card, true);
+      toast(name + ' 已连接');
+    }, 1100);
+  } else if (act === 'disconnect') {
+    setConnected(card, false);
+    toast(name + ' 已断开');
+  } else if (act === 'refresh') {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 刷新中';
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = '刷新';
+      toast(name + ' 状态已刷新');
+    }, 800);
+  }
+});
+
+$('#connAdd').addEventListener('click', () => toast('演示：将打开「添加 MCP 服务器」弹窗（名称 / 地址 / Key）'));
+
+$('#refreshAll').addEventListener('click', () => {
+  const b = $('#refreshAll');
+  b.disabled = true;
+  b.innerHTML = '<span class="spinner"></span> 刷新中';
+  setTimeout(() => { b.disabled = false; b.textContent = '刷新状态'; toast('全部连接状态已刷新'); }, 900);
+});
+
+/* ===== 技能页签 ===== */
+$$('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const which = tab.dataset.tab;
+    $('#viewInstalled').classList.toggle('hidden', which !== 'installed');
+    $('#viewMarket').classList.toggle('hidden', which !== 'market');
+    $('#skillSearch').value = '';
+    filterSkills('');
+  });
+});
+
+/* ===== 技能搜索（过滤当前页签） ===== */
+function filterSkills(q) {
+  const grid = $('#viewMarket').classList.contains('hidden') ? $('#installedGrid') : $('#marketGrid');
+  let visible = 0;
+  grid.querySelectorAll('.skill').forEach(card => {
+    const hit = !q || card.dataset.name.toLowerCase().includes(q.toLowerCase());
+    card.style.display = hit ? '' : 'none';
+    if (hit) visible++;
+  });
+  let tip = grid.querySelector('.empty-tip');
+  if (visible === 0) {
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.className = 'empty-tip';
+      tip.textContent = '没有匹配的技能，换个关键词试试';
+      grid.appendChild(tip);
+    }
+  } else if (tip) tip.remove();
+}
+$('#skillSearch').addEventListener('input', (e) => filterSkills(e.target.value.trim()));
+
+/* ===== 安装技能 ===== */
+let installedCount = 4;
+$('#marketGrid').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-act="install"]');
+  if (!btn) return;
+  const card = btn.closest('.skill');
+  const name = card.querySelector('.sk-name').textContent;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 安装中';
+  setTimeout(() => {
+    const tag = document.createElement('span');
+    tag.className = 'tag-installed';
+    tag.textContent = '已安装';
+    btn.replaceWith(tag);
+    installedCount++;
+    $('#ovSkill').textContent = installedCount;
+    $('#tabInstalledCnt').textContent = installedCount;
+    toast('「' + name + '」已安装，Agent 现在可以使用它');
+  }, 1000);
+});
+
+$('#publishBtn').addEventListener('click', () => toast('演示：打开发布流程（选择本地技能目录 → 填写介绍 → 提交审核）'));
+
+/* ===== 内置智能体 ===== */
+$$('#agentGrid .agent').forEach(a => {
+  a.addEventListener('click', () => toast('正在打开「' + a.dataset.agent + '」工作台…（演示）'));
+});
+
+updateConnOverview();
+</script>
+</body>
+</html>

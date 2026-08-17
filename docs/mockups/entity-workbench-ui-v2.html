@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WodeAppX · Product Stage 草案 v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600;6..72,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #12150f;
+      --bg-2: #1a1f16;
+      --stage: #ece7dc;
+      --stage-2: #f6f1e6;
+      --ink: #141710;
+      --muted: #5f6458;
+      --line: rgba(20, 23, 16, 0.12);
+      --accent: #c45c26;
+      --accent-2: #2f6b4f;
+      --glow: rgba(196, 92, 38, 0.35);
+      --font: "Instrument Sans", system-ui, sans-serif;
+      --serif: "Newsreader", Georgia, serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--font);
+      color: var(--stage);
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 72px minmax(280px, 0.9fr) minmax(420px, 1.25fr);
+      gap: 0;
+    }
+
+    /* rail */
+    .rail {
+      background: #0c0e0a;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 18px 0;
+      gap: 10px;
+    }
+    .rail-dot {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      cursor: pointer;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .rail-dot.is-on {
+      background: var(--accent);
+      color: #fff;
+      border-color: transparent;
+    }
+    .rail-spacer { flex: 1; }
+
+    /* chat column — quieter */
+    .chat-col {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background:
+        radial-gradient(800px 400px at 0% 0%, rgba(47,107,79,0.18), transparent 60%),
+        var(--bg-2);
+      border-right: 1px solid rgba(255,255,255,0.06);
+    }
+    .chat-h {
+      padding: 20px 22px 8px;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(236,231,220,0.4);
+      font-weight: 600;
+    }
+    .chat-stream {
+      flex: 1;
+      overflow: auto;
+      padding: 8px 22px 20px;
+    }
+    .msg {
+      max-width: 95%;
+      margin: 14px 0;
+      font-size: 14px;
+      line-height: 1.55;
+      color: rgba(236,231,220,0.88);
+    }
+    .msg.me {
+      margin-left: auto;
+      color: #fff;
+      font-weight: 500;
+    }
+    .msg .tag {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: rgba(236,231,220,0.45);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 8px;
+    }
+    .chat-input {
+      margin: 0 18px 18px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.25);
+      color: rgba(255,255,255,0.35);
+      font: inherit;
+      font-size: 13px;
+    }
+
+    /* STAGE — the creative focus */
+    .stage-col {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--stage);
+      color: var(--ink);
+      overflow: hidden;
+    }
+
+    .stage-col::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(900px 500px at 80% -10%, rgba(196,92,38,0.12), transparent 55%),
+        radial-gradient(700px 400px at 10% 110%, rgba(47,107,79,0.1), transparent 50%);
+      pointer-events: none;
+    }
+
+    .stage-top {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 18px 22px 0;
+    }
+    .crumb {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .stage-tools {
+      display: flex;
+      gap: 8px;
+    }
+    .ghost-btn {
+      border: 1px solid var(--line);
+      background: transparent;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--ink);
+    }
+    .ghost-btn:hover { background: rgba(20,23,16,0.05); }
+    .ghost-btn.primary {
+      background: var(--ink);
+      color: var(--stage);
+      border-color: var(--ink);
+    }
+
+    /* Hero object */
+    .hero {
+      position: relative;
+      z-index: 1;
+      padding: 28px 28px 8px;
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 28px;
+      align-items: end;
+    }
+
+    .object {
+      width: 160px;
+      height: 200px;
+      border-radius: 28px 28px 40px 40px;
+      background:
+        linear-gradient(165deg, #d7e0d2 0%, #8fa894 42%, #4e6a55 100%);
+      box-shadow:
+        0 30px 60px rgba(20,23,16,0.18),
+        inset 0 1px 0 rgba(255,255,255,0.35);
+      position: relative;
+      transform: rotate(-2deg);
+      transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .stage-col[data-product="lamp"] .object {
+      background: linear-gradient(165deg, #f0e4cc, #c9a66b 45%, #7a5a2e);
+      transform: rotate(2deg);
+    }
+    .stage-col[data-product="bottle"] .object {
+      background: linear-gradient(165deg, #d9e6f0, #6f92ad 48%, #2f4a5e);
+      transform: rotate(-1deg);
+    }
+    .object::after {
+      content: "";
+      position: absolute;
+      left: 18%;
+      right: 18%;
+      top: 22%;
+      bottom: 28%;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.22);
+      backdrop-filter: none;
+    }
+    .object-shadow {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: -18px;
+      height: 24px;
+      background: radial-gradient(ellipse at center, rgba(20,23,16,0.28), transparent 70%);
+      filter: blur(2px);
+    }
+
+    .hero-copy h1 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(28px, 3.4vw, 42px);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      max-width: 14ch;
+    }
+    .hero-line {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      align-items: baseline;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .price {
+      font-family: var(--serif);
+      font-size: 28px;
+      color: var(--ink);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .status-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-dot i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      display: inline-block;
+    }
+    .status-dot.off i { background: var(--accent); }
+
+    /* Lenses — big visual modes, not tiny tabs */
+    .lenses {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 22px 28px 0;
+    }
+    .lens {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.35);
+      border-radius: 18px;
+      padding: 14px 14px 16px;
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+      transition: background 0.2s, border-color 0.2s, transform 0.2s;
+      min-width: 0;
+    }
+    .lens:hover { transform: translateY(-1px); background: rgba(255,255,255,0.55); }
+    .lens.is-on {
+      background: var(--ink);
+      color: var(--stage);
+      border-color: var(--ink);
+    }
+    .lens .kicker {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      opacity: 0.55;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .lens .name {
+      display: block;
+      font-family: var(--serif);
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lens .sub {
+      display: block;
+      font-size: 12px;
+      opacity: 0.7;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Surface — morphing content */
+    .surface {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      min-height: 0;
+      margin: 16px 18px 88px;
+      border-radius: 24px;
+      background: var(--stage-2);
+      border: 1px solid var(--line);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .surface-head {
+      padding: 16px 18px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .surface-head h2 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .surface-head span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .surface-body {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 4px 18px 20px;
+    }
+
+    /* Signal stream — newspaper-ish */
+    .stream-item {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 14px;
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+    }
+    .stream-item:first-child { border-top: 0; }
+    .stream-meta {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .stream-meta b {
+      display: block;
+      color: var(--accent);
+      font-size: 13px;
+      letter-spacing: 0;
+      text-transform: none;
+      margin-bottom: 4px;
+      font-family: var(--serif);
+    }
+    .stream-body {
+      font-size: 15px;
+      line-height: 1.5;
+      font-family: var(--serif);
+      color: var(--ink);
+    }
+    .stream-body em {
+      display: block;
+      margin-top: 8px;
+      font-style: normal;
+      font-family: var(--font);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Make board */
+    .make-board {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 12px;
+      height: 100%;
+      min-height: 280px;
+    }
+    .reel {
+      display: grid;
+      grid-template-columns: 1fr 0.75fr 0.55fr;
+      gap: 8px;
+      align-items: end;
+    }
+    .frame {
+      border-radius: 16px;
+      background: linear-gradient(160deg, #dfe6da, #9aaf9c 55%, #5d7864);
+      position: relative;
+      min-height: 140px;
+      overflow: hidden;
+    }
+    .frame.tall {
+      min-height: 200px;
+      background: linear-gradient(160deg, #1a1f16, #3d4a3a 50%, #c45c26);
+    }
+    .frame.mid {
+      min-height: 170px;
+      background: linear-gradient(160deg, #efe4d0, #d0b48a 50%, #8a6a3d);
+    }
+    .frame span {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      right: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .make-side {
+      border-left: 1px solid var(--line);
+      padding-left: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .make-side h3 {
+      margin: 0;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .run-chip {
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+      cursor: pointer;
+      background: transparent;
+      text-align: left;
+      font: inherit;
+    }
+    .run-chip:hover {
+      border-style: solid;
+      color: var(--ink);
+      border-color: rgba(196,92,38,0.45);
+      background: rgba(196,92,38,0.06);
+    }
+    .run-chip strong {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    /* Channel map */
+    .channels {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .channel {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid var(--line);
+      font-size: 14px;
+      min-width: 0;
+    }
+    .channel strong {
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .channel small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .channel .amt {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .channel .state {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+    }
+    .channel .state.pending { color: var(--accent); }
+
+    /* Floating command dock */
+    .dock {
+      position: absolute;
+      z-index: 5;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      width: min(520px, calc(100% - 36px));
+    }
+    .dock-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 10px 10px 16px;
+      border-radius: 20px;
+      background: rgba(20, 23, 16, 0.92);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.28);
+      cursor: text;
+    }
+    .dock-bar kbd {
+      font: inherit;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.55);
+    }
+    .dock-bar .prompt {
+      flex: 1;
+      min-width: 0;
+      font-size: 14px;
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dock-bar .go {
+      border: 0;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 14px;
+      padding: 10px 14px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    /* Command palette overlay */
+    .palette {
+      display: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 64px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #171a14;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .palette.is-open { display: block; }
+    .palette input {
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: transparent;
+      color: #fff;
+      padding: 16px 18px;
+      font: inherit;
+      font-size: 15px;
+      outline: none;
+    }
+    .palette-item {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 12px 18px;
+      border: 0;
+      background: transparent;
+      color: rgba(255,255,255,0.85);
+      text-align: left;
+      font: inherit;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .palette-item:hover, .palette-item.is-active {
+      background: rgba(196,92,38,0.18);
+    }
+    .palette-item strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .palette-item span {
+      display: block;
+      margin-top: 3px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+    }
+    .palette-item em {
+      font-style: normal;
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      align-self: center;
+    }
+
+    /* product switcher strip inside stage */
+    .switcher {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 8px;
+      padding: 0 28px;
+      margin-top: -4px;
+      overflow-x: auto;
+    }
+    .switcher button {
+      border: 1px solid transparent;
+      background: rgba(20,23,16,0.04);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .switcher button.is-on {
+      background: rgba(20,23,16,0.08);
+      color: var(--ink);
+      border-color: var(--line);
+      font-weight: 600;
+    }
+
+    .toast {
+      display: none;
+      position: absolute;
+      z-index: 6;
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: min(420px, calc(100% - 40px));
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: var(--ink);
+      color: var(--stage);
+      font-size: 13px;
+      line-height: 1.45;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+    }
+    .toast.is-on { display: block; animation: rise 0.35s ease; }
+    @keyframes rise {
+      from { opacity: 0; transform: translate(-50%, 8px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    .note {
+      position: fixed;
+      left: 12px;
+      bottom: 12px;
+      z-index: 20;
+      font-size: 11px;
+      color: rgba(236,231,220,0.35);
+      max-width: 200px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 960px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: 56px 30vh 1fr; }
+      .rail { flex-direction: row; padding: 8px; overflow-x: auto; }
+      .hero { grid-template-columns: 100px 1fr; gap: 16px; padding: 16px; }
+      .object { width: 100px; height: 124px; border-radius: 18px; }
+      .lenses { padding: 12px 16px 0; }
+      .lens .name { font-size: 16px; }
+      .surface { margin: 12px 12px 88px; }
+      .make-board { grid-template-columns: 1fr; }
+      .make-side { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); padding-top: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="rail" aria-label="导航">
+      <button type="button" class="rail-dot">聊</button>
+      <button type="button" class="rail-dot is-on">品</button>
+      <button type="button" class="rail-dot">库</button>
+      <div class="rail-spacer"></div>
+      <button type="button" class="rail-dot" title="命令">⌘</button>
+    </aside>
+
+    <section class="chat-col" aria-label="对话">
+      <div class="chat-h">Session</div>
+      <div class="chat-stream">
+        <div class="msg">舞台上是「苏泊尔火红点炒锅」。右侧不是功能菜单，是这个品的现场。</div>
+        <div class="msg me">先看差评，再做一条解释视频</div>
+        <div class="msg">
+          好「信号」镜头看差评；底部命令条跑「生成视频」。动作从哪来不重要，结果都落回这个舞台。
+          <span class="tag">无限动作 = 底部命令 · 查看 = 三个镜头</span>
+        </div>
+      </div>
+      <input class="chat-input" value="继续对当前商品…" readonly />
+    </section>
+
+    <section class="stage-col" id="stage" data-product="wok" aria-label="商品舞台">
+      <div class="toast" id="toast"></div>
+
+      <div class="stage-top">
+        <div class="crumb">Product Stage · 草案 v2</div>
+        <div class="stage-tools">
+          <button type="button" class="ghost-btn" id="btnPin">钉在对话</button>
+          <button type="button" class="ghost-btn primary" id="btnCmd">做点什么</button>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div style="position:relative">
+          <div class="object" id="object" aria-hidden="true"></div>
+          <div class="object-shadow" aria-hidden="true"></div>
+        </div>
+        <div class="hero-copy">
+          <h1 id="name">苏泊尔火红点炒锅</h1>
+          <div class="hero-line">
+            <span class="price" id="price">¥299</span>
+            <span class="status-dot" id="status"><i></i> 在售 · 3 渠道</span>
+            <span>12 生成物 · 28 信号</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="switcher" id="switcher">
+        <button type="button" class="is-on" data-id="wok" data-name="苏泊尔火红点炒锅" data-price="¥299" data-status="on">炒锅</button>
+        <button type="button" data-id="lamp" data-name="北欧黄铜台灯" data-price="¥459" data-status="on">台灯</button>
+        <button type="button" data-id="bottle" data-name="钛合金保温杯" data-price="¥189" data-status="off">保温杯</button>
+      </div>
+
+      <div class="lenses" role="tablist">
+        <button type="button" class="lens is-on" data-lens="signal">
+          <span class="kicker">Lens 01</span>
+          <span class="name">信号</span>
+          <span class="sub">差评 · 问大家 · 舆情</span>
+        </button>
+        <button type="button" class="lens" data-lens="make">
+          <span class="kicker">Lens 02</span>
+          <span class="name">制作</span>
+          <span class="sub">图 · 视频 · 文案</span>
+        </button>
+        <button type="button" class="lens" data-lens="trade">
+          <span class="kicker">Lens 03</span>
+          <span class="name">经营</span>
+          <span class="sub">价格 · 上下架 · 渠道</span>
+        </button>
+      </div>
+
+      <div class="surface">
+        <div class="surface-head">
+          <h2 id="surfaceTitle">跨平台信号</h2>
+          <span id="surfaceHint">只读 · 连接器灌入</span>
+        </div>
+        <div class="surface-body" id="surfaceBody"></div>
+      </div>
+
+      <div class="dock">
+        <div class="palette" id="palette">
+          <input id="paletteInput" type="search" placeholder="任何动作：差评、视频、改价、你刚想到的…" />
+          <div id="paletteList"></div>
+        </div>
+        <div class="dock-bar" id="dockBar" role="button" tabindex="0">
+          <kbd>⌘K</kbd>
+          <div class="prompt" id="dockPrompt">对这个商品做什么？动作不限</div>
+          <button type="button" class="go" id="dockGo">执行</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="note">v2：舞台 / 镜头 / 命令条<br/>不是后台 Tab 页</div>
+
+  <script>
+    const ACTIONS = [
+      { id: "reviews", title: "拉取各平台差评", lens: "signal", tag: "信号", desc: "写入本商品信号流" },
+      { id: "ask", title: "汇总差评痛点", lens: "signal", tag: "信号", desc: "给制作镜头用" },
+      { id: "video", title: "生成解释短视频", lens: "make", tag: "制作", desc: "9:16 · 回写生成物" },
+      { id: "suite", title: "出一套主图和详情图", lens: "make", tag: "制作", desc: "1:1 + 3:4 混合比例" },
+      { id: "price", title: "改价到 ¥279", lens: "trade", tag: "需确认", desc: "本地 + 可选推渠道" },
+      { id: "unlist", title: "下架抖音渠道", lens: "trade", tag: "需确认", desc: "未连接则仅标记" },
+      { id: "reply", title: "写差评回复话术", lens: "signal", tag: "Agent", desc: "临时动作，可收藏" },
+      { id: "weird", title: "做成赛博朋克海报", lens: "make", tag: "随便", desc: "证明动作可以很野" },
+    ];
+
+    const body = document.getElementById("surfaceBody");
+    const stage = document.getElementById("stage");
+    const palette = document.getElementById("palette");
+    const paletteInput = document.getElementById("paletteInput");
+    const paletteList = document.getElementById("paletteList");
+    const toast = document.getElementById("toast");
+
+    const VIEWS = {
+      signal: {
+        title: "跨平台信号",
+        hint: "只读 · 连接器灌入",
+        html: `
+          <article class="stream-item">
+            <div class="stream-meta"><b>天猫</b>差评<br/>3 天前</div>
+            <div class="stream-body">用了两个月涂层开始发黑，清洗后还有印子，希望官方给个说法。<em>痛点标签：涂层 · 清洁</em></div>
+          </article>
+          <article class="stream-item">
+            <div class="stream-meta"><b>京东</b>差评<br/>5 天前</div>
+            <div class="stream-body">手柄螺丝松了，客服让我自己拧。<em>痛点标签：结构 · 售后</em></div>
+          </article>
+          <article class="stream-item">
+            <div class="stream-meta"><b>抖音</b>问大家<br/>今天</div>
+            <div class="stream-body">会不会粘锅？燃气灶能不能用？<em>可转制作：演示视频</em></div>
+          </article>
+        `,
+      },
+      make: {
+        title: "制作台",
+        hint: "产出挂回本商品",
+        html: `
+          <div class="make-board">
+            <div class="reel">
+              <div class="frame"><span>主图 1:1</span></div>
+              <div class="frame mid"><span>卖点 3:4</span></div>
+              <div class="frame tall"><span>视频 9:16</span></div>
+            </div>
+            <div class="make-side">
+              <h3>从这里开跑</h3>
+              <button type="button" class="run-chip" data-run="video"><strong>解释短视频</strong>用差评痛点当脚本钩子</button>
+              <button type="button" class="run-chip" data-run="suite"><strong>主图套装</strong>同一主题出一组，不是六种类型硬凑</button>
+              <button type="button" class="run-chip" data-run="weird"><strong>完全自定义</strong>任何制作动作都能塞进来</button>
+            </div>
+          </div>
+        `,
+      },
+      trade: {
+        title: "经营面",
+        hint: "写回需确认",
+        html: `
+          <div class="channels">
+            <div class="channel">
+              <div><strong>天猫旗舰</strong><small>已连接</small></div>
+              <div class="amt">¥299</div>
+              <div class="state">在售</div>
+            </div>
+            <div class="channel">
+              <div><strong>京东自营</strong><small>已连接</small></div>
+              <div class="amt">¥309</div>
+              <div class="state">在售</div>
+            </div>
+            <div class="channel">
+              <div><strong>抖音小店</strong><small>只读预览</small></div>
+              <div class="amt">¥289</div>
+              <div class="state pending">待连接</div>
+            </div>
+          </div>
+        `,
+      },
+    };
+
+    let lens = "signal";
+
+    function setLens(next) {
+      lens = next;
+      document.querySelectorAll(".lens").forEach((el) => el.classList.toggle("is-on", el.dataset.lens === next));
+      const view = VIEWS[next];
+      document.getElementById("surfaceTitle").textContent = view.title;
+      document.getElementById("surfaceHint").textContent = view.hint;
+      body.innerHTML = view.html;
+    }
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add("is-on");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("is-on"), 2600);
+    }
+
+    function runAction(action) {
+      if (!action) return;
+      closePalette();
+      setLens(action.lens);
+      showToast(`已在「${action.title}」上排队 · 结果回写当前商品舞台`);
+      document.getElementById("dockPrompt").textContent = action.title;
+    }
+
+    function openPalette() {
+      palette.classList.add("is-open");
+      renderPalette(paletteInput.value);
+      paletteInput.focus();
+    }
+    function closePalette() {
+      palette.classList.remove("is-open");
+      paletteInput.value = "";
+    }
+
+    function renderPalette(q) {
+      const query = (q || "").trim().toLowerCase();
+      const list = ACTIONS.filter((a) => !query || a.title.includes(query) || a.desc.includes(query) || a.tag.includes(query));
+      paletteList.innerHTML = list.map((a, i) => `
+        <button type="button" class="palette-item${i === 0 ? " is-active" : ""}" data-id="${a.id}">
+          <div><strong>${a.title}</strong><span>${a.desc}</span></div>
+          <em>${a.tag}</em>
+        </button>
+      `).join("") || `<button type="button" class="palette-item"><div><strong>交给对话执行</strong><span>未注册动作也可以是一句自然语言</span></div><em>自由</em></button>`;
+    }
+
+    document.querySelectorAll(".lens").forEach((btn) => {
+      btn.addEventListener("click", () => setLens(btn.dataset.lens));
+    });
+
+    document.getElementById("switcher").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-id]");
+      if (!btn) return;
+      document.querySelectorAll("#switcher button").forEach((el) => el.classList.toggle("is-on", el === btn));
+      stage.dataset.product = btn.dataset.id;
+      document.getElementById("name").textContent = btn.dataset.name;
+      document.getElementById("price").textContent = btn.dataset.price;
+      const on = btn.dataset.status === "on";
+      document.getElementById("status").innerHTML = on
+        ? "<i></i> 在售 · 渠道已连接"
+        : "<i></i> 下架 · 仅本地";
+      document.getElementById("status").classList.toggle("off", !on);
+    });
+
+    document.getElementById("dockBar").addEventListener("click", (e) => {
+      if (e.target.id === "dockGo") return;
+      openPalette();
+    });
+    document.getElementById("btnCmd").addEventListener("click", openPalette);
+    document.getElementById("dockGo").addEventListener("click", (e) => {
+      e.stopPropagation();
+      openPalette();
+      const first = ACTIONS.find((a) => a.lens === lens) || ACTIONS[0];
+      runAction(first);
+    });
+
+    paletteInput.addEventListener("input", () => renderPalette(paletteInput.value));
+    paletteInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closePalette();
+      if (e.key === "Enter") {
+        const id = paletteList.querySelector(".palette-item")?.dataset.id;
+        const action = ACTIONS.find((a) => a.id === id);
+        if (action) runAction(action);
+        else {
+          showToast(`自然语言任务：「${paletteInput.value.trim()}」· 交给会话执行`);
+          closePalette();
+        }
+      }
+    });
+    paletteList.addEventListener("click", (e) => {
+      const item = e.target.closest("[data-id]");
+      if (!item) return;
+      runAction(ACTIONS.find((a) => a.id === item.dataset.id));
+    });
+
+    body.addEventListener("click", (e) => {
+      const chip = e.target.closest("[data-run]");
+      if (!chip) return;
+      runAction(ACTIONS.find((a) => a.id === chip.dataset.run));
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        palette.classList.contains("is-open") ? closePalette() : openPalette();
+      }
+      if (e.key === "Escape") closePalette();
+    });
+
+    document.getElementById("btnPin").addEventListener("click", () => {
+      showToast("已把当前商品钉进对话上下文 · @商品 可省略");
+    });
+
+    setLens("signal");
+  </script>
+</body>
+</html>

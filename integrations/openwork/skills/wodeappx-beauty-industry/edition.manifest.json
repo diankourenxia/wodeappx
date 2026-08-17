@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "wodeappx-beauty-industry",
+  "kind": "product-shell-adaptation",
+  "note": "Self-evolve demo: industry is a whole-shell remapping, not a sidebar agent. Future: installing this skill applies the shell overlay.",
+  "shell": {
+    "navAgentsLabel": "默认智能体",
+    "navAssetsLabel": "产品与素材",
+    "navAgentGroupLabel": "能力",
+    "skinId": "beauty",
+    "note": "Theme/layout only. Do not replace the default capability agent set.",
+    "heroKicker": "MIRRORED",
+    "heroTitle": "上传产品，开始种草",
+    "heroBody": "上传护肤或彩妆产品图，告诉我要主图、小红书文案还是 15 秒种草视频，我按美妆作业流继续完成。",
+    "capabilitiesSubtitle": "搜索并安装技能，或管理推送渠道；美妆主题下优先发现 wodeappx-beauty-industry。"
+  },
+  "runtimeProfileId": "beauty-industry-agent",
+  "preferredAbilities": ["image", "video"],
+  "hideSidebarKinds": ["industry"]
+}

@@ -1,0 +1,2187 @@
+/**
+ * Mockup-aligned layout overrides for example theme skins.
+ * Loaded after generated wodeapp-skin-*.css. Goal: match docs/examples/skin-mocks/*
+ * within the existing 2-column workbench DOM.
+ *
+ * Theme chrome (ribbon / otome stage / summer backdrop / pets / classic 2007
+ * frame) is mount/unmount by React for the active skin — do not globally
+ * `display:none` those nodes here or in always-loaded shell CSS.
+ */
+
+/* ========== pet-soft → soft cream workbench + paw stage (mock: skin-mock-pet-soft) ========== */
+.wapp-workspace-shell.wapp-skin-pet-soft {
+  padding: 10px;
+  gap: 10px;
+  grid-template-columns: 300px minmax(0, 1fr) !important;
+  background:
+    radial-gradient(900px 480px at 12% -10%, rgba(232, 139, 111, 0.16), transparent 55%),
+    linear-gradient(165deg, #F3E6DC 0%, #EAD7C8 100%) !important;
+}
+
+.wapp-workspace-shell.wapp-skin-pet-soft.is-sidebar-collapsed {
+  grid-template-columns: 0 minmax(0, 1fr) !important;
+}
+
+.wapp-skin-pet-soft > .wapp-sidebar {
+  border: 0 !important;
+  border-radius: 28px !important;
+  background: #FFF5EB !important;
+  box-shadow: 0 10px 28px rgba(61, 42, 34, 0.08);
+}
+
+.wapp-skin-pet-soft > .wapp-workspace-main {
+  border-radius: 28px;
+  overflow: hidden;
+  background: #FFFCF8;
+  box-shadow: 0 12px 36px rgba(61, 42, 34, 0.1);
+  position: relative;
+}
+
+.wapp-skin-pet-soft .wapp-brand-spacer {
+  height: 128px !important;
+  border-bottom: 0 !important;
+  display: grid !important;
+  place-items: center;
+  justify-items: center;
+  text-align: center;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.wapp-skin-pet-soft .wapp-theme-brand-avatar {
+  display: block;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 6px 16px rgba(61, 42, 34, 0.16);
+  border: 2px solid #FFFFFF;
+}
+
+/* Keep title via ::after; hide abstract gradient avatar */
+.wapp-skin-pet-soft .wapp-brand-spacer::before {
+  display: none !important;
+  content: none !important;
+}
+
+.wapp-skin-pet-soft .wapp-brand-spacer::after {
+  padding: 0 !important;
+  content: "萌宠工作台" !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  color: #3D2A22 !important;
+}
+
+.wapp-skin-pet-soft .wapp-new-chat {
+  border-radius: 999px !important;
+  min-height: 48px !important;
+  background: #B84A32 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 6px 16px rgba(184, 74, 50, 0.28);
+}
+
+.wapp-skin-pet-soft .wapp-new-chat:hover {
+  background: #A8432C !important;
+}
+
+/* Light active rows (mock): soft coral wash + dark text — not solid CTA fill */
+.wapp-skin-pet-soft .wapp-nav-item:hover,
+.wapp-skin-pet-soft .wapp-nav-subitem:hover,
+.wapp-skin-pet-soft .wapp-recent-row:hover .wapp-recent-item {
+  background: #F8E0D6 !important;
+  color: #3D2A22 !important;
+}
+
+.wapp-skin-pet-soft .wapp-nav-item.is-active,
+.wapp-skin-pet-soft .wapp-nav-subitem.is-active,
+.wapp-skin-pet-soft .wapp-recent-row.is-active .wapp-recent-item {
+  background: #F5D0C2 !important;
+  color: #3D2A22 !important;
+  box-shadow: inset 0 0 0 1px #E07A5F;
+}
+
+.wapp-skin-pet-soft .wapp-nav-item.is-active span,
+.wapp-skin-pet-soft .wapp-nav-subitem.is-active .wapp-nav-subitem-title,
+.wapp-skin-pet-soft .wapp-nav-item:hover span,
+.wapp-skin-pet-soft .wapp-nav-subitem:hover .wapp-nav-subitem-title {
+  color: #3D2A22 !important;
+}
+
+/* contrast-gate:active-recent — light rail uses dark ink */
+.wapp-skin-pet-soft .wapp-recent-row.is-active .wapp-recent-item,
+.wapp-skin-pet-soft .wapp-recent-row.is-active .wapp-recent-item *,
+.wapp-skin-pet-soft .wapp-recent-row:hover .wapp-recent-item,
+.wapp-skin-pet-soft .wapp-recent-row:hover .wapp-recent-item * {
+  color: #3D2A22 !important;
+}
+
+.wapp-skin-pet-soft .wapp-topbar {
+  background: rgba(255, 252, 248, 0.92) !important;
+  border-bottom: 1px solid rgba(61, 42, 34, 0.08) !important;
+}
+
+/* Soft pet wallpaper — strong wash so pups stay atmosphere, not loud */
+.wapp-skin-pet-soft .wapp-content-chat,
+.wapp-skin-pet-soft .wapp-stage-pane.is-active {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 252, 248, 0.86) 0%,
+      rgba(255, 248, 240, 0.88) 50%,
+      rgba(255, 245, 235, 0.9) 100%
+    ),
+    url("/skin-pet-chat-bg.jpg") center / cover no-repeat !important;
+}
+
+.wapp-skin-pet-soft .wapp-session-surface {
+  background: transparent !important;
+  border-radius: 22px;
+  box-shadow: none;
+  overflow: visible !important;
+}
+
+.wapp-skin-pet-soft .wx-runtime-card {
+  background: rgba(255, 252, 248, 0.88) !important;
+}
+
+.wapp-skin-pet-soft .wapp-session-surface .wapp-composer-shell,
+.wapp-skin-pet-soft .wapp-session-surface .shrink-0.px-0.pb-2.pt-2 {
+  background: transparent !important;
+  border-top: 0 !important;
+}
+
+/* Keep message/prose readable over vivid wallpaper */
+.wapp-skin-pet-soft .wapp-session-surface [data-message-id],
+.wapp-skin-pet-soft .wapp-session-surface .prose,
+.wapp-skin-pet-soft .wapp-session-surface .not-prose {
+  text-shadow: 0 0 12px rgba(255, 252, 248, 0.9);
+}
+
+.wapp-skin-pet-soft .wapp-composer-dock-top .relative.overflow-visible.rounded-\[24px\],
+.wapp-skin-pet-soft .wapp-composer-dock .relative.overflow-visible.rounded-\[24px\] {
+  border-radius: 24px !important;
+  border: 1px solid rgba(61, 42, 34, 0.1) !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 8px 24px rgba(61, 42, 34, 0.06);
+}
+
+/* ========== otome-diary → rose desk + left/right duo stage (unlike pet-soft cream shell) ========== */
+.wapp-workspace-shell.wapp-skin-otome-diary {
+  padding: 14px;
+  gap: 12px;
+  grid-template-columns: 280px minmax(0, 1fr) !important;
+  background-color: #E8C4D4 !important;
+  background-image:
+    linear-gradient(165deg, rgba(255, 252, 249, 0.22) 0%, rgba(248, 228, 236, 0.3) 55%, rgba(232, 196, 212, 0.36) 100%),
+    url("/skin-otome-desk-bg.jpg") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: cover !important;
+}
+
+.wapp-workspace-shell.wapp-skin-otome-diary.is-sidebar-collapsed {
+  grid-template-columns: 0 minmax(0, 1fr) !important;
+}
+
+.wapp-skin-otome-diary > .wapp-sidebar {
+  border: 1px solid rgba(58, 36, 48, 0.1) !important;
+  border-radius: 12px 4px 4px 12px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 249, 0.72), rgba(255, 240, 245, 0.94)),
+    #FFF0F5 !important;
+  box-shadow: 0 8px 24px rgba(58, 36, 48, 0.1);
+}
+
+.wapp-skin-otome-diary > .wapp-workspace-main {
+  position: relative;
+  border-radius: 4px 12px 12px 4px;
+  overflow: hidden;
+  /* Desk peeks around the diary stage (ink-book pattern). */
+  background: transparent;
+  box-shadow: 0 10px 28px rgba(58, 36, 48, 0.12);
+}
+
+.wapp-skin-otome-diary .wapp-main-panel,
+.wapp-skin-otome-diary .wapp-content,
+.wapp-skin-otome-diary .wapp-session-embed [data-slot="sidebar-inset"] {
+  background: transparent !important;
+}
+
+.wapp-skin-otome-diary .wapp-brand-spacer {
+  height: 120px !important;
+  border-bottom: 0 !important;
+  display: grid !important;
+  place-items: center;
+  justify-items: center;
+  text-align: center;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.wapp-skin-otome-diary .wapp-theme-brand-avatar {
+  display: block;
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow: 0 6px 16px rgba(176, 69, 104, 0.22);
+  border: 2px solid #C9A46A;
+}
+
+.wapp-skin-otome-diary .wapp-brand-spacer::before {
+  display: none !important;
+  content: none !important;
+}
+
+.wapp-skin-otome-diary .wapp-brand-spacer::after {
+  padding: 0 !important;
+  content: "蔷薇工作台" !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  color: #3A2430 !important;
+}
+
+.wapp-skin-otome-diary .wapp-new-chat {
+  border-radius: 10px !important;
+  min-height: 46px !important;
+  background: #B04568 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 6px 16px rgba(176, 69, 104, 0.28);
+}
+
+.wapp-skin-otome-diary .wapp-new-chat:hover {
+  background: #963A58 !important;
+}
+
+.wapp-skin-otome-diary .wapp-nav-item:hover,
+.wapp-skin-otome-diary .wapp-nav-subitem:hover,
+.wapp-skin-otome-diary .wapp-recent-row:hover .wapp-recent-item {
+  background: #FBE4EB !important;
+  color: #3A2430 !important;
+}
+
+.wapp-skin-otome-diary .wapp-nav-item.is-active,
+.wapp-skin-otome-diary .wapp-nav-subitem.is-active,
+.wapp-skin-otome-diary .wapp-recent-row.is-active .wapp-recent-item {
+  background: #F8D4DE !important;
+  color: #3A2430 !important;
+  box-shadow: inset 0 0 0 1px #DB6B8A;
+}
+
+.wapp-skin-otome-diary .wapp-nav-item.is-active span,
+.wapp-skin-otome-diary .wapp-nav-subitem.is-active .wapp-nav-subitem-title,
+.wapp-skin-otome-diary .wapp-nav-item:hover span,
+.wapp-skin-otome-diary .wapp-nav-subitem:hover .wapp-nav-subitem-title {
+  color: #3A2430 !important;
+}
+
+/* contrast-gate:active-recent — light rail uses dark ink */
+.wapp-skin-otome-diary .wapp-recent-row.is-active .wapp-recent-item,
+.wapp-skin-otome-diary .wapp-recent-row.is-active .wapp-recent-item *,
+.wapp-skin-otome-diary .wapp-recent-row:hover .wapp-recent-item,
+.wapp-skin-otome-diary .wapp-recent-row:hover .wapp-recent-item * {
+  color: #3A2430 !important;
+}
+
+.wapp-skin-otome-diary .wapp-topbar {
+  background: rgba(255, 252, 249, 0.78) !important;
+  border-bottom: 1px solid rgba(58, 36, 48, 0.08) !important;
+}
+
+/* Duo stage: left/right animated WebP (WodeAppOtomeStage); static PNG fallback only. */
+.wapp-skin-otome-diary .wapp-content-chat {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 252, 249, 0.78) 0%,
+      rgba(255, 246, 249, 0.88) 100%
+    ) !important;
+}
+
+.wapp-skin-otome-diary .wapp-stage-pane.is-active {
+  background: transparent !important;
+}
+
+.wapp-skin-otome-diary .wapp-stage-pane.is-active::before,
+.wapp-skin-otome-diary .wapp-stage-pane.is-active::after {
+  content: none !important;
+  display: none !important;
+  background-image: none !important;
+}
+
+.wapp-skin-otome-diary .wapp-content-chat:not(:has(.wapp-otome-stage))::before,
+.wapp-skin-otome-diary .wapp-content-chat:not(:has(.wapp-otome-stage))::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  top: 8%;
+  bottom: 12%;
+  width: min(280px, 32%);
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.5;
+}
+
+.wapp-skin-otome-diary .wapp-content-chat:not(:has(.wapp-otome-stage))::before {
+  left: 0;
+  background-image: url("/skin-otome-stage-left.png");
+  background-position: left center;
+}
+
+.wapp-skin-otome-diary .wapp-content-chat:not(:has(.wapp-otome-stage))::after {
+  right: 0;
+  background-image: url("/skin-otome-stage-right.png");
+  background-position: right center;
+}
+
+.wapp-otome-stage {
+  position: absolute !important;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  /* Do not inherit the chat > * relative stacking rule or height collapses to 0. */
+  height: auto !important;
+  width: auto !important;
+  contain: layout style;
+}
+
+.wapp-otome-stage-frame {
+  position: absolute;
+  top: 10%;
+  height: 72%;
+  width: min(280px, 34%);
+  object-fit: contain;
+  /* No mix-blend-mode: animated layers + blend = GPU thrash. */
+  opacity: 0.42;
+}
+
+.wapp-otome-stage-frame.is-left {
+  left: 0;
+  object-position: left center;
+}
+
+.wapp-otome-stage-frame.is-right {
+  right: 0;
+  object-position: right center;
+}
+
+.wapp-otome-stage[data-reduced-motion="1"] .wapp-otome-stage-frame {
+  opacity: 0.36;
+}
+
+.wapp-skin-otome-diary .wapp-content-chat > * {
+  position: relative;
+  z-index: 1;
+}
+
+.wapp-skin-otome-diary .wapp-content-chat > .wapp-otome-stage {
+  position: absolute !important;
+  inset: 0;
+  z-index: 0;
+}
+
+.wapp-skin-otome-diary .wapp-session-surface {
+  position: relative;
+  max-width: 920px;
+  margin-inline: auto;
+  background: transparent !important;
+  border-radius: 8px;
+  box-shadow: none;
+  overflow: visible !important;
+}
+
+/* Soft diary fold / spine hint down the middle (decorative only). */
+.wapp-skin-otome-diary .wapp-session-surface::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  top: 12px;
+  bottom: 88px;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(176, 69, 104, 0.18) 18%,
+    rgba(176, 69, 104, 0.22) 50%,
+    rgba(176, 69, 104, 0.18) 82%,
+    transparent 100%
+  );
+}
+
+.wapp-skin-otome-diary .wx-runtime-card {
+  background: rgba(255, 252, 249, 0.82) !important;
+  border: 1px solid rgba(58, 36, 48, 0.08) !important;
+}
+
+.wapp-skin-otome-diary .wapp-session-surface .wapp-composer-shell,
+.wapp-skin-otome-diary .wapp-session-surface .shrink-0.px-0.pb-2.pt-2 {
+  background: transparent !important;
+  border-top: 0 !important;
+}
+
+.wapp-skin-otome-diary .wapp-session-surface [data-message-id],
+.wapp-skin-otome-diary .wapp-session-surface .prose,
+.wapp-skin-otome-diary .wapp-session-surface .not-prose {
+  text-shadow: 0 0 14px rgba(255, 252, 249, 0.95);
+}
+
+.wapp-skin-otome-diary .wapp-composer-dock-top .relative.overflow-visible.rounded-\[24px\],
+.wapp-skin-otome-diary .wapp-composer-dock .relative.overflow-visible.rounded-\[24px\] {
+  border-radius: 12px !important;
+  border: 1px solid rgba(58, 36, 48, 0.1) !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 8px 24px rgba(58, 36, 48, 0.08);
+}
+
+.wapp-skin-otome-diary .wapp-composer-shell {
+  overflow: visible !important;
+}
+
+.wapp-skin-otome-diary:has(.wapp-theme-pet-buddy.is-perch) .wapp-session-surface::after {
+  display: none !important;
+}
+
+.wapp-skin-otome-diary .wapp-recent-item,
+.wapp-skin-otome-diary .wapp-nav-subitem {
+  position: relative;
+  padding-left: 44px !important;
+}
+
+.wapp-skin-otome-diary .wapp-recent-item .wapp-recent-item-head > svg,
+.wapp-skin-otome-diary .wapp-nav-subitem > svg,
+.wapp-skin-otome-diary .wapp-nav-subitem .wapp-nav-subitem-icon,
+.wapp-skin-otome-diary .wapp-nav-item > svg {
+  display: none !important;
+}
+
+.wapp-skin-otome-diary .wapp-recent-item::before,
+.wapp-skin-otome-diary .wapp-nav-subitem::before,
+.wapp-skin-otome-diary .wapp-nav-item::before {
+  content: "" !important;
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: #FFF0F5 url("/skin-otome-avatar.png") center / cover no-repeat !important;
+  box-shadow: inset 0 0 0 1px rgba(58, 36, 48, 0.08);
+  pointer-events: none;
+  display: block !important;
+}
+
+.wapp-skin-otome-diary .wapp-nav-item {
+  position: relative;
+  padding-left: 44px !important;
+}
+
+.wapp-skin-otome-diary .wapp-nav-item:nth-child(3n + 2)::before,
+.wapp-skin-otome-diary .wapp-nav-subitem:nth-child(3n + 2)::before,
+.wapp-skin-otome-diary .wapp-recent-item:nth-child(3n + 2)::before {
+  background-image: url("/skin-otome-avatar-2.png") !important;
+}
+
+.wapp-skin-otome-diary .wapp-nav-item:nth-child(3n + 3)::before,
+.wapp-skin-otome-diary .wapp-nav-subitem:nth-child(3n + 3)::before,
+.wapp-skin-otome-diary .wapp-recent-item:nth-child(3n + 3)::before {
+  background-image: url("/skin-otome-avatar-3.png") !important;
+}
+
+/* Floating companion — follows WodeAppX window (any skin when companion enabled).
+ * Root box stays hit-sized; panel/bubble are absolutely positioned above so
+ * open/close never shifts the sprite's fixed right/bottom anchor. */
+.wapp-theme-pet-buddy {
+  display: flex !important;
+  position: fixed;
+  z-index: 920;
+  right: 16px;
+  bottom: 24px;
+  flex-direction: column;
+  align-items: center;
+  width: max-content;
+  max-width: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: auto !important;
+  overflow: visible;
+  touch-action: none;
+  user-select: none;
+  isolation: isolate;
+}
+
+/* 趴宠 portals into the white composer card. Overflow stays visible so the
+ * peek sprite can sit on the top rim; inner fields keep their own stacking. */
+.wapp-composer-card {
+  position: relative;
+  overflow: visible !important;
+}
+
+.wapp-composer-card:has(> .wapp-theme-pet-buddy.is-perch) {
+  isolation: isolate;
+}
+
+.wapp-theme-pet-buddy.is-perch {
+  position: absolute !important;
+  /* Above the card so paws paint on the white rim. */
+  z-index: 3;
+  right: 18px;
+  left: auto;
+  top: 0;
+  bottom: auto;
+  /* 148px tall; ~14px of paw ledge rests on the white card face */
+  transform: translateY(-134px); /* 148 - 14 */
+  width: 148px;
+  max-width: 148px;
+  pointer-events: none !important;
+  overflow: visible;
+}
+
+/*
+ * 蔷薇趴宠：半身探头素材自带底沿切线，下半截应收进白卡片后（勿整张浮在卡片上）。
+ * 桌宠抬高，避免盖住发送钮（空态/会话底栏高度接近）。
+ */
+.wapp-skin-otome-diary .wapp-theme-pet-buddy.is-perch {
+  z-index: 3;
+  right: 28px;
+  width: 156px;
+  max-width: 156px;
+  /* 底沿对齐卡片顶，约 14px 落在卡面。宿主是 .wapp-composer-card，空会话/底栏同一套。 */
+  transform: translateY(calc(-100% + 14px));
+}
+
+.wapp-skin-otome-diary .wapp-theme-pet-buddy.is-perch .wapp-theme-pet-hit,
+.wapp-skin-otome-diary .wapp-theme-pet-buddy.is-perch .wapp-theme-pet-sprite,
+.wapp-skin-otome-diary .wapp-theme-pet-buddy.is-perch .wapp-theme-pet-live2d,
+.wapp-skin-otome-diary .wapp-theme-pet-buddy.is-perch .wapp-theme-pet-live2d-canvas {
+  width: 156px;
+  height: 156px;
+}
+
+.wapp-skin-otome-diary .wapp-theme-pet-buddy.is-float {
+  right: 22px;
+  /* 底栏输入时抬高，避免盖发送钮；顶栏/居中输入保持贴窗底 */
+  bottom: 24px;
+}
+
+.wapp-skin-otome-diary:not(:has(.wapp-session-surface-top-composer)):not(
+    :has(.wapp-session-composer-top)
+  )
+  .wapp-theme-pet-buddy.is-float {
+  bottom: 168px;
+}
+
+.wapp-theme-pet-buddy.is-perch .wapp-theme-pet-hit {
+  display: block;
+  width: 148px;
+  height: 148px;
+  cursor: pointer;
+  pointer-events: auto;
+  transform-origin: 50% 100%;
+  animation: wapp-pet-perch-peek 18s ease-in-out infinite;
+}
+
+.wapp-theme-pet-buddy.is-perch .wapp-theme-pet-sprite {
+  width: 148px;
+  height: 148px;
+  transform-origin: 50% 100%;
+  filter: none !important;
+}
+
+/* Dedicated 1×4 peek sheets (探头犬 / 默认小狗): perch mood locks below. */
+.wapp-theme-pet-buddy.is-perch .wapp-theme-pet-sprite:not(.is-frames-8):not(.is-frames-16) {
+  background-size: 400% 100%;
+  animation-name: wapp-pet-perch-sprite-idle;
+  animation-duration: 8s;
+  animation-timing-function: steps(1, end);
+  animation-iteration-count: infinite;
+}
+
+.wapp-theme-pet-buddy.is-perch .wapp-theme-pet-live2d,
+.wapp-theme-pet-buddy.is-perch .wapp-theme-pet-live2d-canvas {
+  width: 148px;
+  height: 148px;
+}
+
+@keyframes wapp-pet-perch-sprite-idle {
+  0%,
+  72% {
+    background-position: 0% 0; /* idle peek */
+  }
+  76%,
+  86% {
+    background-position: 33.333% 0; /* soft closed smile */
+  }
+  90%,
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+.wapp-theme-pet-buddy.is-perch::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  top: auto;
+  z-index: 0;
+  width: 64px;
+  height: 12px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(61, 42, 34, 0.16) 0%,
+    rgba(61, 42, 34, 0.04) 50%,
+    transparent 72%
+  );
+  pointer-events: none;
+}
+
+.wapp-theme-pet-buddy.is-perch .wapp-theme-pet-hit,
+.wapp-theme-pet-buddy.is-perch .wapp-theme-pet-zzz,
+.wapp-theme-pet-buddy.is-perch .wapp-theme-pet-bubble {
+  position: relative;
+  z-index: 1;
+}
+
+.wapp-theme-pet-buddy.is-perch .wapp-theme-pet-zzz {
+  top: 18px;
+  right: 18px;
+  font-size: 12px;
+}
+
+.wapp-theme-pet-buddy.is-perch .wapp-theme-pet-bubble {
+  bottom: auto;
+  top: 4px;
+  max-width: 140px;
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+.wapp-skin-pet-soft .wapp-composer-shell {
+  position: relative;
+  overflow: visible !important;
+  z-index: 6;
+}
+
+.wapp-skin-pet-soft:has(.wapp-theme-pet-buddy.is-perch) .wapp-session-surface::after {
+  display: none;
+}
+
+/* Tab/window hidden: stop sprite sheet + zzz + perch peek work. */
+.wapp-theme-pet-buddy[data-page-hidden="1"] .wapp-theme-pet-sprite,
+.wapp-theme-pet-buddy[data-page-hidden="1"] .wapp-theme-pet-zzz,
+.wapp-theme-pet-buddy[data-page-hidden="1"] .wapp-theme-pet-hit {
+  animation-play-state: paused !important;
+}
+
+.wapp-theme-pet-buddy.is-dragging {
+  z-index: 960;
+  cursor: grabbing;
+}
+
+.wapp-theme-pet-hit {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: grab;
+  appearance: none;
+}
+
+.wapp-theme-pet-buddy.is-perch .wapp-theme-pet-hit {
+  cursor: pointer;
+}
+
+.wapp-theme-pet-buddy.is-dragging .wapp-theme-pet-hit {
+  cursor: grabbing;
+}
+
+.wapp-theme-pet-zzz {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  z-index: 2;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: rgba(61, 42, 34, 0.42);
+  pointer-events: none;
+  animation: wapp-pet-zzz 2.4s ease-in-out infinite;
+}
+
+@keyframes wapp-pet-zzz {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translateY(-5px);
+  }
+}
+
+/* Mood locks sprite frames (overrides loop while watching / sleeping). */
+.wapp-theme-pet-buddy[data-mood="watch"] .wapp-theme-pet-sprite {
+  animation: none !important;
+  background-position: 100% 0; /* tilt — looking at you */
+}
+
+.wapp-theme-pet-buddy[data-mood="watch"] .wapp-theme-pet-sprite.is-frames-8 {
+  background-position: 71.4286% 0; /* head tilt */
+}
+
+.wapp-theme-pet-buddy[data-mood="watch"] .wapp-theme-pet-sprite.is-frames-16 {
+  background-position: 73.3333% 0; /* tilt */
+}
+
+.wapp-theme-pet-buddy[data-mood="sleep"] .wapp-theme-pet-sprite {
+  animation: none !important;
+  background-position: 33.333% 0; /* blink / eyes closed */
+}
+
+.wapp-theme-pet-buddy[data-mood="sleep"] .wapp-theme-pet-sprite.is-frames-8 {
+  background-position: 85.7143% 0; /* rest */
+}
+
+.wapp-theme-pet-buddy[data-mood="sleep"] .wapp-theme-pet-sprite.is-frames-16 {
+  background-position: 93.3333% 0; /* sleep */
+}
+
+/* Perch 1×4 mood locks — only for 4-frame peek sheets (not 8/16 companion sheets). */
+.wapp-theme-pet-buddy.is-perch[data-mood="watch"] .wapp-theme-pet-sprite:not(.is-frames-8):not(.is-frames-16) {
+  animation: none !important;
+  background-position: 66.666% 0; /* lean / watch */
+}
+
+.wapp-theme-pet-buddy.is-perch[data-mood="sleep"] .wapp-theme-pet-sprite:not(.is-frames-8):not(.is-frames-16) {
+  animation: none !important;
+  background-position: 33.333% 0; /* eyes closed */
+}
+
+.wapp-theme-pet-buddy.is-perch.is-reacting .wapp-theme-pet-sprite:not(.is-frames-8):not(.is-frames-16),
+.wapp-theme-pet-buddy.is-perch[data-mood="react"] .wapp-theme-pet-sprite:not(.is-frames-8):not(.is-frames-16) {
+  animation: none !important;
+  background-position: 100% 0; /* wave / come-out */
+  transform: none;
+}
+
+.wapp-theme-pet-buddy.is-perch[data-mood="sleep"] .wapp-theme-pet-hit {
+  animation: none;
+  transform: rotate(-6deg) translateY(2px);
+}
+
+.wapp-theme-pet-buddy.is-perch[data-mood="watch"] .wapp-theme-pet-hit {
+  /* Frame 2 already shows more body; do not lift off the rim. */
+  animation: none;
+  transform: none;
+}
+
+.wapp-theme-pet-buddy.is-perch.is-reacting .wapp-theme-pet-hit,
+.wapp-theme-pet-buddy.is-perch[data-mood="react"] .wapp-theme-pet-hit {
+  animation: none;
+  transform: translateY(-4px);
+}
+
+.wapp-theme-pet-buddy.is-perch[data-mood="idle"] .wapp-theme-pet-hit {
+  animation: wapp-pet-perch-peek 18s ease-in-out infinite;
+}
+
+/* Mostly rest with paws on rim; every ~18s a small peek then tuck back. */
+@keyframes wapp-pet-perch-peek {
+  0%,
+  62% {
+    transform: translateY(0);
+  }
+  68% {
+    transform: translateY(-1px);
+  }
+  74%,
+  84% {
+    transform: translateY(-6px);
+  }
+  90% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.wapp-theme-pet-buddy.is-perch[data-mood="idle"] .wapp-theme-pet-sprite:not(.is-frames-8):not(.is-frames-16) {
+  animation-name: wapp-pet-perch-sprite-idle;
+  animation-duration: 8s;
+}
+
+.wapp-theme-pet-sprite {
+  display: block;
+  width: 132px;
+  height: 132px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background-color: transparent;
+  background-image: var(--wapp-pet-sprite-sheet, url("/skin-pet-sprite-sheet.png"));
+  background-repeat: no-repeat;
+  background-size: 400% 100%;
+  background-position: 0% 0;
+  filter: drop-shadow(0 10px 18px rgba(61, 42, 34, 0.22));
+  animation: wapp-pet-sprite-act 3.6s steps(1, end) infinite;
+  transform-origin: center bottom;
+  transition: transform 0.18s ease;
+}
+
+.wapp-theme-pet-buddy.is-reacting .wapp-theme-pet-sprite {
+  animation: none;
+  background-position: 66.666% 0; /* wave */
+  transform: scale(1.08) translateY(-6px);
+}
+
+/* Legacy hint chip — never show; click/drag are default without UI chrome */
+.wapp-theme-pet-buddy-label {
+  display: none !important;
+}
+
+.wapp-theme-pet-live2d {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 148px;
+  height: 148px;
+  overflow: hidden;
+}
+
+.wapp-theme-pet-live2d-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.wapp-theme-pet-live2d-status {
+  position: absolute;
+  inset: auto 8px 10px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 252, 248, 0.92);
+  color: #3D2A22;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  max-width: calc(100% - 16px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wapp-theme-pet-live2d-status.is-error {
+  color: #B84A32;
+}
+
+.wapp-theme-pet-bubble {
+  position: absolute;
+  right: 50%;
+  bottom: calc(100% + 8px);
+  z-index: 2;
+  max-width: 200px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 14px 14px 14px 4px;
+  background: rgba(255, 252, 248, 0.96);
+  color: #3D2A22;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  box-shadow: 0 8px 20px rgba(61, 42, 34, 0.14);
+  border: 1px solid rgba(61, 42, 34, 0.08);
+  overflow-wrap: break-word;
+  transform: translateX(50%);
+  animation: wapp-pet-bubble-pop 0.28s ease;
+}
+
+.wapp-theme-pet-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 3;
+  width: min(260px, calc(100vw - 48px));
+  margin: 0;
+  padding: 10px;
+  border-radius: 18px;
+  background: rgba(255, 252, 248, 0.96);
+  border: 1px solid rgba(61, 42, 34, 0.1);
+  box-shadow: 0 14px 32px rgba(61, 42, 34, 0.16);
+  color: #3D2A22;
+}
+
+.wapp-theme-pet-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.wapp-theme-pet-panel-head strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.wapp-theme-pet-panel-close {
+  border: 0;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: #F5D0C2;
+  color: #3D2A22;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.wapp-theme-pet-panel-empty {
+  margin: 0;
+  padding: 8px 4px;
+  color: #7A5A4A;
+  font-size: 12px;
+}
+
+.wapp-theme-pet-panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.wapp-theme-pet-panel-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid rgba(61, 42, 34, 0.08);
+  border-radius: 12px;
+  background: #FFF8F2;
+  color: #3D2A22;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.wapp-theme-pet-panel-item:hover {
+  background: #F8E0D6;
+  border-color: rgba(184, 74, 50, 0.28);
+}
+
+.wapp-theme-pet-panel-item.is-active {
+  background: #F5D0C2;
+  border-color: #E07A5F;
+}
+
+.wapp-theme-pet-panel-preview {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.wapp-theme-pet-panel-title {
+  display: none;
+}
+
+.wapp-theme-pet-panel-status {
+  flex: 0 0 auto;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #B84A32;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.wapp-theme-pet-panel-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(61, 42, 34, 0.08);
+}
+
+.wapp-theme-pet-panel-hide {
+  min-width: 0;
+  min-height: 34px;
+  max-width: 100%;
+  padding: 6px 12px;
+  border: 1px solid rgba(61, 42, 34, 0.14);
+  border-radius: 999px;
+  background: transparent;
+  color: #7A5A4A;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.wapp-theme-pet-panel-hide:hover {
+  background: rgba(61, 42, 34, 0.06);
+  border-color: rgba(61, 42, 34, 0.22);
+  color: #3D2A22;
+}
+
+@keyframes wapp-pet-bubble-pop {
+  from {
+    opacity: 0;
+    transform: translateX(50%) translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes wapp-pet-sprite-act {
+  0%,
+  28% {
+    background-position: 0% 0; /* idle */
+  }
+  32%,
+  42% {
+    background-position: 33.333% 0; /* blink */
+  }
+  46%,
+  58% {
+    background-position: 0% 0; /* idle */
+  }
+  62%,
+  78% {
+    background-position: 66.666% 0; /* wave */
+  }
+  82%,
+  100% {
+    background-position: 100% 0; /* head tilt */
+  }
+}
+
+/* 8-frame companion sheets (idle/blink/idle2/wave/cheer/tilt/rest/stretch). */
+.wapp-theme-pet-sprite.is-frames-8 {
+  background-size: 800% 100%;
+  animation-name: wapp-pet-sprite-act-8;
+  animation-duration: 5.6s;
+}
+
+.wapp-theme-pet-buddy.is-reacting .wapp-theme-pet-sprite.is-frames-8 {
+  background-position: 57.1429% 0; /* cheer */
+}
+
+/* 16-frame companion sheets: every action gets 2-3 transition frames.
+   Order: idle, idle-lean, half-blink, eyes-closed, sway-a, sway-b,
+   paw-raise, wave-high, paw-down, cheer, cheer-jump, tilt, shy-tilt,
+   lie-down, sleep, stretch. */
+.wapp-theme-pet-sprite.is-frames-16 {
+  background-size: 1600% 100%;
+  animation-name: wapp-pet-sprite-act-16;
+  animation-duration: 9.6s;
+}
+
+.wapp-theme-pet-buddy.is-reacting .wapp-theme-pet-sprite.is-frames-16 {
+  background-position: 60% 0; /* cheer */
+}
+
+@keyframes wapp-pet-sprite-act-16 {
+  0%,
+  10% {
+    background-position: 0% 0; /* idle */
+  }
+  12%,
+  20% {
+    background-position: 6.6667% 0; /* idle lean */
+  }
+  22%,
+  24% {
+    background-position: 13.3333% 0; /* half blink */
+  }
+  25%,
+  27% {
+    background-position: 20% 0; /* eyes closed */
+  }
+  28%,
+  30% {
+    background-position: 13.3333% 0; /* half blink, reopen */
+  }
+  32%,
+  38% {
+    background-position: 26.6667% 0; /* sway a */
+  }
+  40%,
+  46% {
+    background-position: 33.3333% 0; /* sway b */
+  }
+  48%,
+  52% {
+    background-position: 40% 0; /* paw raise */
+  }
+  54%,
+  60% {
+    background-position: 46.6667% 0; /* wave high */
+  }
+  62%,
+  64% {
+    background-position: 53.3333% 0; /* paw down */
+  }
+  66%,
+  72% {
+    background-position: 60% 0; /* cheer */
+  }
+  74%,
+  78% {
+    background-position: 66.6667% 0; /* cheer jump */
+  }
+  79%,
+  82% {
+    background-position: 73.3333% 0; /* tilt */
+  }
+  83%,
+  86% {
+    background-position: 80% 0; /* shy tilt */
+  }
+  87%,
+  90% {
+    background-position: 86.6667% 0; /* lie down */
+  }
+  91%,
+  94% {
+    background-position: 93.3333% 0; /* sleep */
+  }
+  95%,
+  100% {
+    background-position: 100% 0; /* stretch back to idle */
+  }
+}
+
+@keyframes wapp-pet-sprite-act-8 {
+  0%,
+  28% {
+    background-position: 0% 0; /* idle */
+  }
+  30%,
+  33% {
+    background-position: 14.2857% 0; /* blink */
+  }
+  35%,
+  45% {
+    background-position: 28.5714% 0; /* idle, tail/antenna/ear sway */
+  }
+  48%,
+  55% {
+    background-position: 42.8571% 0; /* wave */
+  }
+  57%,
+  68% {
+    background-position: 57.1429% 0; /* cheer */
+  }
+  70%,
+  73% {
+    background-position: 71.4286% 0; /* head tilt */
+  }
+  75%,
+  85% {
+    background-position: 85.7143% 0; /* rest */
+  }
+  87%,
+  100% {
+    background-position: 100% 0; /* stretch back to idle */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wapp-theme-pet-sprite {
+    animation: none;
+    background-position: 0% 0;
+  }
+
+  .wapp-theme-pet-buddy.is-reacting .wapp-theme-pet-sprite {
+    transform: none;
+  }
+
+  .wapp-theme-pet-bubble,
+  .wapp-theme-pet-zzz {
+    animation: none;
+  }
+
+  .wapp-theme-pet-buddy.is-perch[data-mood="sleep"] .wapp-theme-pet-hit,
+  .wapp-theme-pet-buddy.is-perch[data-mood="watch"] .wapp-theme-pet-hit,
+  .wapp-theme-pet-buddy.is-perch[data-mood="idle"] .wapp-theme-pet-hit,
+  .wapp-theme-pet-buddy.is-perch.is-reacting .wapp-theme-pet-hit,
+  .wapp-theme-pet-buddy.is-perch[data-mood="react"] .wapp-theme-pet-hit {
+    transform: none;
+    animation: none;
+  }
+}
+
+/* Recent / agent rows: circular pet avatar like the mock (replace lucide marks) */
+.wapp-skin-pet-soft .wapp-recent-item,
+.wapp-skin-pet-soft .wapp-nav-subitem {
+  position: relative;
+  padding-left: 44px !important;
+}
+
+.wapp-skin-pet-soft .wapp-recent-item .wapp-recent-item-head > svg,
+.wapp-skin-pet-soft .wapp-nav-subitem > svg,
+.wapp-skin-pet-soft .wapp-nav-subitem .wapp-nav-subitem-icon,
+.wapp-skin-pet-soft .wapp-nav-item > svg {
+  display: none !important;
+}
+
+.wapp-skin-pet-soft .wapp-recent-item::before,
+.wapp-skin-pet-soft .wapp-nav-subitem::before,
+.wapp-skin-pet-soft .wapp-nav-item::before {
+  content: "" !important;
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: #FFF5EB url("/skin-pet-avatar.png") center / cover no-repeat !important;
+  box-shadow: inset 0 0 0 1px rgba(61, 42, 34, 0.08);
+  pointer-events: none;
+  display: block !important;
+}
+
+.wapp-skin-pet-soft .wapp-nav-item {
+  position: relative;
+  padding-left: 44px !important;
+}
+
+/* Mock has diverse pets — cycle real generated avatars, not hue-faked one dog */
+.wapp-skin-pet-soft .wapp-nav-item:nth-child(3n + 2)::before,
+.wapp-skin-pet-soft .wapp-nav-subitem:nth-child(3n + 2)::before,
+.wapp-skin-pet-soft .wapp-recent-item:nth-child(3n + 2)::before {
+  background-image: url("/skin-pet-avatar-2.png") !important;
+}
+.wapp-skin-pet-soft .wapp-nav-item:nth-child(3n + 3)::before,
+.wapp-skin-pet-soft .wapp-nav-subitem:nth-child(3n + 3)::before,
+.wapp-skin-pet-soft .wapp-recent-item:nth-child(3n + 3)::before {
+  background-image: url("/skin-pet-avatar-3.png") !important;
+}
+
+/* ========== cute-pastel → mint rail + blush stage (mock: skin-mock-cute-pastel) ========== */
+.wapp-workspace-shell.wapp-skin-cute-pastel {
+  padding: 10px;
+  gap: 10px;
+  grid-template-columns: 280px minmax(0, 1fr) !important;
+  background: linear-gradient(160deg, #F7FBFA 0%, #FDEFF4 55%, #F3FBF7 100%) !important;
+}
+
+.wapp-workspace-shell.wapp-skin-cute-pastel.is-sidebar-collapsed {
+  grid-template-columns: 0 minmax(0, 1fr) !important;
+}
+
+.wapp-skin-cute-pastel > .wapp-sidebar {
+  border: 0 !important;
+  border-radius: 26px !important;
+  background: #E8F6F1 !important;
+  box-shadow: 0 10px 28px rgba(31, 61, 54, 0.08);
+}
+
+.wapp-skin-cute-pastel > .wapp-workspace-main {
+  border-radius: 26px;
+  overflow: hidden;
+  background: #FFF9FB;
+  box-shadow: 0 12px 32px rgba(58, 36, 48, 0.08);
+}
+
+.wapp-skin-cute-pastel .wapp-brand-spacer {
+  height: 118px !important;
+  border-bottom: 0 !important;
+  display: grid !important;
+  place-items: center;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.wapp-skin-cute-pastel .wapp-brand-spacer::before {
+  display: none !important;
+  content: none !important;
+}
+
+.wapp-skin-cute-pastel .wapp-theme-brand-avatar {
+  display: block;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  object-fit: cover;
+  box-shadow: 0 8px 18px rgba(179, 77, 106, 0.22);
+  border: 2px solid #FFFFFF;
+}
+
+.wapp-skin-cute-pastel .wapp-brand-spacer::after {
+  content: "马卡龙工作台" !important;
+  padding: 0 !important;
+  color: #B34D6A !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+.wapp-skin-cute-pastel .wapp-new-chat {
+  border-radius: 999px !important;
+  min-height: 48px !important;
+  background: #B34D6A !important;
+  color: #FFFFFF !important;
+}
+
+.wapp-skin-cute-pastel .wapp-new-chat:hover {
+  background: #A84460 !important;
+}
+
+.wapp-skin-cute-pastel .wapp-nav-item:hover,
+.wapp-skin-cute-pastel .wapp-nav-subitem:hover,
+.wapp-skin-cute-pastel .wapp-recent-row:hover .wapp-recent-item {
+  background: #F8D7E2 !important;
+  color: #3A2430 !important;
+}
+
+.wapp-skin-cute-pastel .wapp-nav-item.is-active,
+.wapp-skin-cute-pastel .wapp-nav-subitem.is-active,
+.wapp-skin-cute-pastel .wapp-recent-row.is-active .wapp-recent-item {
+  background: #F3C4D4 !important;
+  color: #3A2430 !important;
+  box-shadow: inset 0 0 0 1px #DB6B8A;
+}
+
+.wapp-skin-cute-pastel .wapp-nav-item.is-active span,
+.wapp-skin-cute-pastel .wapp-nav-subitem.is-active .wapp-nav-subitem-title,
+.wapp-skin-cute-pastel .wapp-nav-item:hover span,
+.wapp-skin-cute-pastel .wapp-nav-subitem:hover .wapp-nav-subitem-title {
+  color: #3A2430 !important;
+}
+
+/* contrast-gate:active-recent */
+.wapp-skin-cute-pastel .wapp-recent-row.is-active .wapp-recent-item,
+.wapp-skin-cute-pastel .wapp-recent-row.is-active .wapp-recent-item *,
+.wapp-skin-cute-pastel .wapp-recent-row:hover .wapp-recent-item,
+.wapp-skin-cute-pastel .wapp-recent-row:hover .wapp-recent-item * {
+  color: #3A2430 !important;
+}
+
+.wapp-skin-cute-pastel .wapp-topbar {
+  background: #FFF9FB !important;
+}
+
+.wapp-skin-cute-pastel .wapp-session-surface,
+.wapp-skin-cute-pastel .wx-runtime-card {
+  background: #FFF9FB !important;
+}
+
+.wapp-skin-cute-pastel .wapp-session-surface .wapp-composer-shell,
+.wapp-skin-cute-pastel .wapp-session-surface .shrink-0.px-0.pb-2.pt-2 {
+  background: transparent !important;
+  border-top: 0 !important;
+}
+
+.wapp-skin-cute-pastel .wapp-composer-dock-top .relative.overflow-visible.rounded-\[24px\],
+.wapp-skin-cute-pastel .wapp-composer-dock .relative.overflow-visible.rounded-\[24px\] {
+  border-radius: 22px !important;
+  background: #FFFFFF !important;
+  border: 1px solid rgba(58, 36, 48, 0.1) !important;
+}
+
+/* ========== ink-book → rice paper + open book + page turn ========== */
+.wapp-workspace-shell.wapp-skin-ink-book {
+  padding: 14px;
+  gap: 12px;
+  background-color: #C9B79A !important;
+  background-image:
+    linear-gradient(165deg, rgba(250, 246, 238, 0.18) 0%, rgba(239, 231, 216, 0.28) 55%, rgba(228, 220, 203, 0.34) 100%),
+    url("/skin-ink-desk-bg.jpg") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: cover !important;
+}
+
+.wapp-skin-ink-book > .wapp-theme-ink-book,
+.wapp-skin-ink-book .wapp-theme-ink-book {
+  display: none !important;
+}
+
+.wapp-skin-ink-book > .wapp-sidebar {
+  border: 1px solid rgba(28, 25, 23, 0.1) !important;
+  border-radius: 0 0 0 6px !important;
+  background:
+    linear-gradient(180deg, rgba(250, 246, 238, 0.78), rgba(244, 239, 228, 0.92)),
+    #F4EFE4 !important;
+  box-shadow: 0 8px 24px rgba(28, 25, 23, 0.08);
+}
+
+.wapp-skin-ink-book > .wapp-workspace-main {
+  position: relative;
+  border-radius: 0 0 6px 0;
+  overflow: hidden;
+  /* Keep main stage mostly clear so the scholar desk peeks around the open book. */
+  background: transparent;
+  box-shadow: 0 10px 28px rgba(28, 25, 23, 0.1);
+}
+
+.wapp-skin-ink-book .wapp-main-panel,
+.wapp-skin-ink-book .wapp-content,
+.wapp-skin-ink-book .wapp-session-embed [data-slot="sidebar-inset"] {
+  background: transparent !important;
+}
+
+.wapp-skin-ink-book .wapp-brand-spacer {
+  height: 112px !important;
+  border-bottom: 0 !important;
+  display: grid !important;
+  place-items: center;
+  justify-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.wapp-skin-ink-book .wapp-theme-brand-avatar {
+  display: block;
+  width: 56px;
+  height: 56px;
+  border-radius: 4px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(155, 44, 31, 0.25);
+  border: 1px solid rgba(155, 44, 31, 0.35);
+}
+
+.wapp-skin-ink-book .wapp-brand-spacer::before {
+  display: none !important;
+  content: none !important;
+}
+
+.wapp-skin-ink-book .wapp-brand-spacer::after {
+  content: "水墨书卷" !important;
+  padding: 0 !important;
+  font-family: "Songti SC", "Noto Serif SC", "Source Han Serif SC", Georgia, serif !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.28em !important;
+  color: #1C1917 !important;
+}
+
+.wapp-skin-ink-book .wapp-new-chat {
+  border-radius: 4px !important;
+  min-height: 44px !important;
+  background: #9B2C1F !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(155, 44, 31, 0.28);
+}
+
+.wapp-skin-ink-book .wapp-new-chat:hover {
+  background: #7F1D1D !important;
+}
+
+.wapp-skin-ink-book .wapp-topbar {
+  background: rgba(250, 246, 238, 0.82) !important;
+  background-color: rgba(250, 246, 238, 0.82) !important;
+  border-bottom: 1px solid rgba(28, 25, 23, 0.1) !important;
+}
+
+.wapp-skin-ink-book .wapp-breadcrumb {
+  background-color: transparent !important;
+}
+
+.wapp-skin-ink-book .wapp-breadcrumb,
+.wapp-skin-ink-book .wapp-breadcrumb strong,
+.wapp-skin-ink-book .wapp-breadcrumb-link {
+  color: #292524 !important;
+}
+
+.wapp-skin-ink-book .wapp-nav-item:hover,
+.wapp-skin-ink-book .wapp-nav-subitem:hover,
+.wapp-skin-ink-book .wapp-recent-row:hover .wapp-recent-item {
+  background: #EDE4D4 !important;
+  color: #1C1917 !important;
+}
+
+.wapp-skin-ink-book .wapp-nav-item.is-active,
+.wapp-skin-ink-book .wapp-nav-subitem.is-active,
+.wapp-skin-ink-book .wapp-recent-row.is-active .wapp-recent-item {
+  background: #E4D8C4 !important;
+  color: #1C1917 !important;
+  box-shadow: inset 0 0 0 1px #B4533C;
+}
+
+.wapp-skin-ink-book .wapp-nav-item.is-active span,
+.wapp-skin-ink-book .wapp-nav-subitem.is-active .wapp-nav-subitem-title,
+.wapp-skin-ink-book .wapp-nav-item:hover span,
+.wapp-skin-ink-book .wapp-nav-subitem:hover .wapp-nav-subitem-title,
+.wapp-skin-ink-book .wapp-recent-row.is-active .wapp-recent-item,
+.wapp-skin-ink-book .wapp-recent-row.is-active .wapp-recent-item *,
+.wapp-skin-ink-book .wapp-recent-row:hover .wapp-recent-item,
+.wapp-skin-ink-book .wapp-recent-row:hover .wapp-recent-item * {
+  color: #1C1917 !important;
+}
+
+.wapp-skin-ink-book .wapp-content-chat,
+.wapp-skin-ink-book .wapp-stage-pane.is-active {
+  /* Desk shows through; paper lives on the open-book leaves, not the whole stage. */
+  background: transparent !important;
+}
+
+.wapp-skin-ink-book .wapp-session-surface {
+  position: relative;
+  max-width: 960px;
+  margin-inline: auto;
+  overflow: visible !important;
+  background: transparent !important;
+  border-radius: 2px 10px 10px 2px;
+  box-shadow: 0 14px 36px rgba(28, 25, 23, 0.14);
+}
+
+.wapp-skin-ink-book .wapp-session-surface::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 18px;
+  margin-left: -9px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(28, 25, 23, 0.07),
+    rgba(255, 255, 255, 0.35) 45%,
+    rgba(28, 25, 23, 0.08)
+  );
+}
+
+.wapp-skin-ink-book .wx-runtime-card {
+  background: rgba(250, 246, 238, 0.9) !important;
+  border: 1px solid rgba(28, 25, 23, 0.08) !important;
+}
+
+.wapp-skin-ink-book .wapp-session-surface .wapp-composer-shell,
+.wapp-skin-ink-book .wapp-session-surface .shrink-0.px-0.pb-2.pt-2 {
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 0 !important;
+}
+
+.wapp-skin-ink-book .wapp-composer-dock-top .relative.overflow-visible.rounded-\[24px\],
+.wapp-skin-ink-book .wapp-composer-dock .relative.overflow-visible.rounded-\[24px\] {
+  border-radius: 6px !important;
+  border: 1px solid rgba(28, 25, 23, 0.12) !important;
+  background: rgba(255, 252, 246, 0.96) !important;
+}
+
+/* Book spread: React-owned content on left/right leaves + paper-curl overlay.
+ * StPageFlip was evaluated (vendored under vendor/page-flip) but HTML mode
+ * reparents/destroys nodes and fights MessageList — keep CSS curl for stability. */
+.wapp-skin-ink-book .wapp-session-surface::after {
+  display: none;
+}
+
+.wapp-skin-ink-book [data-wodeapp-ink-book="1"] {
+  background: transparent;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-spread {
+  isolation: isolate;
+  border-radius: 2px 10px 10px 2px;
+  box-shadow:
+    inset 0 0 0 1px rgba(28, 25, 23, 0.08),
+    0 10px 28px rgba(28, 25, 23, 0.1);
+  background:
+    linear-gradient(90deg, rgba(28, 25, 23, 0.05), transparent 18%, transparent 82%, rgba(28, 25, 23, 0.05)),
+    #EFE7D8;
+  overflow: hidden;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-leaf {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  width: calc(50% - 14px);
+  border-radius: 2px;
+  pointer-events: none;
+  background-color: #FAF6EE;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 252, 246, 0.28) 0%,
+      rgba(250, 246, 238, 0.12) 42%,
+      rgba(247, 241, 230, 0.22) 100%
+    ),
+    url("/skin-ink-paper-bg.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow:
+    inset 0 0 0 1px rgba(28, 25, 23, 0.1),
+    inset 0 18px 28px -22px rgba(255, 255, 255, 0.55),
+    inset 0 -22px 30px -24px rgba(28, 25, 23, 0.08);
+}
+
+.wapp-skin-ink-book .wapp-ink-book-leaf-left {
+  left: 8px;
+  border-radius: 2px 0 0 2px;
+  background-position: left center;
+  box-shadow:
+    inset 0 0 0 1px rgba(28, 25, 23, 0.1),
+    inset -16px 0 22px -18px rgba(28, 25, 23, 0.14),
+    inset 10px 0 18px -16px rgba(255, 255, 255, 0.35);
+}
+
+.wapp-skin-ink-book .wapp-ink-book-leaf-right {
+  right: 8px;
+  border-radius: 0 8px 8px 0;
+  background-position: right center;
+  box-shadow:
+    inset 0 0 0 1px rgba(28, 25, 23, 0.1),
+    inset 16px 0 22px -18px rgba(28, 25, 23, 0.14),
+    inset -10px 0 18px -16px rgba(255, 255, 255, 0.35);
+}
+
+.wapp-skin-ink-book .wapp-ink-book-spine {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 18px;
+  margin-left: -9px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(28, 25, 23, 0.1),
+    rgba(255, 255, 255, 0.45) 45%,
+    rgba(28, 25, 23, 0.11)
+  );
+}
+
+.wapp-skin-ink-book .wapp-ink-book-content {
+  position: relative;
+  z-index: 1;
+  padding: 14px 12px 10px;
+  box-sizing: border-box;
+}
+
+/* Hide transcript while closed so remmeasure flex thrash never paints.
+ * During opening the laid-out spread is visible under the flipping cover. */
+.wapp-skin-ink-book .wapp-ink-book-content[data-ink-phase="closed"],
+.wapp-skin-ink-book .wapp-ink-book-spread[data-ink-phase="closed"] > .wapp-ink-book-leaf,
+.wapp-skin-ink-book .wapp-ink-book-spread[data-ink-phase="closed"] > .wapp-ink-book-spine {
+  visibility: hidden;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-content[data-ink-phase="closed"],
+.wapp-skin-ink-book .wapp-ink-book-content[data-ink-phase="opening"] {
+  pointer-events: none;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-pager[data-ink-phase="closed"],
+.wapp-skin-ink-book .wapp-ink-book-pager[data-ink-phase="opening"] {
+  opacity: 0.55;
+}
+
+/* Closed cover: masks history hydrate; opens after settle. */
+.wapp-skin-ink-book .wapp-ink-book-cover {
+  position: absolute;
+  z-index: 12;
+  inset: 8px;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  pointer-events: none;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-cover-board {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: calc(50% - 2px);
+  height: 100%;
+  border-radius: 0 8px 8px 0;
+  border: 1px solid rgba(28, 25, 23, 0.16);
+  border-left: 0;
+  background-color: #E8DFCF;
+  background-image:
+    linear-gradient(115deg, rgba(250, 246, 238, 0.2) 0%, rgba(232, 223, 207, 0.55) 40%, rgba(180, 83, 60, 0.12) 100%),
+    url("/skin-ink-paper-bg.jpg");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: cover;
+  box-shadow:
+    -12px 0 28px rgba(28, 25, 23, 0.18),
+    inset 0 0 0 1px rgba(255, 252, 246, 0.35);
+}
+
+.wapp-skin-ink-book .wapp-ink-book-cover-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 10px);
+  width: 12px;
+  border-radius: 2px 0 0 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(28, 25, 23, 0.28),
+    rgba(120, 90, 60, 0.35) 45%,
+    rgba(28, 25, 23, 0.12)
+  );
+  box-shadow: inset -2px 0 0 rgba(255, 252, 246, 0.2);
+}
+
+.wapp-skin-ink-book .wapp-ink-book-cover-seal {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 2px solid #9B2C1F;
+  border-radius: 4px;
+  color: #9B2C1F;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: color-mix(in srgb, #FAF6EE 82%, #B4533C 18%);
+  box-shadow: inset 0 0 0 1px rgba(155, 44, 31, 0.25);
+}
+
+.wapp-skin-ink-book .wapp-ink-book-cover-title {
+  color: #1C1917;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: 0.28em;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-cover-status {
+  color: #57534E;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  animation: wapp-ink-cover-pulse 1.2s ease-in-out infinite;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-cover.is-opening {
+  animation: wapp-ink-cover-open 0.72s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@keyframes wapp-ink-cover-open {
+  0% {
+    opacity: 1;
+    transform: perspective(1400px) rotateY(0deg);
+  }
+  55% {
+    opacity: 1;
+    transform: perspective(1400px) rotateY(-78deg);
+  }
+  100% {
+    opacity: 0;
+    transform: perspective(1400px) rotateY(-118deg);
+  }
+}
+
+@keyframes wapp-ink-cover-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+html[data-theme="dark"] .wapp-skin-ink-book .wapp-ink-book-cover-board {
+  background-color: #221E1B;
+  border-color: rgba(245, 240, 230, 0.14);
+  box-shadow:
+    -12px 0 28px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(245, 240, 230, 0.08);
+}
+
+html[data-theme="dark"] .wapp-skin-ink-book .wapp-ink-book-cover-title {
+  color: #F5F0E6;
+}
+
+html[data-theme="dark"] .wapp-skin-ink-book .wapp-ink-book-cover-status {
+  color: #A8A29E;
+}
+
+html[data-theme="dark"] .wapp-skin-ink-book .wapp-ink-book-cover-seal {
+  color: #F0A090;
+  border-color: #F0A090;
+  background: color-mix(in srgb, #221E1B 78%, #9B2C1F 22%);
+}
+
+/* StPageFlip-inspired soft curl (only while turning) */
+.wapp-skin-ink-book .wapp-ink-book-turn {
+  position: absolute;
+  z-index: 8;
+  top: 8px;
+  right: 8px;
+  width: calc(50% - 14px);
+  bottom: 8px;
+  pointer-events: none;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  opacity: 0;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-turn-face {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 0 8px 8px 0;
+  background-color: #FAF6EE;
+  background-image:
+    linear-gradient(115deg, rgba(250, 246, 238, 0.2) 0%, rgba(250, 246, 238, 0.55) 36%, rgba(247, 241, 230, 0.78) 100%),
+    url("/skin-ink-paper-bg.jpg");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: cover;
+  border: 1px solid rgba(28, 25, 23, 0.1);
+  border-left: 0;
+  box-shadow: -10px 0 24px rgba(28, 25, 23, 0.16);
+  backface-visibility: hidden;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-turn-shade {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 28%;
+  background: linear-gradient(
+    90deg,
+    rgba(28, 25, 23, 0.22),
+    rgba(28, 25, 23, 0.06) 55%,
+    transparent
+  );
+  opacity: 0;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-turn.is-next {
+  animation: wapp-ink-spread-turn-next 0.78s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.wapp-skin-ink-book .wapp-ink-book-turn.is-prev {
+  animation: wapp-ink-spread-turn-prev 0.78s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.wapp-skin-ink-book .wapp-ink-book-turn.is-next .wapp-ink-book-turn-shade,
+.wapp-skin-ink-book .wapp-ink-book-turn.is-prev .wapp-ink-book-turn-shade {
+  animation: wapp-ink-spread-turn-shade 0.78s ease-in-out;
+}
+
+@keyframes wapp-ink-spread-turn-next {
+  0% {
+    opacity: 0.2;
+    transform: perspective(1400px) rotateY(0deg) translateZ(0);
+  }
+  35% {
+    opacity: 0.95;
+    transform: perspective(1400px) rotateY(-42deg) translateZ(8px);
+  }
+  70% {
+    opacity: 0.85;
+    transform: perspective(1400px) rotateY(-108deg) translateZ(4px);
+  }
+  100% {
+    opacity: 0;
+    transform: perspective(1400px) rotateY(-168deg) translateZ(0);
+  }
+}
+
+@keyframes wapp-ink-spread-turn-prev {
+  0% {
+    opacity: 0;
+    transform: perspective(1400px) rotateY(-168deg) translateZ(0);
+  }
+  30% {
+    opacity: 0.9;
+    transform: perspective(1400px) rotateY(-100deg) translateZ(6px);
+  }
+  65% {
+    opacity: 0.95;
+    transform: perspective(1400px) rotateY(-38deg) translateZ(8px);
+  }
+  100% {
+    opacity: 0.15;
+    transform: perspective(1400px) rotateY(0deg) translateZ(0);
+  }
+}
+
+@keyframes wapp-ink-spread-turn-shade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  40%,
+  70% {
+    opacity: 1;
+  }
+}
+
+.wapp-skin-ink-book .wapp-ink-book-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 40px;
+  margin-top: 8px;
+  padding: 4px 8px;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-pager-btn {
+  min-width: 72px;
+  min-height: 34px;
+  max-width: 100%;
+  padding: 0 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(28, 25, 23, 0.16);
+  background: #FAF6EE;
+  color: #1C1917;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-pager-btn:hover:not(:disabled) {
+  background: #F4EFE4;
+  border-color: #B4533C;
+  color: #9B2C1F;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-pager-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.wapp-skin-ink-book .wapp-ink-book-pager-label {
+  min-width: 0;
+  max-width: 100%;
+  color: #57534E;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wapp-skin-ink-book .wapp-ink-book-turn.is-next,
+  .wapp-skin-ink-book .wapp-ink-book-turn.is-prev,
+  .wapp-skin-ink-book .wapp-ink-book-turn.is-next .wapp-ink-book-turn-shade,
+  .wapp-skin-ink-book .wapp-ink-book-turn.is-prev .wapp-ink-book-turn-shade {
+    animation: none;
+    opacity: 0;
+  }
+
+  .wapp-skin-ink-book .wapp-ink-book-cover.is-opening {
+    animation: none;
+    opacity: 0;
+  }
+
+  .wapp-skin-ink-book .wapp-ink-book-cover-status {
+    animation: none;
+    opacity: 0.8;
+  }
+}
+
+@media (max-width: 1100px) {
+  .wapp-workspace-shell.wapp-skin-ink-book {
+    grid-template-columns: 240px minmax(0, 1fr) !important;
+  }
+}
+
+/* ========== Session right tool rail (Browser / Artifacts / Extensions)
+ * Previously stuck on Tailwind bg-background — looked white on every skin.
+ * Anchor: .wapp-session-rail on session-page aside.
+ * ========== */
+
+.wapp-session-rail {
+  position: relative;
+  z-index: 4;
+}
+
+.wapp-session-rail button {
+  position: relative;
+  color: inherit;
+}
+
+.wapp-skin-pet-soft .wapp-session-rail {
+  border-left-color: var(--wapp-pet-soft-line) !important;
+  background: color-mix(in srgb, var(--wapp-pet-soft-pearl-deep) 94%, transparent) !important;
+  color: var(--wapp-pet-soft-sidebar-meta) !important;
+}
+
+.wapp-skin-pet-soft .wapp-session-rail button:hover {
+  background: color-mix(in srgb, var(--wapp-pet-soft-accent) 14%, transparent) !important;
+  color: var(--wapp-pet-soft-ink) !important;
+}
+
+.wapp-skin-pet-soft .wapp-session-rail button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--wapp-pet-soft-accent) 18%, transparent) !important;
+  color: var(--wapp-pet-soft-accent-deep) !important;
+}
+
+.wapp-skin-otome-diary .wapp-session-rail {
+  border-left-color: var(--wapp-otome-diary-line) !important;
+  background: color-mix(in srgb, var(--wapp-otome-diary-pearl-deep) 94%, transparent) !important;
+  color: var(--wapp-otome-diary-sidebar-meta) !important;
+}
+
+.wapp-skin-otome-diary .wapp-session-rail button:hover {
+  background: color-mix(in srgb, var(--wapp-otome-diary-accent) 14%, transparent) !important;
+  color: var(--wapp-otome-diary-ink) !important;
+}
+
+.wapp-skin-otome-diary .wapp-session-rail button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--wapp-otome-diary-accent) 18%, transparent) !important;
+  color: var(--wapp-otome-diary-accent-deep) !important;
+}
+
+.wapp-skin-cute-pastel .wapp-session-rail {
+  border-left-color: var(--wapp-cute-pastel-line) !important;
+  background: color-mix(in srgb, var(--wapp-cute-pastel-sidebar) 92%, transparent) !important;
+  color: var(--wapp-cute-pastel-sidebar-meta) !important;
+}
+
+.wapp-skin-cute-pastel .wapp-session-rail button:hover {
+  background: color-mix(in srgb, var(--wapp-cute-pastel-accent) 14%, transparent) !important;
+  color: var(--wapp-cute-pastel-ink) !important;
+}
+
+.wapp-skin-cute-pastel .wapp-session-rail button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--wapp-cute-pastel-accent) 18%, transparent) !important;
+  color: var(--wapp-cute-pastel-accent-deep) !important;
+}
+
+.wapp-skin-ink-book .wapp-session-rail {
+  border-left-color: var(--wapp-ink-book-line) !important;
+  background: color-mix(in srgb, var(--wapp-ink-book-pearl-deep) 90%, transparent) !important;
+  color: var(--wapp-ink-book-secondary) !important;
+  backdrop-filter: none;
+}
+
+.wapp-skin-ink-book .wapp-session-rail button:hover {
+  background: color-mix(in srgb, var(--wapp-ink-book-accent-deep) 12%, transparent) !important;
+  color: var(--wapp-ink-book-ink) !important;
+}
+
+.wapp-skin-ink-book .wapp-session-rail button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--wapp-ink-book-accent-deep) 16%, transparent) !important;
+  color: var(--wapp-ink-book-accent-deep) !important;
+}
+
+.wapp-skin-beauty .wapp-session-rail {
+  border-left-color: var(--beauty-line) !important;
+  background: color-mix(in srgb, var(--beauty-pearl-deep) 92%, transparent) !important;
+  color: var(--beauty-secondary) !important;
+}
+
+.wapp-skin-beauty .wapp-session-rail button:hover {
+  background: color-mix(in srgb, var(--beauty-coral) 12%, transparent) !important;
+  color: var(--beauty-ink) !important;
+}
+
+.wapp-skin-beauty .wapp-session-rail button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--beauty-coral) 16%, transparent) !important;
+  color: var(--beauty-coral) !important;
+}
+
+.wapp-skin-supor .wapp-session-rail {
+  border-left-color: var(--supor-line) !important;
+  background: color-mix(in srgb, var(--supor-pearl) 94%, #fff) !important;
+  color: var(--supor-secondary) !important;
+}
+
+.wapp-skin-supor .wapp-session-rail button:hover {
+  background: var(--supor-chip-hover) !important;
+  color: var(--supor-ink) !important;
+}
+
+.wapp-skin-supor .wapp-session-rail button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--supor-orange) 14%, transparent) !important;
+  color: var(--supor-orange-deep) !important;
+}
+
+.wapp-skin-classic-blue .wapp-session-rail {
+  border-left-color: rgba(30, 64, 120, 0.14) !important;
+  background: color-mix(in srgb, #EEF4FB 92%, transparent) !important;
+  color: #3B5578 !important;
+}
+
+.wapp-skin-classic-blue .wapp-session-rail button:hover {
+  background: rgba(37, 99, 180, 0.1) !important;
+  color: #1E3A5F !important;
+}
+
+.wapp-skin-classic-blue .wapp-session-rail button[aria-pressed="true"] {
+  background: rgba(37, 99, 180, 0.16) !important;
+  color: #1D4ED8 !important;
+}
+
+/* Dark appearance: keep rail readable on dark shells. */
+.dark .wapp-skin-pet-soft .wapp-session-rail,
+html.dark .wapp-skin-pet-soft .wapp-session-rail {
+  background: color-mix(in srgb, #2A1F1A 92%, transparent) !important;
+  border-left-color: rgba(255, 245, 235, 0.1) !important;
+  color: #D4B5A4 !important;
+}
+
+.dark .wapp-skin-otome-diary .wapp-session-rail,
+html.dark .wapp-skin-otome-diary .wapp-session-rail {
+  background: color-mix(in srgb, #2A1C24 92%, transparent) !important;
+  border-left-color: rgba(255, 232, 240, 0.1) !important;
+  color: #D4A8B6 !important;
+}
+
+.dark .wapp-skin-cute-pastel .wapp-session-rail,
+html.dark .wapp-skin-cute-pastel .wapp-session-rail {
+  background: color-mix(in srgb, #14201C 92%, transparent) !important;
+  border-left-color: rgba(232, 246, 241, 0.1) !important;
+  color: #B5D4C8 !important;
+}
+
+.dark .wapp-skin-ink-book .wapp-session-rail,
+html.dark .wapp-skin-ink-book .wapp-session-rail {
+  background: color-mix(in srgb, #1C1917 90%, transparent) !important;
+  border-left-color: rgba(245, 240, 230, 0.12) !important;
+  color: #A8A29E !important;
+}

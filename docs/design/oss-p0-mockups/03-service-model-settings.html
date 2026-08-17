@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设计稿 03 · 设置 / 服务与模型（浅色 · 可交互）</title>
+<style>
+  :root {
+    --bg: #f4f5f8; --panel: #fafbfc; --card: #ffffff; --border: #e3e6ee;
+    --text: #1d2433; --muted: #6b7280; --accent: #3f6fe0; --accent-soft: #eef3fd;
+    --green: #17975f; --green-soft: #e7f7ef; --red: #d34a53; --red-soft: #fdeeef; --amber: #b3740e;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "PingFang SC", "Segoe UI", sans-serif; font-size: 14px; }
+  .app { display: flex; min-height: 100vh; }
+  .sidenav { width: 232px; flex-shrink: 0; border-right: 1px solid var(--border); padding: 20px 12px; background: var(--panel); }
+  .sidenav h2 { font-size: 15px; font-weight: 650; padding: 0 10px 14px; }
+  .sidenav .group-label { font-size: 11px; color: var(--muted); padding: 14px 10px 6px; letter-spacing: .04em; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 9px; color: var(--muted); font-size: 13.5px; margin-bottom: 2px; cursor: pointer; }
+  .nav-item:hover { background: #eef0f5; }
+  .nav-item .dot-ic { width: 15px; height: 15px; border-radius: 5px; background: #dde1ea; flex-shrink: 0; }
+  .nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 550; }
+  .nav-item.active .dot-ic { background: var(--accent); }
+  .nav-item .badge-new { margin-left: auto; font-size: 10px; color: var(--accent); border: 1px solid currentColor; border-radius: 6px; padding: 0 5px; line-height: 15px; }
+  .content { flex: 1; padding: 28px 36px; max-width: 780px; }
+  .page-title { font-size: 20px; font-weight: 650; }
+  .page-sub { color: var(--muted); margin: 6px 0 22px; font-size: 13px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 18px; box-shadow: 0 1px 2px rgba(20,30,60,.04); }
+  .card h3 { font-size: 15px; font-weight: 600; }
+  .card .desc { color: var(--muted); font-size: 12.5px; margin: 6px 0 16px; line-height: 1.6; }
+  .preset-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .preset { flex: 1; min-width: 180px; border: 1.5px solid var(--border); border-radius: 11px; padding: 12px 14px; background: var(--panel); cursor: pointer; transition: border .15s, background .15s; }
+  .preset:hover { border-color: #c6cede; }
+  .preset.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .preset .p-name { font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 8px; }
+  .preset .p-url { color: var(--muted); font-size: 12px; margin-top: 5px; font-family: ui-monospace, monospace; }
+  .radio { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #c6cede; flex-shrink: 0; background: #fff; }
+  .preset.selected .radio { border-color: var(--accent); background: var(--accent); box-shadow: inset 0 0 0 2.5px #fff; }
+  .custom-url { display: flex; gap: 10px; margin-top: 12px; }
+  input.field { flex: 1; background: #fff; border: 1.5px solid var(--border); border-radius: 9px; padding: 9px 12px; color: var(--text); font-size: 13px; font-family: ui-monospace, monospace; outline: none; }
+  input.field:disabled { background: var(--panel); color: #a0a7b8; }
+  input.field::placeholder { color: #a0a7b8; font-family: -apple-system, "PingFang SC", sans-serif; }
+  input.field:focus { border-color: var(--accent); }
+  .btn { border: 1.5px solid var(--border); background: #fff; color: var(--text); border-radius: 9px; padding: 8px 16px; font-size: 13px; cursor: pointer; transition: background .15s, border .15s; }
+  .btn:hover { background: var(--panel); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 550; }
+  .btn.primary:hover { background: #3562cc; }
+  .btn.primary:disabled { background: #9db6ef; border-color: #9db6ef; cursor: default; }
+  .btn.ghost { color: var(--muted); }
+  .status-line { display: none; align-items: center; gap: 8px; margin-top: 14px; font-size: 12.5px; padding: 10px 14px; border-radius: 9px; }
+  .status-line.show { display: flex; }
+  .status-line.ok { background: var(--green-soft); color: var(--green); }
+  .status-line.err { background: var(--red-soft); color: var(--red); }
+  .status-line.loading { background: var(--accent-soft); color: var(--accent); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .spinner { width: 13px; height: 13px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .key-row { display: flex; gap: 10px; }
+  .key-meta { display: none; gap: 18px; margin-top: 14px; flex-wrap: wrap; }
+  .key-meta.show { display: flex; }
+  .key-meta .km { font-size: 12.5px; color: var(--muted); }
+  .key-meta .km b { color: var(--text); font-weight: 550; }
+  .link { color: var(--accent); font-size: 12.5px; cursor: pointer; }
+  .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .profile-grid .cell { background: var(--panel); padding: 12px 16px; }
+  .profile-grid .k { font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
+  .profile-grid .v { font-size: 13px; font-weight: 550; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .pill { font-size: 11px; border-radius: 6px; padding: 1px 7px; }
+  .pill.ok { background: var(--green-soft); color: var(--green); }
+  .pill.off { background: #eef0f5; color: var(--muted); }
+  .toast { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1d2433; color: #fff; border-radius: 10px; padding: 11px 18px; font-size: 13px; display: flex; gap: 9px; align-items: center; box-shadow: 0 8px 28px rgba(20,30,60,.25); opacity: 0; transition: transform .25s, opacity .25s; z-index: 50; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast .dot { color: #4ade80; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidenav">
+    <h2>设置</h2>
+    <div class="group-label">常规</div>
+    <div class="nav-item" data-nav><span class="dot-ic"></span>通用</div>
+    <div class="nav-item" data-nav><span class="dot-ic"></span>外观</div>
+    <div class="nav-item active" data-nav><span class="dot-ic"></span>服务与模型<span class="badge-new">新</span></div>
+    <div class="nav-item" data-nav><span class="dot-ic"></span>AI 模型</div>
+    <div class="group-label">扩展</div>
+    <div class="nav-item" data-nav><span class="dot-ic"></span>MCP 服务器</div>
+    <div class="nav-item" data-nav><span class="dot-ic"></span>插件</div>
+    <div class="nav-item" data-nav><span class="dot-ic"></span>技能</div>
+    <div class="group-label">系统</div>
+    <div class="nav-item" data-nav><span class="dot-ic"></span>环境变量</div>
+    <div class="nav-item" data-nav><span class="dot-ic"></span>关于与更新</div>
+  </aside>
+
+  <main class="content">
+    <div class="page-title">服务与模型</div>
+    <div class="page-sub">选择WodeAppX 连接的 WodeApp 服务，并管理你的 API Key。所有 AI 与建站能力都通过这里的服务转发。</div>
+
+    <section class="card">
+      <h3>服务器地址（Origin）</h3>
+      <p class="desc">开源版默认连接云端 WodeApp；本机运行了 WodeApp 开发环境时可切到本地；自托管用户选「自定义」。</p>
+      <div class="preset-row" id="presetRow">
+        <div class="preset" data-origin="local" data-url="http://localhost:3000">
+          <div class="p-name"><span class="radio"></span>本地 WodeApp</div>
+          <div class="p-url">http://localhost:3000</div>
+        </div>
+        <div class="preset selected" data-origin="cloud" data-url="https://www.wodeapp.cn">
+          <div class="p-name"><span class="radio"></span>云端 WodeApp</div>
+          <div class="p-url">https://www.wodeapp.cn</div>
+        </div>
+        <div class="preset" data-origin="custom">
+          <div class="p-name"><span class="radio"></span>自定义（自托管）</div>
+          <div class="p-url">填写你的服务器地址</div>
+        </div>
+      </div>
+      <div class="custom-url">
+        <input class="field" id="customUrl" placeholder="https://your-wodeapp.example.com" disabled>
+        <button class="btn primary" id="testBtn">测试连接</button>
+      </div>
+      <div class="status-line" id="originStatus"></div>
+    </section>
+
+    <section class="card">
+      <h3>API Key</h3>
+      <p class="desc">用于以你的身份调用平台 AI 与建站能力，消耗平台积分。Key 只保存在本机。</p>
+      <div class="key-row">
+        <input class="field" id="keyInput" type="password" value="sk_live_demo9f2c7a1e" placeholder="粘贴 sk_live_ 开头的 API Key">
+        <button class="btn ghost" id="toggleKey">显示</button>
+        <button class="btn primary" id="verifyBtn">验证并保存</button>
+      </div>
+      <div class="status-line" id="keyStatus"></div>
+      <div class="key-meta" id="keyMeta">
+        <span class="km">状态 <b style="color:var(--green)">已验证</b></span>
+        <span class="km">账户 <b>138****8888</b></span>
+        <span class="km">剩余积分 <b>12,340</b></span>
+        <span class="km">没有 Key？<span class="link" id="getKeyLink">前往 wodeapp.cn 获取</span></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>当前配置状态</h3>
+      <p class="desc">保存后全局生效，能力中心与各工作台使用同一份配置。</p>
+      <div class="profile-grid">
+        <div class="cell"><div class="k">服务器</div><div class="v" id="pvServer">云端 · wodeapp.cn</div></div>
+        <div class="cell"><div class="k">身份</div><div class="v" id="pvIdentity">未验证 <span class="pill off">未登录</span></div></div>
+        <div class="cell"><div class="k">默认文字模型</div><div class="v">wode/kimi-code-k3-256k</div></div>
+        <div class="cell"><div class="k">MCP 连接</div><div class="v">Platform <span class="pill off">未连</span>&nbsp;Project <span class="pill off">未连</span></div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"><span class="dot"></span><span id="toastText"></span></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const toast = (msg) => {
+  $('#toastText').textContent = msg;
+  const t = $('#toast');
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2600);
+};
+
+// 左侧导航
+document.querySelectorAll('[data-nav]').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('[data-nav]').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    const name = el.textContent.replace('新', '').trim();
+    if (name !== '服务与模型') toast('「' + name + '」为演示导航，本稿仅实现服务与模型页');
+  });
+});
+
+// Origin 预设选择
+let currentOrigin = 'cloud';
+let currentUrl = 'https://www.wodeapp.cn';
+const presets = document.querySelectorAll('.preset');
+presets.forEach(p => {
+  p.addEventListener('click', () => {
+    presets.forEach(x => x.classList.remove('selected'));
+    p.classList.add('selected');
+    currentOrigin = p.dataset.origin;
+    currentUrl = p.dataset.url || '';
+    const custom = $('#customUrl');
+    custom.disabled = currentOrigin !== 'custom';
+    if (currentOrigin === 'custom') custom.focus();
+    $('#originStatus').className = 'status-line';
+  });
+});
+
+// 测试连接（模拟：云端成功 / 本地失败 / 自定义校验格式）
+$('#testBtn').addEventListener('click', () => {
+  const st = $('#originStatus');
+  const btn = $('#testBtn');
+  let url = currentUrl;
+  if (currentOrigin === 'custom') {
+    url = $('#customUrl').value.trim();
+    if (!/^https?:\/\/.+/.test(url)) {
+      st.className = 'status-line show err';
+      st.innerHTML = '<span class="dot"></span>请先填写合法的 http(s) 地址';
+      return;
+    }
+  }
+  btn.disabled = true;
+  st.className = 'status-line show loading';
+  st.innerHTML = '<span class="spinner"></span>正在连接 ' + url + ' …';
+  setTimeout(() => {
+    btn.disabled = false;
+    if (currentOrigin === 'local') {
+      st.className = 'status-line show err';
+      st.innerHTML = '<span class="dot"></span>未检测到本机 WodeApp 服务（:3000），请先启动本地服务或切换云端';
+      toast('本机服务未启动');
+    } else {
+      const ms = 40 + Math.floor(Math.random() * 120);
+      st.className = 'status-line show ok';
+      st.innerHTML = '<span class="dot"></span>已连接 · ' + url + ' · 延迟 ' + ms + 'ms · 服务版本 v1.42.0';
+      $('#pvServer').textContent = (currentOrigin === 'cloud' ? '云端' : '自定义') + ' · ' + url.replace(/^https?:\/\//, '');
+      toast('已保存并切换到 ' + url);
+    }
+  }, 900);
+});
+
+// API Key 显示 / 隐藏
+$('#toggleKey').addEventListener('click', () => {
+  const input = $('#keyInput');
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  $('#toggleKey').textContent = show ? '隐藏' : '显示';
+});
+
+// 验证并保存
+$('#verifyBtn').addEventListener('click', () => {
+  const key = $('#keyInput').value.trim();
+  const st = $('#keyStatus');
+  const btn = $('#verifyBtn');
+  if (!key.startsWith('sk_live_')) {
+    st.className = 'status-line show err';
+    st.innerHTML = '<span class="dot"></span>Key 格式不正确，应以 sk_live_ 开头';
+    $('#keyMeta').classList.remove('show');
+    return;
+  }
+  btn.disabled = true;
+  st.className = 'status-line show loading';
+  st.innerHTML = '<span class="spinner"></span>正在验证 Key …';
+  setTimeout(() => {
+    btn.disabled = false;
+    st.className = 'status-line show ok';
+    st.innerHTML = '<span class="dot"></span>验证通过，配置已保存';
+    $('#keyMeta').classList.add('show');
+    $('#pvIdentity').innerHTML = '138****8888 <span class="pill ok">已登录</span>';
+    toast('API Key 已验证并保存');
+  }, 900);
+});
+
+$('#getKeyLink').addEventListener('click', () => toast('演示环境：将打开 wodeapp.cn 的 API Key 页面'));
+</script>
+</body>
+</html>

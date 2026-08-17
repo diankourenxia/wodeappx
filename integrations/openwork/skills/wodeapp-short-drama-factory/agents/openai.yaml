@@ -1,0 +1,4 @@
+interface:
+  display_name: "WodeApp Short Drama Factory"
+  short_description: "竖屏短剧 package only — not 商品短视频"
+  default_prompt: "Use $wodeapp-short-drama-factory only for explicit 短剧/episode packages. For product short videos use video tools, not this skill."

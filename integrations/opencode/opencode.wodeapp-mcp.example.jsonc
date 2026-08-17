@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "wodeapp-platform": {
+      "type": "remote",
+      "url": "http://localhost:3000/mainserver/mcp",
+      "timeout": 120000,
+      "headers": {
+        "X-API-Key": "REPLACE_WITH_SK_LIVE"
+      }
+    },
+    "wodeapp-project": {
+      "type": "remote",
+      "url": "http://localhost:4100/mcp",
+      "timeout": 180000,
+      "headers": {
+        "X-API-Key": "REPLACE_WITH_SK_LIVE",
+        "x-subdomain-project": "REPLACE_WITH_PROJECT_SLUG"
+      }
+    }
+  }
+}
