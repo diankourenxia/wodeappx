@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "paths": {
+      "@/*": ["vendor/openwork/apps/app/src/*"]
+    },
+    "resolveJsonModule": true,
+    "target": "ES2022"
+  },
+  "include": [
+    "integrations/openwork/tests/**/*",
+    "integrations/openwork/wodeapp/**/*"
+  ]
+}

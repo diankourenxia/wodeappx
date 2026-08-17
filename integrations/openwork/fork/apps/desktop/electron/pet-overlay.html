@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src file: data:; style-src 'unsafe-inline'; script-src 'unsafe-inline';" />
+    <title>萌宠陪伴</title>
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: transparent;
+        font-family: -apple-system, "PingFang SC", "Segoe UI", sans-serif;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .buddy {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        width: min(260px, calc(100% - 16px));
+      }
+      .buddy.is-dragging { cursor: grabbing; }
+      .hit {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        cursor: grab;
+      }
+      .buddy.is-dragging .hit { cursor: grabbing; }
+      .sprite {
+        display: block;
+        width: 132px;
+        height: 132px;
+        background-repeat: no-repeat;
+        background-size: 400% 100%;
+        background-position: 0% 0;
+        background-color: transparent;
+        filter: drop-shadow(0 10px 18px rgba(61, 42, 34, 0.28));
+        animation: act 3.6s steps(1, end) infinite;
+        transform-origin: center bottom;
+        transition: transform 0.18s ease;
+      }
+      .buddy.is-reacting .sprite {
+        animation: none;
+        background-position: 66.666% 0;
+        transform: scale(1.08) translateY(-6px);
+      }
+      .bubble {
+        max-width: 200px;
+        padding: 8px 12px;
+        border-radius: 14px 14px 14px 4px;
+        background: rgba(255, 252, 248, 0.96);
+        color: #3D2A22;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.35;
+        box-shadow: 0 8px 20px rgba(61, 42, 34, 0.14);
+        border: 1px solid rgba(61, 42, 34, 0.08);
+        overflow-wrap: break-word;
+      }
+      .panel {
+        width: 100%;
+        padding: 10px;
+        border-radius: 18px;
+        background: rgba(255, 252, 248, 0.96);
+        border: 1px solid rgba(61, 42, 34, 0.1);
+        box-shadow: 0 14px 32px rgba(61, 42, 34, 0.16);
+        color: #3D2A22;
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .panel-head strong { font-size: 13px; }
+      .panel-close {
+        border: 0;
+        border-radius: 999px;
+        padding: 4px 10px;
+        background: #F5D0C2;
+        color: #3D2A22;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .empty {
+        margin: 0;
+        padding: 8px 4px;
+        color: #7A5A4A;
+        font-size: 12px;
+      }
+      .list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 220px;
+        overflow: auto;
+      }
+      .item {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        width: 100%;
+        min-width: 0;
+        padding: 8px 10px;
+        border: 1px solid rgba(61, 42, 34, 0.08);
+        border-radius: 12px;
+        background: #FFF8F2;
+        color: #3D2A22;
+        text-align: left;
+        cursor: pointer;
+      }
+      .item.is-active {
+        background: #F5D0C2;
+        border-color: #E07A5F;
+      }
+      .preview {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        overflow: hidden;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.4;
+        overflow-wrap: break-word;
+      }
+      .status {
+        color: #B84A32;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      @keyframes act {
+        0%, 28% { background-position: 0% 0; }
+        32%, 42% { background-position: 33.333% 0; }
+        46%, 58% { background-position: 0% 0; }
+        62%, 78% { background-position: 66.666% 0; }
+        82%, 100% { background-position: 100% 0; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .sprite { animation: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="buddy" id="buddy">
+      <div class="panel" id="panel" hidden>
+        <header class="panel-head">
+          <strong id="panelTitle">进行中</strong>
+          <button type="button" class="panel-close" id="closeBtn">收起</button>
+        </header>
+        <p class="empty" id="empty">还没有可显示的最新内容</p>
+        <ul class="list" id="list"></ul>
+      </div>
+      <div class="bubble" id="bubble" hidden></div>
+      <button type="button" class="hit" id="hit" aria-label="萌宠陪伴">
+        <span class="sprite" id="sprite"></span>
+      </button>
+    </aside>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const spriteUrl = params.get("sprite") || "";
+      const sprite = document.getElementById("sprite");
+      if (spriteUrl) sprite.style.backgroundImage = `url(${JSON.stringify(spriteUrl)})`;
+
+      const buddy = document.getElementById("buddy");
+      const hit = document.getElementById("hit");
+      const panel = document.getElementById("panel");
+      const list = document.getElementById("list");
+      const empty = document.getElementById("empty");
+      const bubble = document.getElementById("bubble");
+      const closeBtn = document.getElementById("closeBtn");
+      const panelTitle = document.getElementById("panelTitle");
+      const bridge = window.__wodeappxPetOverlayBridge;
+
+      const REACTIONS = ["在呢", "看看进行中的对话", "这些还在跑", "随时叫我"];
+      let reactionIndex = 0;
+      let panelOpen = false;
+      let items = [];
+      let selectedSessionId = null;
+      let drag = null;
+      const THRESHOLD = 6;
+
+      function renderItems() {
+        list.innerHTML = "";
+        const hasStatus = items.some((item) => item.statusLabel);
+        panelTitle.textContent = hasStatus ? "进行中" : "当前对话";
+        if (!items.length) {
+          empty.hidden = false;
+          return;
+        }
+        empty.hidden = true;
+        for (const item of items) {
+          const li = document.createElement("li");
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "item" + (item.sessionId === selectedSessionId ? " is-active" : "");
+          const preview = document.createElement("span");
+          preview.className = "preview";
+          preview.textContent = item.preview || "";
+          btn.appendChild(preview);
+          if (item.statusLabel) {
+            const status = document.createElement("span");
+            status.className = "status";
+            status.textContent = item.statusLabel;
+            btn.appendChild(status);
+          }
+          btn.addEventListener("click", () => {
+            bridge?.openSession?.(item.workspaceId, item.sessionId);
+            setPanelOpen(false);
+            showReaction("这就带你过去");
+          });
+          li.appendChild(btn);
+          list.appendChild(li);
+        }
+      }
+
+      function setPanelOpen(next) {
+        panelOpen = next;
+        panel.hidden = !next;
+      }
+
+      function showReaction(text) {
+        bubble.hidden = !text;
+        bubble.textContent = text || "";
+        buddy.classList.toggle("is-reacting", Boolean(text));
+        if (text) {
+          window.setTimeout(() => {
+            bubble.hidden = true;
+            buddy.classList.remove("is-reacting");
+          }, 900);
+        }
+      }
+
+      function onActivate() {
+        const text = REACTIONS[reactionIndex % REACTIONS.length];
+        reactionIndex += 1;
+        showReaction(text);
+        setPanelOpen(!panelOpen);
+      }
+
+      hit.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        drag = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          lastX: event.clientX,
+          lastY: event.clientY,
+          moved: false,
+        };
+        buddy.classList.add("is-dragging");
+        const onMove = (ev) => {
+          if (!drag || drag.pointerId !== ev.pointerId) return;
+          const dx = ev.clientX - drag.startX;
+          const dy = ev.clientY - drag.startY;
+          if (!drag.moved && Math.hypot(dx, dy) < THRESHOLD) return;
+          drag.moved = true;
+          const stepX = ev.clientX - drag.lastX;
+          const stepY = ev.clientY - drag.lastY;
+          drag.lastX = ev.clientX;
+          drag.lastY = ev.clientY;
+          bridge?.moveBy?.(stepX, stepY);
+        };
+        const onEnd = (ev) => {
+          if (!drag || drag.pointerId !== ev.pointerId) return;
+          window.removeEventListener("pointermove", onMove);
+          window.removeEventListener("pointerup", onEnd);
+          window.removeEventListener("pointercancel", onEnd);
+          const didMove = drag.moved;
+          drag = null;
+          buddy.classList.remove("is-dragging");
+          if (!didMove) onActivate();
+        };
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onEnd);
+        window.addEventListener("pointercancel", onEnd);
+      });
+
+      closeBtn.addEventListener("click", () => setPanelOpen(false));
+
+      bridge?.onState?.((state) => {
+        if (!state || state.visible === false) return;
+        items = Array.isArray(state.items) ? state.items : [];
+        selectedSessionId = state.selectedSessionId || null;
+        if (typeof state.panelOpen === "boolean") setPanelOpen(state.panelOpen);
+        if (state.reacting && state.reactionText) showReaction(state.reactionText);
+        renderItems();
+      });
+
+      renderItems();
+    </script>
+  </body>
+</html>

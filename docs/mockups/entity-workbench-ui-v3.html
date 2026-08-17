@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WodeAppX · 商品运行台 v3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f4f2ec;
+      --panel: #fffcf7;
+      --ink: #1c1b19;
+      --muted: #6b6860;
+      --line: #e2ddd2;
+      --accent: #0b6e4f;
+      --accent-soft: #d9efe6;
+      --warn: #a35b12;
+      --run: #1c1b19;
+      --font: "IBM Plex Sans", system-ui, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    /* Full third-column only — no chat */
+    .frame {
+      height: 100%;
+      max-width: 920px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+    }
+
+    .topnote {
+      flex: 0 0 auto;
+      padding: 8px 16px;
+      font-size: 12px;
+      color: var(--muted);
+      background: #ebe7de;
+      border-bottom: 1px solid var(--line);
+    }
+    .topnote strong { color: var(--ink); }
+
+    /* Context strip — which product is running */
+    .context {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: 52px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .thumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #c9d6c8, #6f8a72);
+    }
+    .frame[data-product="lamp"] .thumb {
+      background: linear-gradient(145deg, #e8d8b8, #a8844a);
+    }
+    .frame[data-product="bottle"] .thumb {
+      background: linear-gradient(145deg, #c9d8e6, #5a7d98);
+    }
+    .context h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .context .meta {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-width: 0;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #efece4;
+      font-size: 11px;
+      font-weight: 500;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pill.live { background: var(--accent-soft); color: var(--accent); }
+    .switch {
+      display: flex;
+      gap: 4px;
+    }
+    .switch button {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .switch button.is-on {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    /* Run bar — primary */
+    .runbar {
+      flex: 0 0 auto;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: #faf7f1;
+    }
+    .runbar-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .run-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+    .run-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+    .run-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+    .run-btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 0 18px;
+      background: var(--run);
+      color: #fff;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .run-btn:hover { filter: brightness(1.08); }
+    .run-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: none;
+    }
+
+    .suggest {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    .suggest button {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--ink);
+      min-width: 0;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .suggest button:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .menu {
+      display: none;
+      margin-top: 8px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      overflow: hidden;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .menu.is-open { display: block; }
+    .menu button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      text-align: left;
+      font: inherit;
+      cursor: pointer;
+    }
+    .menu button:last-child { border-bottom: 0; }
+    .menu button:hover { background: var(--accent-soft); }
+    .menu strong { display: block; font-size: 13px; }
+    .menu span { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .menu em { font-style: normal; font-size: 11px; color: var(--muted); align-self: center; }
+
+    /* Results — the main canvas */
+    .results {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .results-h {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px 8px;
+    }
+    .results-h h2 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .filters {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .filters button {
+      border: 0;
+      background: transparent;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .filters button.is-on {
+      background: #efece4;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .timeline {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 4px 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .run-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .run-card.is-live {
+      border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+    }
+    .run-card-h {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #faf7f1;
+    }
+    .run-card-h .title {
+      font-size: 14px;
+      font-weight: 600;
+      min-width: 0;
+    }
+    .run-card-h .title small {
+      display: block;
+      margin-top: 3px;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+    .badge {
+      flex: 0 0 auto;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #efece4;
+    }
+    .badge.running { background: var(--accent-soft); color: var(--accent); }
+    .badge.done { background: #e8efe4; color: var(--accent); }
+    .badge.need { background: #f3e6d2; color: var(--warn); }
+
+    .run-card-b { padding: 12px 14px; }
+
+    .progress {
+      height: 4px;
+      border-radius: 999px;
+      background: #efece4;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .progress > i {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--accent);
+      border-radius: inherit;
+      transition: width 0.35s ease;
+    }
+
+    .log {
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--muted);
+      margin: 0 0 12px;
+      white-space: pre-wrap;
+    }
+
+    .out-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .out {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: linear-gradient(160deg, #dfe6da, #8fa894);
+      position: relative;
+    }
+    .out.r34 { aspect-ratio: 3/4; background: linear-gradient(160deg, #ebe2d0, #c4a574); }
+    .out.r916 { aspect-ratio: 9/16; background: linear-gradient(160deg, #1c1b19, #0b6e4f); }
+    .out span {
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      bottom: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .signal-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .signal {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #f7f4ed;
+      border: 1px solid var(--line);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .signal b {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .confirm-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .confirm-row button {
+      border-radius: 10px;
+      padding: 8px 14px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .confirm-row .yes {
+      border: 0;
+      background: var(--ink);
+      color: #fff;
+    }
+    .confirm-row .no {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .trade-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .trade-line:last-child { border-bottom: 0; }
+    .trade-line span { color: var(--muted); }
+
+    .empty {
+      margin: 40px auto;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 280px;
+    }
+
+    @media (max-width: 640px) {
+      .out-grid { grid-template-columns: repeat(2, 1fr); }
+      .context { grid-template-columns: 44px 1fr; }
+      .switch { grid-column: 1 / -1; justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame" id="frame" data-product="wok">
+    <div class="topnote">
+      <strong>v3 · 第三栏只做运行 + 结果</strong>
+      — 对话仍在 WodeAppX 原会话栏；本页不承担聊天。
+    </div>
+
+    <header class="context">
+      <div class="thumb" aria-hidden="true"></div>
+      <div style="min-width:0">
+        <h1 id="pname">苏泊尔火红点炒锅</h1>
+        <div class="meta">
+          <span class="pill live" id="pstatus">在售</span>
+          <span class="pill" id="pprice">¥299</span>
+          <span class="pill">运行上下文</span>
+        </div>
+      </div>
+      <div class="switch" id="switcher">
+        <button type="button" class="is-on" data-id="wok" data-name="苏泊尔火红点炒锅" data-price="¥299" data-status="在售">炒锅</button>
+        <button type="button" data-id="lamp" data-name="北欧黄铜台灯" data-price="¥459" data-status="在售">台灯</button>
+        <button type="button" data-id="bottle" data-name="钛合金保温杯" data-price="¥189" data-status="下架">杯</button>
+      </div>
+    </header>
+
+    <section class="runbar">
+      <div class="runbar-label">运行 · 动作不限</div>
+      <div class="run-row">
+        <input id="runInput" class="run-input" type="search" placeholder="要跑什么：拉差评、生成视频、改价、上下架…" autocomplete="off" />
+        <button type="button" class="run-btn" id="runBtn">运行</button>
+      </div>
+      <div class="menu" id="menu"></div>
+      <div class="suggest" id="suggest"></div>
+    </section>
+
+    <section class="results">
+      <div class="results-h">
+        <h2>结果</h2>
+        <div class="filters" id="filters">
+          <button type="button" class="is-on" data-filter="all">全部</button>
+          <button type="button" data-filter="running">进行中</button>
+          <button type="button" data-filter="signal">信号</button>
+          <button type="button" data-filter="make">制作</button>
+          <button type="button" data-filter="trade">经营</button>
+        </div>
+      </div>
+      <div class="timeline" id="timeline"></div>
+    </section>
+  </div>
+
+  <script>
+    const ACTIONS = [
+      { id: "reviews", title: "拉取各平台差评", kind: "signal", risk: false, hint: "Insight · 写入信号结果" },
+      { id: "video", title: "生成解释短视频", kind: "make", risk: false, hint: "Create · 9:16 回写" },
+      { id: "suite", title: "批量主图套装", kind: "make", risk: false, hint: "Create · 1:1 + 3:4" },
+      { id: "price", title: "修改价格", kind: "trade", risk: true, hint: "需确认 · 可推渠道" },
+      { id: "shelf", title: "上架 / 下架", kind: "trade", risk: true, hint: "需确认 · 渠道写回" },
+      { id: "reply", title: "生成差评回复", kind: "signal", risk: false, hint: "Agent 动作 · 可扩展" },
+    ];
+
+    const SUGGEST = ["拉取各平台差评", "生成解释短视频", "批量主图套装", "修改价格"];
+
+    const timeline = document.getElementById("timeline");
+    const menu = document.getElementById("menu");
+    const runInput = document.getElementById("runInput");
+    const frame = document.getElementById("frame");
+    let filter = "all";
+    let runs = [];
+    let seq = 1;
+
+    function seed() {
+      runs = [
+        {
+          id: "r0",
+          actionId: "suite",
+          title: "批量主图套装",
+          kind: "make",
+          status: "done",
+          time: "10:02",
+          progress: 100,
+          body: "done-suite",
+        },
+        {
+          id: "r1",
+          actionId: "reviews",
+          title: "拉取各平台差评",
+          kind: "signal",
+          status: "done",
+          time: "10:08",
+          progress: 100,
+          body: "done-reviews",
+        },
+      ];
+      render();
+    }
+
+    function renderSuggest() {
+      document.getElementById("suggest").innerHTML = SUGGEST.map((t) => {
+        const a = ACTIONS.find((x) => x.title === t);
+        return `<button type="button" data-id="${a?.id || ""}">${t}</button>`;
+      }).join("");
+    }
+
+    function renderMenu(q) {
+      const query = (q || "").trim().toLowerCase();
+      const list = ACTIONS.filter((a) => !query || a.title.includes(query) || a.hint.includes(query));
+      menu.innerHTML = list.map((a) => `
+        <button type="button" data-id="${a.id}">
+          <div><strong>${a.title}</strong><span>${a.hint}</span></div>
+          <em>${a.risk ? "需确认" : a.kind}</em>
+        </button>
+      `).join("");
+      menu.classList.toggle("is-open", true);
+    }
+
+    function statusBadge(status) {
+      if (status === "running") return '<span class="badge running">进行中</span>';
+      if (status === "need") return '<span class="badge need">待确认</span>';
+      return '<span class="badge done">完成</span>';
+    }
+
+    function bodyHtml(run) {
+      if (run.status === "need" && run.actionId === "price") {
+        return `
+          <p class="log">将把本地价格改为 ¥279\n可选同步：天猫、京东\n抖音未连接 · 跳过写回</p>
+          <div class="confirm-row">
+            <button type="button" class="yes" data-confirm="${run.id}">确认改价</button>
+            <button type="button" class="no" data-cancel="${run.id}">取消</button>
+          </div>`;
+      }
+      if (run.status === "need" && run.actionId === "shelf") {
+        return `
+          <div class="trade-line"><span>天猫旗舰</span><strong>保持在售</strong></div>
+          <div class="trade-line"><span>京东自营</span><strong>保持在售</strong></div>
+          <div class="trade-line"><span>抖音小店</span><strong>下架</strong></div>
+          <div class="confirm-row" style="margin-top:12px">
+            <button type="button" class="yes" data-confirm="${run.id}">确认执行</button>
+            <button type="button" class="no" data-cancel="${run.id}">取消</button>
+          </div>`;
+      }
+      if (run.status === "running") {
+        return `
+          <div class="progress"><i style="width:${run.progress}%"></i></div>
+          <p class="log">${run.log || "排队中…"}</p>`;
+      }
+      if (run.body === "done-reviews" || run.actionId === "reviews") {
+        return `
+          <div class="signal-block">
+            <div class="signal"><b>天猫 · 差评</b>涂层两个月发黑，清洗有印子。</div>
+            <div class="signal"><b>京东 · 差评</b>手柄螺丝松，售后体验一般。</div>
+            <div class="signal"><b>抖音 · 问大家</b>会不会粘锅？燃气灶能用吗？</div>
+          </div>`;
+      }
+      if (run.actionId === "video") {
+        return `
+          <div class="out-grid" style="grid-template-columns: 120px 1fr; align-items:end">
+            <div class="out r916"><span>解释视频 · 9:16</span></div>
+            <p class="log" style="margin:0">脚本钩子：涂层清洁误解\n时长 18s · 已挂到本商品</p>
+          </div>`;
+      }
+      if (run.actionId === "reply") {
+        return `<p class="log">已生成 3 条回复话术，写入本商品信号结果。\n（完整文案可在结果卡展开；对话栏可继续改）</p>`;
+      }
+      // suite / default make
+      return `
+        <div class="out-grid">
+          <div class="out"><span>主图 1:1</span></div>
+          <div class="out r34"><span>卖点 3:4</span></div>
+          <div class="out r34"><span>细节 3:4</span></div>
+        </div>`;
+    }
+
+    function render() {
+      const list = runs.filter((r) => {
+        if (filter === "all") return true;
+        if (filter === "running") return r.status === "running" || r.status === "need";
+        return r.kind === filter;
+      });
+      if (!list.length) {
+        timeline.innerHTML = `<div class="empty">还没有运行记录。<br/>在上方输入动作并运行，结果会出现在这里。</div>`;
+        return;
+      }
+      timeline.innerHTML = list.map((run) => `
+        <article class="run-card${run.status === "running" ? " is-live" : ""}" data-run="${run.id}">
+          <div class="run-card-h">
+            <div class="title">${run.title}<small>${run.time} · ${run.kind} · #${run.id}</small></div>
+            ${statusBadge(run.status)}
+          </div>
+          <div class="run-card-b">${bodyHtml(run)}</div>
+        </article>
+      `).join("");
+    }
+
+    function startRun(action) {
+      if (!action) return;
+      menu.classList.remove("is-open");
+      runInput.value = "";
+      const id = `r${seq++}`;
+      const time = new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+
+      if (action.risk) {
+        runs.unshift({
+          id, actionId: action.id, title: action.title, kind: action.kind,
+          status: "need", time, progress: 0, body: "need",
+        });
+        filter = "all";
+        syncFilterUi();
+        render();
+        return;
+      }
+
+      const run = {
+        id, actionId: action.id, title: action.title, kind: action.kind,
+        status: "running", time, progress: 8,
+        log: "已绑定当前商品上下文\n开始执行…",
+      };
+      runs.unshift(run);
+      filter = "all";
+      syncFilterUi();
+      render();
+
+      const steps = [
+        [28, "拉取输入 / 连接器…"],
+        [55, "生成中…"],
+        [82, "回写到本商品…"],
+        [100, "完成"],
+      ];
+      let i = 0;
+      const tick = () => {
+        if (i >= steps.length) {
+          run.status = "done";
+          run.progress = 100;
+          run.log = undefined;
+          render();
+          return;
+        }
+        run.progress = steps[i][0];
+        run.log = steps[i][1];
+        i += 1;
+        render();
+        setTimeout(tick, 420);
+      };
+      setTimeout(tick, 350);
+    }
+
+    function syncFilterUi() {
+      document.querySelectorAll("#filters button").forEach((b) => {
+        b.classList.toggle("is-on", b.dataset.filter === filter);
+      });
+    }
+
+    function findActionFromInput() {
+      const q = runInput.value.trim().toLowerCase();
+      if (!q) return null;
+      return ACTIONS.find((a) => a.title.toLowerCase().includes(q) || q.includes(a.title.slice(0, 2)))
+        || ACTIONS.find((a) => a.hint.toLowerCase().includes(q));
+    }
+
+    document.getElementById("suggest").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-id]");
+      if (!btn) return;
+      startRun(ACTIONS.find((a) => a.id === btn.dataset.id));
+    });
+
+    menu.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-id]");
+      if (!btn) return;
+      startRun(ACTIONS.find((a) => a.id === btn.dataset.id));
+    });
+
+    runInput.addEventListener("focus", () => renderMenu(runInput.value));
+    runInput.addEventListener("input", () => renderMenu(runInput.value));
+    runInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") menu.classList.remove("is-open");
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const a = findActionFromInput() || ACTIONS[0];
+        startRun(a);
+      }
+    });
+    document.getElementById("runBtn").addEventListener("click", () => {
+      const a = findActionFromInput() || ACTIONS.find((x) => x.title === runInput.value.trim());
+      if (a) startRun(a);
+      else if (runInput.value.trim()) {
+        startRun({
+          id: "custom",
+          title: runInput.value.trim(),
+          kind: "make",
+          risk: false,
+          hint: "未注册动作 · 仍按运行回写",
+        });
+      }
+    });
+
+    document.getElementById("filters").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-filter]");
+      if (!btn) return;
+      filter = btn.dataset.filter;
+      syncFilterUi();
+      render();
+    });
+
+    timeline.addEventListener("click", (e) => {
+      const ok = e.target.closest("[data-confirm]");
+      const no = e.target.closest("[data-cancel]");
+      if (ok) {
+        const run = runs.find((r) => r.id === ok.dataset.confirm);
+        if (run) {
+          run.status = "done";
+          run.body = "done-trade";
+          if (run.actionId === "price") {
+            document.getElementById("pprice").textContent = "¥279";
+          }
+          if (run.actionId === "shelf") {
+            document.getElementById("pstatus").textContent = "部分下架";
+          }
+          render();
+        }
+      }
+      if (no) {
+        runs = runs.filter((r) => r.id !== no.dataset.cancel);
+        render();
+      }
+    });
+
+    document.getElementById("switcher").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-id]");
+      if (!btn) return;
+      document.querySelectorAll("#switcher button").forEach((el) => el.classList.toggle("is-on", el === btn));
+      frame.dataset.product = btn.dataset.id;
+      document.getElementById("pname").textContent = btn.dataset.name;
+      document.getElementById("pprice").textContent = btn.dataset.price;
+      document.getElementById("pstatus").textContent = btn.dataset.status;
+      seed();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".runbar")) menu.classList.remove("is-open");
+    });
+
+    renderSuggest();
+    seed();
+  </script>
+</body>
+</html>

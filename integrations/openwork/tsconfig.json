@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/app/*": ["src/app/*"],
+      "@/react-app/*": ["src/react-app/*"]
+    }
+  }
+}

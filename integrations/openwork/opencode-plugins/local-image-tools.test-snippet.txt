@@ -1,0 +1,55 @@
+  test("registers and executes deterministic local image tools", async () => {
+    const plugin = await OpenWorkExtensionsPreview();
+    const tools = plugin.tool as unknown as Record<string, {
+      args: Record<string, unknown>;
+      execute: (args: unknown, context: unknown) => Promise<string>;
+    }>;
+
+    for (const toolName of [
+      "image_inspect",
+      "image_crop",
+      "image_resize",
+      "image_rotate_flip",
+      "image_collage",
+      "image_composite",
+    ]) {
+      expect(tools[toolName]).toBeDefined();
+    }
+
+    const directory = await mkdtemp(join(tmpdir(), "wodeappx-image-tools-"));
+    const redPath = join(directory, "red.png");
+    const bluePath = join(directory, "blue.png");
+    const collagePath = join(directory, "collage.png");
+    const redPng = "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFElEQVR4nGP4z8DAwMDAxAADCBYAG10BBdmDPA0AAAAASUVORK5CYII=";
+    const bluePng = "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFElEQVR4nGNgYPjPwMDAxAADCBYAG0UBBXE8idAAAAAASUVORK5CYII=";
+    await writeFile(redPath, Buffer.from(redPng, "base64"));
+    await writeFile(bluePath, Buffer.from(bluePng, "base64"));
+
+    try {
+      const raw = await tools.image_collage.execute({
+        images: [{ path: redPath, label: "front" }, { path: bluePath, label: "open" }],
+        layout: "horizontal",
+        cellWidth: 20,
+        cellHeight: 20,
+        gap: 0,
+        padding: 0,
+        outputPath: collagePath,
+      }, { directory });
+      const result = JSON.parse(raw) as {
+        ok: boolean;
+        executor: string;
+        stage: string;
+        data: { width: number; height: number; items: unknown[]; path: string };
+      };
+
+      expect(result).toMatchObject({
+        ok: true,
+        executor: "local",
+        stage: "collage_images",
+        data: { width: 40, height: 76, path: collagePath },
+      });
+      expect(result.data.items).toHaveLength(2);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });

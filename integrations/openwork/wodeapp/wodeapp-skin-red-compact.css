@@ -1,0 +1,336 @@
+/**
+ * Self-evolve skin: 红色紧凑 (red-compact)
+ * 红色主体 + 更小的对话框（消息列收窄、用户气泡收紧、输入框变矮）。
+ * Contrast: scripts/lib/skin-contrast.mjs + check:skin-contrast
+ * Note: 不隐藏 wapp-theme-* 陪伴装饰——保持用户当前陪伴可见。
+ */
+
+.wapp-workspace-shell.wapp-skin-red-compact {
+  --wapp-red-compact-ink: #3F1D1D;
+  --wapp-red-compact-ink-soft: #553030;
+  --wapp-red-compact-secondary: #7A4A4A;
+  --wapp-red-compact-accent: #DC2626;
+  --wapp-red-compact-accent-deep: #B91C1C;
+  --wapp-red-compact-accent-hover: #991B1B;
+  --wapp-red-compact-pearl: #FFFBFB;
+  --wapp-red-compact-pearl-deep: #FDF2F2;
+  --wapp-red-compact-sidebar: #FDF2F2;
+  --wapp-red-compact-sidebar-text: #3F1D1D;
+  --wapp-red-compact-sidebar-secondary: #B91C1C;
+  --wapp-red-compact-sidebar-meta: #8A5555;
+  --wapp-red-compact-sidebar-icon: #B91C1C;
+  --wapp-red-compact-panel: #FEF7F7;
+  --wapp-red-compact-line: rgba(63, 29, 29, 0.12);
+  --wapp-red-compact-chip-border: rgba(63, 29, 29, 0.16);
+  --wapp-red-compact-on-accent: #FFFFFF;
+  --wapp-red-compact-scroll: #E5B8B8;
+  background: var(--wapp-red-compact-pearl);
+  color: var(--wapp-red-compact-ink);
+}
+
+.wapp-skin-red-compact > .wapp-sidebar {
+  border-right: 1px solid var(--wapp-red-compact-line);
+  background-color: var(--wapp-red-compact-sidebar) !important;
+  color: var(--wapp-red-compact-sidebar-text);
+}
+
+.wapp-skin-red-compact > .wapp-sidebar-toggle {
+  color: var(--wapp-red-compact-sidebar-meta);
+}
+
+.wapp-skin-red-compact > .wapp-sidebar-toggle:hover {
+  background: color-mix(in srgb, var(--wapp-red-compact-accent-deep) 12%, transparent);
+  color: var(--wapp-red-compact-sidebar-text);
+}
+
+.wapp-skin-red-compact > .wapp-workspace-main {
+  background: var(--wapp-red-compact-pearl);
+}
+
+.wapp-skin-red-compact .wapp-main-panel,
+.wapp-skin-red-compact .wapp-content,
+.wapp-skin-red-compact .wapp-session-embed [data-slot="sidebar-inset"] {
+  background: var(--wapp-red-compact-pearl);
+}
+
+.wapp-skin-red-compact .wapp-brand-mark {
+  background: #B91C1C;
+  color: #FFFFFF;
+}
+
+.wapp-skin-red-compact .wapp-new-chat {
+  border: 0;
+  background: #B91C1C;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.wapp-skin-red-compact .wapp-new-chat:hover:not(:disabled) {
+  background: #991B1B;
+  color: #FFFFFF;
+}
+
+.wapp-skin-red-compact .wapp-sidebar-scroll {
+  scrollbar-color: var(--wapp-red-compact-scroll) transparent;
+}
+
+.wapp-skin-red-compact .wapp-nav-item,
+.wapp-skin-red-compact .wapp-nav-toggle,
+.wapp-skin-red-compact .wapp-nav-subitem,
+.wapp-skin-red-compact .wapp-recent-item,
+.wapp-skin-red-compact .wapp-recent-group-head {
+  color: var(--wapp-red-compact-sidebar-text);
+}
+
+.wapp-skin-red-compact .wapp-nav-item span,
+.wapp-skin-red-compact .wapp-nav-subitem-title,
+.wapp-skin-red-compact .wapp-recent-title,
+.wapp-skin-red-compact .wapp-recent-item-head,
+.wapp-skin-red-compact .wapp-recent-group-title {
+  color: var(--wapp-red-compact-sidebar-text);
+}
+
+.wapp-skin-red-compact .wapp-nav-subitem-meta,
+.wapp-skin-red-compact .wapp-recent-meta,
+.wapp-skin-red-compact .wapp-recent-count,
+.wapp-skin-red-compact .wapp-project-count {
+  color: var(--wapp-red-compact-sidebar-meta);
+}
+
+.wapp-skin-red-compact .wapp-nav-item:hover,
+.wapp-skin-red-compact .wapp-nav-subitem:hover {
+  background: #F8DBDB;
+  color: #3F1D1D;
+}
+
+.wapp-skin-red-compact .wapp-nav-item.is-active,
+.wapp-skin-red-compact .wapp-nav-subitem.is-active {
+  background: #F5CACA;
+  color: #3F1D1D;
+  box-shadow: inset 0 0 0 1px #DC2626;
+}
+
+.wapp-skin-red-compact .wapp-nav-item.is-active span,
+.wapp-skin-red-compact .wapp-nav-subitem.is-active .wapp-nav-subitem-title,
+.wapp-skin-red-compact .wapp-nav-item:hover span,
+.wapp-skin-red-compact .wapp-nav-subitem:hover .wapp-nav-subitem-title {
+  color: #3F1D1D;
+}
+
+/* Session rows go solid red with white text (AA on accent-deep). */
+.wapp-skin-red-compact .wapp-recent-row:hover .wapp-recent-item {
+  background: #B91C1C;
+  color: #FFFFFF;
+}
+
+.wapp-skin-red-compact .wapp-recent-row.is-active .wapp-recent-item {
+  background: #B91C1C;
+  color: #FFFFFF;
+}
+
+/* contrast-gate:active-recent */
+.wapp-skin-red-compact .wapp-recent-row.is-active .wapp-recent-item *,
+.wapp-skin-red-compact .wapp-recent-row:hover .wapp-recent-item * {
+  color: #FFFFFF;
+}
+
+.wapp-skin-red-compact .wapp-recent-row.is-active .wapp-recent-action-trigger,
+.wapp-skin-red-compact .wapp-recent-row:hover .wapp-recent-action-trigger {
+  color: #FFFFFF !important;
+}
+
+.wapp-skin-red-compact .wapp-nav-icon {
+  color: var(--wapp-red-compact-sidebar-icon);
+}
+
+.wapp-skin-red-compact .wapp-sidebar-label,
+.wapp-skin-red-compact .wapp-sidebar-label-row .wapp-sidebar-label {
+  color: var(--wapp-red-compact-sidebar-secondary);
+}
+
+.wapp-skin-red-compact .wapp-topbar {
+  border-bottom-color: var(--wapp-red-compact-line);
+  background: var(--wapp-red-compact-pearl);
+}
+
+.wapp-skin-red-compact .wapp-breadcrumb {
+  color: var(--wapp-red-compact-secondary);
+}
+
+.wapp-skin-red-compact .wapp-breadcrumb strong {
+  color: var(--wapp-red-compact-ink);
+}
+
+.wapp-skin-red-compact .wapp-breadcrumb-link {
+  color: var(--wapp-red-compact-ink-soft);
+}
+
+.wapp-skin-red-compact .wapp-breadcrumb-link:hover,
+.wapp-skin-red-compact .wapp-breadcrumb-link:focus-visible {
+  color: #B91C1C;
+}
+
+.wapp-skin-red-compact .wapp-help-button,
+.wapp-skin-red-compact .wapp-mobile-button,
+.wapp-skin-red-compact .wapp-icon-button {
+  border-color: var(--wapp-red-compact-line) !important;
+  background: var(--wapp-red-compact-pearl);
+  color: var(--wapp-red-compact-accent-deep);
+}
+
+.wapp-skin-red-compact .wapp-help-button.is-primary-outline {
+  border-color: #B91C1C !important;
+  color: #B91C1C;
+  background: #FFFBFB;
+}
+
+.wapp-skin-red-compact .wapp-surface-button.is-primary,
+.wapp-skin-red-compact .wapp-surface-toolbar-button.is-primary {
+  border-color: #B91C1C;
+  background: #B91C1C;
+  color: #FFFFFF;
+}
+
+.wapp-skin-red-compact .wx-mention-kind-row button:hover,
+.wapp-skin-red-compact .wx-mention-kind-row button:focus-visible {
+  border-color: #B91C1C;
+}
+
+.wapp-skin-red-compact .wx-mention-kind-row button.is-active {
+  border-color: #B91C1C;
+  background: #B91C1C;
+  color: #FFFFFF;
+}
+
+.wapp-skin-red-compact .wapp-service-settings-preset.is-active {
+  border-color: #B91C1C;
+  background: #FDF2F2;
+  box-shadow: inset 0 0 0 1px #B91C1C;
+}
+
+.wapp-skin-red-compact .wapp-session-surface {
+  background: var(--wapp-red-compact-pearl);
+  color: var(--wapp-red-compact-ink);
+}
+
+.wapp-skin-red-compact .wapp-session-surface-top-composer {
+  background: linear-gradient(180deg, #FDF2F2 0%, #FFFBFB 50%, #FFFBFB 100%);
+}
+
+.wapp-skin-red-compact .wapp-session-surface-top-composer .wapp-session-hero-kicker {
+  border-color: var(--wapp-red-compact-chip-border);
+  color: #B91C1C;
+}
+
+.wapp-skin-red-compact .wapp-session-surface-top-composer .wapp-session-hero-kicker::before {
+  background: #DC2626;
+}
+
+.wapp-skin-red-compact .wapp-session-surface-top-composer .wapp-session-hero-strip h1 {
+  color: var(--wapp-red-compact-ink);
+}
+
+.wapp-skin-red-compact .wapp-session-surface-top-composer .wapp-session-hero-strip p {
+  color: var(--wapp-red-compact-secondary);
+}
+
+.wapp-skin-red-compact .wapp-session-hero-chip {
+  border-color: var(--wapp-red-compact-chip-border);
+  background: var(--wapp-red-compact-panel);
+  color: var(--wapp-red-compact-ink);
+}
+
+/* ---- 对话框小一点 ---- */
+
+/* 消息列 1100px → 800px */
+.wapp-skin-red-compact .wapp-session-surface [data-message-id] {
+  max-width: 800px;
+}
+
+/* 用户气泡：更窄、更薄、更小圆角，浅红底 */
+.wapp-skin-red-compact .wapp-session-surface [data-message-role="user"] .rounded-3xl {
+  max-width: 68%;
+  padding: 6px 14px;
+  border-radius: 16px;
+  background: #FDF2F2;
+  color: #3F1D1D;
+}
+
+@media (min-width: 640px) {
+  .wapp-skin-red-compact .wapp-session-surface [data-message-role="user"] .rounded-3xl {
+    max-width: 58%;
+  }
+}
+
+/* 输入框：更矮、字号更小、圆角更小 */
+.wapp-skin-red-compact .wapp-composer-dock-top [contenteditable="true"],
+.wapp-skin-red-compact .wapp-composer-dock [contenteditable="true"] {
+  min-height: 68px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.wapp-skin-red-compact .wapp-composer-dock-top .relative.overflow-visible.rounded-\[24px\],
+.wapp-skin-red-compact .wapp-composer-dock .relative.overflow-visible.rounded-\[24px\] {
+  border-color: var(--wapp-red-compact-line);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(63, 29, 29, 0.08);
+}
+
+/* contrast-gate:red-compact-dark */
+html[data-theme="dark"] .wapp-workspace-shell.wapp-skin-red-compact {
+  --wapp-red-compact-ink: #FBEAEA;
+  --wapp-red-compact-ink-soft: #F5D5D5;
+  --wapp-red-compact-secondary: #D9A8A8;
+  --wapp-red-compact-pearl: #1A0F0F;
+  --wapp-red-compact-pearl-deep: #241414;
+  --wapp-red-compact-sidebar: #241414;
+  --wapp-red-compact-sidebar-text: #FBEAEA;
+  --wapp-red-compact-sidebar-secondary: #F87171;
+  --wapp-red-compact-sidebar-meta: #D9A8A8;
+  --wapp-red-compact-sidebar-icon: #F87171;
+  --wapp-red-compact-panel: #2B1818;
+  --wapp-red-compact-line: rgba(251, 234, 234, 0.14);
+  --wapp-red-compact-chip-border: rgba(251, 234, 234, 0.18);
+  --wapp-red-compact-accent-deep: #B91C1C;
+  --wapp-red-compact-accent-hover: #991B1B;
+  --wapp-red-compact-on-accent: #FFFFFF;
+  --wapp-red-compact-scroll: #7A4444;
+}
+
+html[data-theme="dark"] .wapp-skin-red-compact .wapp-nav-item:hover,
+html[data-theme="dark"] .wapp-skin-red-compact .wapp-nav-subitem:hover {
+  background: #3A1D1D;
+  color: #FBEAEA;
+}
+
+html[data-theme="dark"] .wapp-skin-red-compact .wapp-nav-item.is-active,
+html[data-theme="dark"] .wapp-skin-red-compact .wapp-nav-subitem.is-active {
+  background: #4A2222;
+  color: #FBEAEA;
+  box-shadow: inset 0 0 0 1px #DC2626;
+}
+
+html[data-theme="dark"] .wapp-skin-red-compact .wapp-nav-item.is-active span,
+html[data-theme="dark"] .wapp-skin-red-compact .wapp-nav-subitem.is-active .wapp-nav-subitem-title,
+html[data-theme="dark"] .wapp-skin-red-compact .wapp-nav-item:hover span,
+html[data-theme="dark"] .wapp-skin-red-compact .wapp-nav-subitem:hover .wapp-nav-subitem-title {
+  color: #FBEAEA;
+}
+
+html[data-theme="dark"] .wapp-skin-red-compact .wapp-session-surface [data-message-role="user"] .rounded-3xl {
+  background: #2B1818;
+  color: #FBEAEA;
+}
+
+html[data-theme="dark"] .wapp-skin-red-compact .wapp-session-surface-top-composer {
+  background: linear-gradient(180deg, #241414 0%, #1A0F0F 50%, #1A0F0F 100%);
+}
+
+html[data-theme="dark"] .wapp-skin-red-compact .wapp-help-button.is-primary-outline {
+  background: #1A0F0F;
+}
+
+html[data-theme="dark"] .wapp-skin-red-compact .wapp-service-settings-preset.is-active {
+  background: #241414;
+}

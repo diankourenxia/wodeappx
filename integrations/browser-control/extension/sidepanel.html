@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WodeAppX Browser Control</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <img src="icons/icon32.png" width="28" height="28" alt="" />
+          <div class="brand-copy">
+            <strong>WodeAppX</strong>
+            <span id="connectionLabel">正在连接</span>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button id="newTaskButton" class="text-button" type="button">新建对话</button>
+          <button id="settingsButton" class="text-button" type="button" aria-expanded="false">设置</button>
+        </div>
+      </header>
+
+      <section id="settingsPanel" class="settings-panel" hidden aria-label="连接设置">
+        <div class="settings-head">
+          <div>
+            <strong>连接 WodeAppX</strong>
+            <p>保持桌面端打开，侧栏即可使用当前模型和工具。</p>
+          </div>
+          <button id="closeSettingsButton" class="quiet-button" type="button">完成</button>
+        </div>
+        <label for="bridgeUrl">兼容桥接地址</label>
+        <input id="bridgeUrl" type="url" value="http://127.0.0.1:17654" spellcheck="false" />
+        <label for="bridgeToken">连接令牌</label>
+        <input id="bridgeToken" type="password" autocomplete="off" spellcheck="false" placeholder="未设置时留空" />
+        <div class="settings-actions">
+          <button id="saveSettingsButton" class="primary-button" type="button">保存并连接</button>
+          <span id="settingsStatus" role="status"></span>
+        </div>
+      </section>
+
+      <section class="target-strip" aria-label="当前操作页面">
+        <span id="targetState" class="target-state"></span>
+        <div class="target-copy">
+          <strong id="targetTitle">正在读取当前页面</strong>
+          <span id="targetUrl"></span>
+        </div>
+      </section>
+
+      <main id="conversation" class="conversation" aria-live="polite">
+        <section id="emptyState" class="empty-state">
+          <img src="icons/icon128.png" width="72" height="72" alt="" />
+          <h1>想让浏览器做什么？</h1>
+          <p>直接描述目标，WodeAppX 会读取当前页面并完成操作。</p>
+          <div class="suggestions" aria-label="任务建议">
+            <button type="button" data-prompt="总结当前页面的关键信息">总结当前页面</button>
+            <button type="button" data-prompt="帮我完成当前页面上的表单，提交前先让我确认">帮我完成这个表单</button>
+            <button type="button" data-prompt="检查当前页面是否有异常、错误提示或需要处理的事项">检查页面异常</button>
+          </div>
+        </section>
+        <div id="messageList" class="message-list"></div>
+        <div id="thinkingRow" class="thinking-row" hidden>
+          <span></span><span></span><span></span>
+          <p>WodeAppX 正在查看并处理当前网页</p>
+        </div>
+      </main>
+
+      <form id="composerForm" class="composer">
+        <label class="sr-only" for="promptInput">输入浏览器任务</label>
+        <textarea id="promptInput" rows="1" placeholder="让 WodeAppX 操作当前网页" maxlength="12000"></textarea>
+        <div class="composer-footer">
+          <span id="composerHint">Enter 发送，Shift + Enter 换行</span>
+          <button id="sendButton" class="send-button" type="submit">发送</button>
+        </div>
+      </form>
+    </div>
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

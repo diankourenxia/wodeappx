@@ -1,0 +1,25 @@
+WodeAppX
+Copyright 2026 WodeAppX contributors
+
+This product includes software developed by WodeAppX contributors and is
+licensed under the Apache License, Version 2.0.
+
+WodeAppX is based in part on OpenWork by Different AI
+(https://github.com/different-ai/openwork), used and modified under the MIT
+License. The exact upstream source revision used for reproducible builds is
+recorded in openwork.lock.json.
+
+OpenWork's separately licensed ee/ directory is removed by the WodeAppX
+bootstrap and is not part of the WodeAppX source distribution, dependency
+workspace, integration, or export process.
+
+The OpenWork copyright and MIT license text retained for the forked source is
+available at THIRD_PARTY_LICENSES/OpenWork-LICENSE.txt.
+
+Distributed dependencies and bundled tools retain their own copyright and
+license notices. See their source packages and generated third-party license
+report in release artifacts where applicable.
+
+The WodeApp and WodeAppX names and logos are not granted as trademarks by the
+Apache License. Forks may describe compatibility but should use distinct
+branding unless they have permission from the trademark owner.

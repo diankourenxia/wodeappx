@@ -1,0 +1,31 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    // Shopify official Dev MCP: docs, API guidance, schema introspection, code generation.
+    // It does not authenticate to a merchant store or mutate Admin data.
+    "shopify-dev-mcp": {
+      "type": "local",
+      "command": ["npx", "-y", "@shopify/dev-mcp@latest"],
+      "enabled": true
+    },
+
+    // Shopify official Storefront MCP: shopper-facing catalog, cart, and policy tools.
+    // One endpoint per store. Replace the shop domain when connecting a different store.
+    "shopify-storefront": {
+      "type": "remote",
+      "url": "https://<shop>.myshopify.com/api/mcp",
+      "enabled": true
+    },
+
+    // WodeAppX Admin MCP: merchant-authorized store management.
+    // Create an API Key in WodeApp and replace the placeholder value.
+    "wodeappx-shopify-admin": {
+      "type": "remote",
+      "url": "http://localhost:3100/mainserver/api/shopify/mcp",
+      "headers": {
+        "X-API-Key": "sk_live_REPLACE_WITH_WODEAPP_API_KEY"
+      },
+      "enabled": true
+    }
+  }
+}

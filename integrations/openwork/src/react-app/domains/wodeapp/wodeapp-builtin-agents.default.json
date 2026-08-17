@@ -1,0 +1,126 @@
+{
+  "$schema": "../../../docs/schemas/builtin-agents.schema.json",
+  "version": 1,
+  "layer": "builtin",
+  "description": "Shipped Layer0 agents. Default enabled: image / video / short-drama / canvas / multi-model. Create, orchestrator, Feishu, and industry ids stay reserved but disabled for stability.",
+  "agents": [
+    {
+      "id": "content-orchestrator",
+      "name": "内容生产",
+      "meta": "脚本 · 素材 · 人工确认后生成",
+      "kind": "orchestrator",
+      "entryPrompt": "从商品或创意整理脚本和素材，确认后再生成可投放内容。",
+      "samplePrompt": "先整理脚本并复用用户已经上传或选中的素材。默认只准备内容，不自动提交视频；等我确认或明确说开始生成后，再调用对应的视频能力。",
+      "autoSend": false,
+      "enabled": false
+    },
+    {
+      "id": "feishu-agent-mcp",
+      "name": "飞书",
+      "meta": "经营周报 · 多维表格 · 群消息 · 云文档",
+      "kind": "integration",
+      "entryPrompt": "打开飞书电商经营工作台，把多维表格、群消息和云文档汇总成周报与行动计划。",
+      "samplePrompt": "飞书电商经营智能体：优先使用 lark-mcp / Feishu OpenAPI MCP 工具处理群消息、云文档、知识库、多维表格、成员、任务和日历。先读取和核验字段，再生成有数字与来源的经营分析；数据缺失时明确标注，禁止编造。创建文档、回写表格、发送群卡片、创建任务或日程前必须向用户确认。若当前会话没有可用的飞书工具，明确告诉用户需要在「我的智能体 > 飞书」中完成授权；不要让用户去找 WodeApp API Key，也不要用 bash/curl 手写飞书 REST 请求。",
+      "enabled": false
+    },
+    {
+      "id": "visual-generation",
+      "name": "图片智能体",
+      "meta": "商品图 · 主图 · 批量出图",
+      "kind": "capability",
+      "abilityKind": "image",
+      "defaultUrl": "https://yougi.wodeapp.cn/",
+      "entryPrompt": "为我的商品整理主图和场景图，确认后再生成；需要视频时另行安排。",
+      "samplePrompt": "能力：先用 wodeapp_batch_image_prepare 保存并打开图片草稿；只有我明确要求生成时才调用 product_visual_batch_image_run。",
+      "enabled": true
+    },
+    {
+      "id": "video-generation",
+      "name": "视频智能体",
+      "meta": "短视频 · 图生视频 · 批量队列",
+      "kind": "capability",
+      "abilityKind": "video",
+      "defaultUrl": "https://ai.wodeapp.cn/video",
+      "entryPrompt": "根据脚本和素材整理视频方案，先由我确认后再生成。",
+      "samplePrompt": "视频能力：\n1. 复用 https:// 素材；本地/附件先一次 wodeapp_image_asset_save(requireHttps:true)。\n2. 勿传 model；平台默认 Seedance 2.0 Mini，单镜≤15s；更长拆条并重写 prompt 时间轴。\n3. 单条 wodeapp.video.generate；多条/分镜首包 wodeapp_video_storyboard_open（groups/groupId）；大批量追加 wodeapp_video_storyboard_update（同 shareDocId，delta≤25）。\n4. 真人参考图 ai_generate_image(model:seedream-5.0)；短剧剧本编辑台用 wodeapp.short_drama.open，出片仍走本视频分镜工作台（scriptFrameUrl/nineGridUrl/videoRefs 可切换预览）。\n默认只整理方案，不自动生成。详情：wodeapp_get_tool_docs('video_storyboard')。",
+      "autoSend": false,
+      "enabled": true
+    },
+    {
+      "id": "script-storyboard",
+      "name": "短剧智能体",
+      "meta": "剧本 · 分镜 · 可拍摄脚本",
+      "kind": "capability",
+      "abilityKind": "short-drama",
+      "defaultUrl": "https://script.wodeapp.cn",
+      "entryPrompt": "写短剧分镜和素材方案，视频生成由我确认后开始。",
+      "samplePrompt": "剧本在对话交付；编辑台用 wodeapp.short_drama.open（打开 script.wodeapp.cn）。全季剧本写完或定稿前必须调用 wodeapp.short_drama.series_preflight（传 episodes/characters）；blocked 时先修 P0。出片/分镜工作台走 wodeapp_video_storyboard_open：单帧→scriptFrameUrl、九宫格→nineGridUrl、视频→videoRefs，用 previewMode 切换展示；subjects 可带 assetId（Visual Bible）。不要自动提交视频任务。",
+      "enabled": true
+    },
+    {
+      "id": "agent-infinite-canvas",
+      "name": "画布智能体",
+      "meta": "画布 · 素材节点 · 连续创作",
+      "kind": "capability",
+      "abilityKind": "canvas",
+      "defaultUrl": "https://supor.wodeapp.cn/canvas",
+      "entryPrompt": "打开无限画布，围绕商品或创意持续生成图片、脚本和视频节点。",
+      "samplePrompt": "画布节点组织素材；出图/视频仍走 capability schema + MCP，结果挂到节点。",
+      "enabled": true
+    },
+    {
+      "id": "multi-agent-collab",
+      "name": "多模型智能体",
+      "meta": "多模型 · 并行生成 · 对比",
+      "kind": "capability",
+      "abilityKind": "multi-agent",
+      "defaultUrl": "https://zhousiying.wodeapp.cn/copywriting",
+      "entryPrompt": "用多个模型并行回答同一问题，对比不同模型的思路与结论。",
+      "samplePrompt": "多模型并行对比；若需物料产出，继续调用 image/video capability schema。",
+      "enabled": true
+    },
+    {
+      "id": "create-agent",
+      "name": "创建智能体",
+      "meta": "Skill 物化 · 模板 · 设计稿生成",
+      "kind": "capability",
+      "entryPrompt": "我想创建一个智能体应用，用途是：",
+      "samplePrompt": "能力：通过 Platform MCP 创建可发布智能体应用。禁止聊天壳、假 toast、空手拼 Hero/Feature。\n\n优先路径 A — Skill 物化（海报 / 落地页 / 小红书文案 / 分镜等工具型需求）：\n1. list_skill_manifests（可用 query 过滤）匹配 skillId。\n2. materialize_skill_app(skillId, name?)：挂 SkillWorkbenchSection，默认直接发布；记下 projectId / url。\n3. 打开 url 验收主按钮与真实工作台，再返回给用户。\n\n路径 B — 现成工作台模板（出图 / 视频 / 分镜 / 画布 / 多模型文案等）：\n- list_templates → create_project 带匹配 templateId → 确认发布。\n- 人类可视化模板向导：https://wodeapp.cn/agent/create\n\n路径 C — 无匹配 Skill/模板时（自定义站 / 助手 / 表单站）—— 设计稿→生成：\n1. create_project，只传 name，不要带 templateId；记下 projectId 与默认 pageId。\n2. ai_generate_page：用用户需求写完整 prompt（定位、功能、页面结构、风格）。服务端先 designBrief 再骨架与内容。\n3. 若 URL 未可用再 publish_project；get_project 确认 publishedVersion ≥ 1。\n4. 多页：create_page + ai_generate_page；微调用 ai_modify_section / update_page。\n- 自定义站人类编辑：https://wodeapp.cn/json-builder/{projectId}\n\n禁止 build_app 除非用户明确要 APK/PWA/打包。\n验收：打开 projectUrl，确认是真实可用页面（不是空壳），返回 projectId、slug、已验证 URL。",
+      "autoSend": false,
+      "enabled": false
+    },
+    {
+      "id": "home-textile-industry-agent",
+      "name": "家纺行业智能体",
+      "meta": "选品 · 话术 · 竞品对比",
+      "kind": "industry",
+      "runtimeProfileId": "home-textile-industry-agent",
+      "entryPrompt": "按家纺行业视角回答选品、话术与竞品问题；缺资料时再检索知识库。",
+      "samplePrompt": "使用家纺行业 Runtime Profile；按需 knowledge_search，不编造库存、价格与未配置的政策。",
+      "autoSend": false,
+      "enabled": false
+    },
+    {
+      "id": "beauty-industry-agent",
+      "name": "美妆行业智能体",
+      "meta": "种草图 · 卖点文案 · 短视频脚本",
+      "kind": "industry",
+      "runtimeProfileId": "beauty-industry-agent",
+      "entryPrompt": "我是美妆种草助手。上传产品图或说明后，我可以：提炼卖点 → 出种草主图 → 写小红书文案 → 可选 15s 口播/分镜。先发产品图或一句话需求。",
+      "samplePrompt": "【美妆行业契约】\n人设：美妆/护肤种草与内容生产；优先图片与视频能力。\n合规：不编造功效、临床结论、价格库存。\nSkill：wodeappx-beauty-industry。",
+      "autoSend": false,
+      "enabled": false
+    },
+    {
+      "id": "consumer-electronics-industry-agent",
+      "name": "数码 3C 行业智能体",
+      "meta": "参数 · 对比 · 上架文案",
+      "kind": "industry",
+      "runtimeProfileId": "consumer-electronics-industry-agent",
+      "entryPrompt": "按数码 3C 行业视角回答参数对比、上架文案与选购建议；缺资料时再检索知识库。",
+      "samplePrompt": "使用数码 3C 行业 Runtime Profile；按需 knowledge_search，不编造规格参数、库存与价格。",
+      "autoSend": false,
+      "enabled": false
+    }
+  ]
+}

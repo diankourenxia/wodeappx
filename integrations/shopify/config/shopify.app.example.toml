@@ -1,0 +1,33 @@
+# Copy to app/shopify.app.toml after Shopify CLI creates or links the app.
+
+name = "WodeAppX Shopify Connector"
+client_id = "REPLACE_WITH_SHOPIFY_CLIENT_ID"
+application_url = "https://wodeapp.ai/mainserver/api/shopify/connect/start"
+embedded = false
+
+[access_scopes]
+scopes = "read_products,write_products,read_inventory,write_inventory,read_locations"
+optional_scopes = [ ]
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [
+  "https://wodeapp.ai/mainserver/api/shopify/connect/callback",
+  "https://wodeapp.cn/mainserver/api/shopify/connect/callback",
+  "http://localhost:3100/mainserver/api/shopify/connect/callback"
+]
+
+[webhooks]
+api_version = "2026-07"
+
+[[webhooks.subscriptions]]
+topics = ["products/create", "products/update", "products/delete"]
+uri = "https://wodeapp.ai/mainserver/api/shopify/webhooks/products"
+
+[[webhooks.subscriptions]]
+topics = ["inventory_levels/update"]
+uri = "https://wodeapp.ai/mainserver/api/shopify/webhooks/inventory"
+
+[[webhooks.subscriptions]]
+topics = ["app/uninstalled"]
+uri = "https://wodeapp.ai/mainserver/api/shopify/webhooks/app-uninstalled"

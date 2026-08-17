@@ -1,0 +1,50 @@
+{
+  "name": "@openwork/desktop",
+  "private": true,
+  "version": "0.17.10",
+  "description": "我的AppX desktop shell",
+  "author": {
+    "name": "WodeApp",
+    "email": "support@wodeapp.cn"
+  },
+  "main": "electron/main.mjs",
+  "type": "module",
+  "scripts": {
+    "dev": "node ./scripts/electron-dev.mjs",
+    "dev:electron": "node ./scripts/electron-dev.mjs",
+    "build": "node ./scripts/electron-build.mjs",
+    "build:electron": "node ./scripts/electron-build.mjs",
+    "package:electron": "pnpm run prepare:browser-native-host && pnpm run build:electron && pnpm exec electron-builder --config electron-builder.yml",
+    "package:electron:dir": "pnpm run prepare:browser-native-host && pnpm run build:electron && pnpm exec electron-builder --config electron-builder.yml --dir",
+    "electron": "pnpm exec electron ./electron/main.mjs",
+    "check:electron": "node ./scripts/check-electron-bridge.mjs",
+    "typecheck:electron": "pnpm --dir ../server exec tsc -p ../desktop/tsconfig.electron.json --noEmit",
+    "prepare:sidecar": "node ./scripts/prepare-sidecar.mjs",
+    "prepare:browser-native-host": "node ../../../../scripts/build-browser-native-host.mjs",
+    "test": "node --test electron/browser-native-host.test.mjs electron/runtime.test.mjs electron/updater.test.mjs electron/remote-workspace.test.mjs electron/workspace-store.test.mjs"
+  },
+  "dependencies": {
+    "sherpa-onnx": "1.13.4",
+    "sherpa-onnx-node": "1.13.4",
+    "@opencode-ai/sdk": "^1.17.11",
+    "better-sqlite3": "^11.10.0",
+    "drizzle-orm": "0.45.2",
+    "electron-updater": "^6.3.9",
+    "jsonc-parser": "^3.2.1",
+    "minimatch": "10.2.5",
+    "node-pty": "npm:@lydell/node-pty@1.2.0-beta.12",
+    "yaml": "^2.6.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@openwork/types": "workspace:*",
+    "electron": "39.8.5",
+    "electron-builder": "^25.1.8",
+    "electron-devtools-installer": "^4.0.0"
+  },
+  "packageManager": "pnpm@10.27.0",
+  "opencodeRouterVersion": "0.17.3",
+  "optionalDependencies": {
+    "@lydell/node-pty-darwin-arm64": "1.2.0-beta.12"
+  }
+}

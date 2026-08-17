@@ -1,0 +1,549 @@
+/* Classic titlebar / toolbar / assistant are React-mounted only for this skin. */
+.wapp-workspace-shell.wapp-skin-classic-blue {
+  grid-template-columns: 250px minmax(420px, 1fr) 224px;
+  grid-template-rows: 34px 60px minmax(0, 1fr);
+  gap: 1px;
+  padding: 3px;
+  border: 1px solid #1f64a8;
+  background: #4b92d1;
+  color-scheme: light;
+  font-family: Tahoma, "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+
+.wapp-workspace-shell.wapp-skin-classic-blue.is-sidebar-collapsed {
+  grid-template-columns: 0 minmax(420px, 1fr) 224px;
+}
+
+.wapp-skin-classic-blue .wapp-classic-titlebar {
+  display: flex;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 9px;
+  border: 1px solid #2e75b9;
+  background: #1974c8;
+  color: #ffffff;
+  text-shadow: 0 1px #164d82;
+}
+
+.wapp-skin-classic-blue .wapp-classic-titlebar img {
+  flex: 0 0 22px;
+  border-radius: 5px;
+}
+
+.wapp-skin-classic-blue .wapp-classic-titlebar strong,
+.wapp-skin-classic-blue .wapp-classic-titlebar span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wapp-skin-classic-blue .wapp-classic-titlebar strong {
+  font-size: 15px;
+}
+
+.wapp-skin-classic-blue .wapp-classic-titlebar span {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.wapp-skin-classic-blue .wapp-classic-toolbar {
+  display: flex;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  align-items: stretch;
+  gap: 2px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 5px 8px;
+  border: 1px solid #6ba5d8;
+  background: #edf6fd;
+}
+
+.wapp-skin-classic-blue .wapp-classic-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 46px;
+  max-width: 160px;
+  padding: 0 12px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #172d4d;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: border-color 0.12s, background-color 0.12s;
+}
+
+.wapp-skin-classic-blue .wapp-classic-toolbar button:hover,
+.wapp-skin-classic-blue .wapp-classic-toolbar button.is-active {
+  border-color: #7aa8d4;
+  background: #d7ebfa;
+}
+
+.wapp-skin-classic-blue .wapp-classic-toolbar button svg {
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  color: #1f6eb6;
+}
+
+.wapp-skin-classic-blue .wapp-classic-toolbar-separator {
+  width: 1px;
+  height: 34px;
+  margin: 6px 4px;
+  background: #9ebedc;
+  flex: 0 0 1px;
+}
+
+.wapp-skin-classic-blue > .wapp-sidebar {
+  grid-column: 1;
+  grid-row: 3;
+  border: 1px solid #6d9fcf;
+  background: #f4f9fd;
+  color: #102848;
+}
+
+.wapp-skin-classic-blue > .wapp-workspace-main {
+  grid-column: 2;
+  grid-row: 3;
+  border: 1px solid #6d9fcf;
+  background: #ffffff;
+}
+
+.wapp-skin-classic-blue > .wapp-classic-assistant {
+  display: flex;
+  grid-column: 3;
+  grid-row: 3;
+}
+
+.wapp-skin-classic-blue .wapp-sidebar-top {
+  padding: 0;
+  border-bottom: 1px solid #82add5;
+  background: #deeffb;
+}
+
+.wapp-skin-classic-blue .wapp-brand-spacer {
+  display: block;
+  height: 34px;
+  margin: 0;
+}
+
+.wapp-skin-classic-blue .wapp-brand-spacer::after {
+  display: block;
+  padding: 7px 11px;
+  color: #173c6a;
+  content: "WodeAppX";
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.wapp-skin-classic-blue .wapp-new-chat {
+  width: calc(100% - 12px);
+  min-height: 36px;
+  margin: 6px;
+  border-color: #8db4d8;
+  border-radius: 4px;
+  background: #ffffff;
+  box-shadow: none;
+  color: #17345c;
+}
+
+.wapp-skin-classic-blue .wapp-sidebar-scroll {
+  padding: 0;
+  scrollbar-color: #83afd7 #e9f4fc;
+}
+
+.wapp-skin-classic-blue .wapp-nav {
+  gap: 0;
+  margin-top: 0;
+  padding: 5px 6px 8px;
+  border-bottom: 1px solid #aac8e2;
+}
+
+.wapp-skin-classic-blue .wapp-nav-row {
+  gap: 0;
+}
+
+.wapp-skin-classic-blue .wapp-nav-item,
+.wapp-skin-classic-blue .wapp-nav-toggle,
+.wapp-skin-classic-blue .wapp-nav-subitem,
+.wapp-skin-classic-blue .wapp-recent-item,
+.wapp-skin-classic-blue .wapp-recent-group-head {
+  border-radius: 3px;
+}
+
+.wapp-skin-classic-blue .wapp-nav-item {
+  min-height: 31px;
+  color: #17345c;
+  font-size: 13px;
+}
+
+.wapp-skin-classic-blue .wapp-nav-item:hover,
+.wapp-skin-classic-blue .wapp-nav-item.is-active,
+.wapp-skin-classic-blue .wapp-nav-subitem:hover,
+.wapp-skin-classic-blue .wapp-nav-subitem.is-active,
+.wapp-skin-classic-blue .wapp-recent-row:hover .wapp-recent-item,
+.wapp-skin-classic-blue .wapp-recent-row.is-active .wapp-recent-item {
+  background: #d8ecfa;
+  color: #0f4f8e;
+}
+
+.wapp-skin-classic-blue .wapp-nav-icon {
+  color: #236fb3;
+}
+
+.wapp-skin-classic-blue .wapp-nav-subtree {
+  margin-left: 22px;
+}
+
+.wapp-skin-classic-blue .wapp-sidebar-section {
+  margin-top: 0;
+}
+
+.wapp-skin-classic-blue .wapp-sidebar-label {
+  margin: 0 0 5px;
+  padding: 5px 10px;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #9fc1df;
+  background: #d9ecfa;
+  color: #1d4f80;
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.wapp-skin-classic-blue .wapp-sidebar-label-row {
+  margin: 0;
+  padding: 0;
+  align-items: stretch;
+}
+
+.wapp-skin-classic-blue .wapp-sidebar-label-row .wapp-sidebar-label {
+  flex: 1;
+  margin: 0;
+}
+
+.wapp-skin-classic-blue .wapp-workspace-add {
+  margin: 2px 6px 2px 0;
+  color: #1d4f80;
+}
+
+.wapp-skin-classic-blue .wapp-conversation-list {
+  gap: 0;
+  padding: 0 4px 4px;
+}
+
+.wapp-skin-classic-blue .wapp-home-conversation-list {
+  gap: 0;
+  padding: 0 4px 4px;
+}
+
+.wapp-skin-classic-blue .wapp-home-conversations.is-active {
+  background: transparent;
+}
+
+.wapp-skin-classic-blue .wapp-conversation-workspace.is-active {
+  background: transparent;
+}
+
+.wapp-skin-classic-blue .wapp-conversation-workspace-main:hover,
+.wapp-skin-classic-blue .wapp-conversation-workspace.is-active .wapp-conversation-workspace-main {
+  background: #d9ecfa;
+}
+
+.wapp-skin-classic-blue .wapp-conversation-workspace-action:hover,
+.wapp-skin-classic-blue .wapp-conversation-workspace-action:focus-visible,
+.wapp-skin-classic-blue .wapp-recent-action-trigger:hover {
+  background: #cfe6f7 !important;
+  color: #0f4f8e !important;
+}
+
+.wapp-skin-classic-blue .wapp-recent-group-head:hover {
+  background: #d8ecfa;
+}
+
+.wapp-skin-classic-blue .wapp-recent-group-delete:hover,
+.wapp-skin-classic-blue .wapp-recent-group-delete:focus-visible {
+  background: #fde8e8;
+  color: #c42323;
+}
+
+.wapp-skin-classic-blue .wapp-recent-list {
+  gap: 0;
+  padding: 0 4px 4px;
+}
+
+.wapp-skin-classic-blue .wx-runtime-card {
+  margin: 4px 6px 6px;
+  border-color: #8eb5d9;
+  border-radius: 4px;
+  background: #eff8fe;
+}
+
+.wapp-skin-classic-blue .wapp-topbar {
+  min-height: 38px;
+  padding: 0 10px;
+  border-bottom-color: #86afd4;
+  background: #e5f3fc;
+}
+
+.wapp-skin-classic-blue .wapp-breadcrumb {
+  color: #244b74;
+  font-size: 13px;
+}
+
+.wapp-skin-classic-blue .wapp-breadcrumb strong,
+.wapp-skin-classic-blue .wapp-breadcrumb-link {
+  color: #183c64;
+}
+
+.wapp-skin-classic-blue .wapp-help-button,
+.wapp-skin-classic-blue .wapp-mobile-button,
+.wapp-skin-classic-blue .wapp-icon-button {
+  min-height: 28px;
+  height: 28px;
+  border-color: #8db4d8 !important;
+  border-radius: 4px;
+  background: #f8fcff;
+  color: #234e78;
+}
+
+.wapp-skin-classic-blue .wapp-help-button {
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.wapp-skin-classic-blue .wapp-content,
+.wapp-skin-classic-blue .wapp-session-surface,
+.wapp-skin-classic-blue .wapp-session-embed [data-slot="sidebar-inset"] {
+  background: #ffffff;
+}
+
+.wapp-skin-classic-blue .wapp-composer-dock-top .relative.overflow-visible.rounded-\[24px\],
+.wapp-skin-classic-blue .wapp-composer-dock .relative.overflow-visible.rounded-\[24px\] {
+  border-color: #79a7d2;
+  border-radius: 7px;
+  box-shadow: 0 1px 3px rgba(31, 92, 145, 0.18);
+}
+
+.wapp-skin-classic-blue .wapp-session-surface .wapp-composer-shell,
+.wapp-skin-classic-blue .wapp-session-surface .shrink-0.px-0.pb-2.pt-2 {
+  border-top: 0 !important;
+  background: transparent !important;
+}
+
+.wapp-skin-classic-blue .wapp-session-surface-top-composer {
+  padding: clamp(26px, 6vh, 58px) 20px;
+  background: #ffffff;
+}
+
+.wapp-skin-classic-blue .wapp-session-surface-top-composer .wapp-session-hero-kicker,
+.wapp-skin-classic-blue .wapp-session-surface-top-composer .wapp-session-hero-chip {
+  border-color: #9ebfdd;
+  border-radius: 5px;
+  box-shadow: none;
+}
+
+.wapp-skin-classic-blue .wapp-session-surface-top-composer .wapp-session-hero-kicker {
+  color: #1d67a8;
+}
+
+.wapp-skin-classic-blue .wapp-session-surface-top-composer .wapp-session-hero-kicker::before {
+  background: #2c80c6;
+}
+
+.wapp-skin-classic-blue .wapp-session-surface-top-composer .wapp-session-hero-strip h1 {
+  color: #173d68;
+  font-family: Tahoma, "Microsoft YaHei", sans-serif;
+  font-size: clamp(30px, 4vw, 48px);
+  text-shadow: 0 1px #ffffff;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant {
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid #6d9fcf;
+  background: #edf7fe;
+  color: #183b62;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant > header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 37px;
+  padding: 0 10px;
+  border-bottom: 1px solid #8fb6d9;
+  background: #dceefa;
+  font-size: 13px;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant > header svg {
+  width: 17px;
+  height: 17px;
+  color: #236fb3;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-card {
+  margin: 7px;
+  border: 1px solid #8eb5d9;
+  border-radius: 5px;
+  background: #ffffff;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-card.is-identity {
+  padding-bottom: 8px;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-portrait {
+  display: grid;
+  min-height: 142px;
+  place-items: center;
+  border-bottom: 1px solid #b5d0e7;
+  background: #dcebfa;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-portrait img {
+  width: 92px;
+  height: 92px;
+  border: 4px solid #ffffff;
+  border-radius: 22px;
+  box-shadow: 0 3px 8px rgba(29, 77, 121, 0.22);
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 9px 0;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-status > span {
+  width: 10px;
+  height: 10px;
+  border: 1px solid #3e7d19;
+  border-radius: 50%;
+  background: #70b82b;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-status small {
+  margin-left: auto;
+  color: #4e789e;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-card p {
+  margin: 8px 9px;
+  color: #23496f;
+  font-size: 12px;
+  line-height: 1.65;
+  overflow-wrap: break-word;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-card button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: calc(100% - 16px);
+  min-width: 0;
+  min-height: 31px;
+  margin: 5px 8px;
+  padding: 0 9px;
+  overflow: hidden;
+  border: 1px solid #8db4d8;
+  border-radius: 4px;
+  background: #eef7fd;
+  color: #174f82;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: border-color 0.12s, background-color 0.12s;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-card button:hover {
+  border-color: #5d93c4;
+  background: #dbeefa;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-card button svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-card h2 {
+  margin: 0;
+  padding: 7px 9px;
+  border-bottom: 1px solid #b4cfe6;
+  background: #dceefa;
+  font-size: 12px;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-safe {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 8px;
+  color: #52718f;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.wapp-skin-classic-blue .wapp-classic-assistant-safe svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+}
+
+@media (max-width: 1120px) {
+  .wapp-workspace-shell.wapp-skin-classic-blue {
+    grid-template-columns: 220px minmax(420px, 1fr);
+  }
+
+  .wapp-skin-classic-blue > .wapp-classic-assistant {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .wapp-workspace-shell.wapp-skin-classic-blue {
+    grid-template-columns: 184px minmax(320px, 1fr);
+  }
+
+  .wapp-skin-classic-blue .wapp-classic-toolbar button {
+    padding-inline: 8px;
+  }
+
+  .wapp-skin-classic-blue .wapp-classic-toolbar button span {
+    display: none;
+  }
+}
+
+/* contrast-gate:classic-blue-dark */
+html[data-theme="dark"] .wapp-skin-classic-blue .wapp-content,
+html[data-theme="dark"] .wapp-skin-classic-blue .wapp-session-surface,
+html[data-theme="dark"] .wapp-skin-classic-blue .wapp-session-embed [data-slot="sidebar-inset"],
+html[data-theme="dark"] .wapp-skin-classic-blue .wapp-main-panel,
+html[data-theme="dark"] .wapp-skin-classic-blue > .wapp-workspace-main {
+  background: var(--wapp-surface-bg);
+  color: var(--wapp-surface-fg);
+}
+
+html[data-theme="dark"] .wapp-skin-classic-blue .wapp-session-surface-top-composer {
+  background: var(--wapp-top-composer-bg);
+}

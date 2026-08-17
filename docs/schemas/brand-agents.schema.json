@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wodeappx.local/schemas/brand-agents.schema.json",
+  "title": "WodeAppX brand-agents.json",
+  "description": "User-local brand agent configuration. Shipping builds default to an empty agents list.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "agents"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "const": 1 },
+    "agents": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/brandAgent" }
+    }
+  },
+  "$defs": {
+    "slugId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,62}$"
+    },
+    "brandId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,31}$"
+    },
+    "knowledgeScope": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{0,31}$"
+    },
+    "connectorScope": {
+      "type": "string",
+      "enum": ["shopify", "feishu", "dingtalk", "wecom"]
+    },
+    "brandAgent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "brandId"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slugId" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "brandId": { "$ref": "#/$defs/brandId" },
+        "meta": { "type": "string", "maxLength": 80 },
+        "connectorScopes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/connectorScope" },
+          "uniqueItems": true
+        },
+        "knowledgeScopes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/knowledgeScope" },
+          "uniqueItems": true
+        },
+        "policy": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+        },
+        "entryPrompt": { "type": "string", "maxLength": 500 },
+        "samplePrompt": { "type": "string", "maxLength": 4000 },
+        "workbench": { "type": "string", "enum": ["generic", "wynne"] },
+        "enabled": { "type": "boolean" }
+      }
+    }
+  }
+}

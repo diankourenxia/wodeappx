@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WodeAppX · 实体工作台 UI 草案</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a1f1c;
+      --muted: #5c675f;
+      --line: #d8ddd6;
+      --paper: #f3f1eb;
+      --panel: #faf9f6;
+      --panel-2: #ffffff;
+      --accent: #0f6b5c;
+      --accent-soft: #d8efe9;
+      --warn: #9a5b1a;
+      --danger: #9b2c2c;
+      --chip: #e8ebe4;
+      --shadow: 0 1px 0 rgba(26, 31, 28, 0.04);
+      --radius: 14px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --display: "Fraunces", Georgia, serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: var(--font);
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #e7efe8 0%, transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, #efe6d8 0%, transparent 50%),
+        var(--paper);
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+
+    .topnote {
+      flex: 0 0 auto;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 88%, #fff);
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .topnote strong { color: var(--ink); font-weight: 600; }
+    .topnote code {
+      font-size: 12px;
+      background: var(--chip);
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+
+    .shell {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr) minmax(380px, 1.15fr);
+      gap: 0;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .col {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--line);
+    }
+    .col:last-child { border-right: none; }
+
+    .col-h {
+      padding: 14px 16px 10px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* Library */
+    .lib-search {
+      margin: 0 12px 10px;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-2);
+      font: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+    .lib-search:focus { border-color: var(--accent); }
+
+    .product-list {
+      overflow: auto;
+      padding: 0 8px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .product {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 10px;
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+    }
+    .product:hover { background: #efece4; }
+    .product.is-active {
+      background: var(--accent-soft);
+      border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+    }
+    .product-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background:
+        linear-gradient(145deg, #c5d4c8, #8fa894 40%, #5f7a68);
+      position: relative;
+      overflow: hidden;
+    }
+    .product-thumb::after {
+      content: "";
+      position: absolute;
+      inset: 18% 22%;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.35);
+    }
+    .product[data-id="lamp"] .product-thumb {
+      background: linear-gradient(145deg, #e8dcc8, #c4a574 45%, #8a6a3d);
+    }
+    .product[data-id="bottle"] .product-thumb {
+      background: linear-gradient(145deg, #d5e3ef, #7ea0bd 45%, #3d5a73);
+    }
+    .product strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.3;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .product span {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Chat stub */
+    .chat {
+      background:
+        linear-gradient(180deg, #f7f5f0 0%, #f0eee8 100%);
+      padding: 0 16px 16px;
+      min-height: 0;
+      overflow: auto;
+    }
+    .bubble {
+      max-width: 92%;
+      margin: 10px 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+    }
+    .bubble.me {
+      margin-left: auto;
+      background: var(--ink);
+      color: #f5f3ee;
+      border-color: var(--ink);
+    }
+    .bubble small {
+      display: block;
+      margin-top: 6px;
+      opacity: 0.7;
+      font-size: 11px;
+    }
+    .composer-stub {
+      margin-top: auto;
+      padding: 12px 16px 16px;
+      border-top: 1px solid var(--line);
+      background: var(--panel);
+    }
+    .composer-stub input {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      font: inherit;
+      font-size: 13px;
+    }
+
+    /* Workbench — the design */
+    .wb {
+      background: var(--panel-2);
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .wb-identity {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 64px 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+    .wb-cover {
+      width: 64px;
+      height: 64px;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #c5d4c8, #8fa894 40%, #5f7a68);
+    }
+    .wb[data-product="lamp"] .wb-cover {
+      background: linear-gradient(145deg, #e8dcc8, #c4a574 45%, #8a6a3d);
+    }
+    .wb[data-product="bottle"] .wb-cover {
+      background: linear-gradient(145deg, #d5e3ef, #7ea0bd 45%, #3d5a73);
+    }
+    .wb-title {
+      font-family: var(--display);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin: 0 0 6px;
+    }
+    .wb-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--chip);
+      color: var(--ink);
+      font-weight: 500;
+      max-width: 100%;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pill.on { background: var(--accent-soft); color: var(--accent); }
+    .pill.warn { background: #f3e6d2; color: var(--warn); }
+
+    .wb-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .wb-stats b {
+      font-size: 18px;
+      color: var(--ink);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Action command */
+    .wb-action {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 70%, #fff);
+    }
+    .action-label {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .action-box {
+      position: relative;
+    }
+    .action-input {
+      width: 100%;
+      padding: 12px 14px 12px 40px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+    .action-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+    }
+    .action-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+    .action-menu {
+      display: none;
+      margin-top: 6px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel-2);
+      overflow: hidden;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .action-menu.is-open { display: block; }
+    .action-item {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      text-align: left;
+      font: inherit;
+      cursor: pointer;
+    }
+    .action-item:last-child { border-bottom: 0; }
+    .action-item:hover, .action-item.is-active { background: var(--accent-soft); }
+    .action-item strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .action-item span {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .action-item em {
+      font-style: normal;
+      font-size: 11px;
+      color: var(--muted);
+      align-self: center;
+    }
+    .action-item.risk em { color: var(--danger); }
+
+    .recent-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    .recent-row button {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--ink);
+      min-width: 0;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .recent-row button:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    /* Views = 承载查看 */
+    .wb-views {
+      display: flex;
+      gap: 2px;
+      padding: 8px 14px 0;
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+    }
+    .view-tab {
+      flex: 0 0 auto;
+      border: 0;
+      background: transparent;
+      padding: 10px 12px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .view-tab.is-active {
+      color: var(--ink);
+      border-bottom-color: var(--accent);
+    }
+
+    .wb-body {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 14px 18px 20px;
+    }
+
+    .panel-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .panel-card h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .panel-card p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .signal-list { display: flex; flex-direction: column; gap: 8px; }
+    .signal {
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+    }
+    .signal-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .signal-top strong { color: var(--ink); font-weight: 600; }
+    .signal p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--ink);
+    }
+
+    .gen-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .gen {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(160deg, #e4ebe4, #c9d4c8 50%, #a8b8ab);
+      position: relative;
+    }
+    .gen:nth-child(2) {
+      background: linear-gradient(160deg, #ebe4d8, #d4c4a8 50%, #b89a6e);
+      aspect-ratio: 3/4;
+    }
+    .gen:nth-child(3) {
+      background: linear-gradient(160deg, #1a1f1c, #3d4a42 60%, #0f6b5c);
+      aspect-ratio: 9/16;
+    }
+    .gen label {
+      position: absolute;
+      left: 6px;
+      bottom: 6px;
+      right: 6px;
+      font-size: 10px;
+      padding: 3px 6px;
+      border-radius: 6px;
+      background: rgba(26,31,28,0.78);
+      color: #f5f3ee;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 8px 12px;
+      font-size: 13px;
+    }
+    .kv dt { color: var(--muted); }
+    .kv dd { margin: 0; min-width: 0; overflow-wrap: break-word; }
+
+    .channel-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .channel-row:last-child { border-bottom: 0; }
+
+    .run-banner {
+      display: none;
+      margin-bottom: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .run-banner.is-on { display: block; }
+    .run-banner strong { color: var(--accent); }
+
+    .hint {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    @media (max-width: 980px) {
+      .shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 220px minmax(420px, 1fr);
+      }
+      .col { border-right: none; border-bottom: 1px solid var(--line); }
+      .gen-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="topnote">
+    <strong>UI 草案 · 实体工作台</strong>
+    <span>左：选品 · 中：对话 · 右：承载「查看 + 任意动作」</span>
+    <span>试：点商品、搜动作、切 Tab</span>
+    <code>wodeappx/docs/mockups/entity-workbench-ui.html</code>
+  </div>
+
+  <div class="shell">
+    <!-- Library -->
+    <section class="col" aria-label="商品库">
+      <div class="col-h">商品库</div>
+      <input class="lib-search" type="search" placeholder="搜索商品…" readonly value="" />
+      <div class="product-list" id="productList">
+        <button type="button" class="product is-active" data-id="wok" data-name="苏泊尔火红点炒锅" data-price="¥299" data-status="在售">
+          <div class="product-thumb" aria-hidden="true"></div>
+          <div>
+            <strong>苏泊尔火红点炒锅</strong>
+            <span>厨具 · 3 渠道</span>
+          </div>
+        </button>
+        <button type="button" class="product" data-id="lamp" data-name="北欧黄铜台灯" data-price="¥459" data-status="在售">
+          <div class="product-thumb" aria-hidden="true"></div>
+          <div>
+            <strong>北欧黄铜台灯</strong>
+            <span>家居 · 2 渠道</span>
+          </div>
+        </button>
+        <button type="button" class="product" data-id="bottle" data-name="钛合金保温杯" data-price="¥189" data-status="下架">
+          <div class="product-thumb" aria-hidden="true"></div>
+          <div>
+            <strong>钛合金保温杯</strong>
+            <span>出行 · 草稿渠道</span>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Chat -->
+    <section class="col" aria-label="对话">
+      <div class="col-h">对话</div>
+      <div class="chat" id="chat">
+        <div class="bubble">已选中「苏泊尔火红点炒锅」。你可以直接说要做什么，或在右侧动作栏搜索。</div>
+        <div class="bubble me">看看天猫和京东的差评，再根据痛点生成一条解释视频</div>
+        <div class="bubble">可以。右侧已切到「信号」查看差评；生成视频会作为一次动作跑在当前商品上，结果进「生成物」。<small>动作不固定 · 由能力包 / 连接器 / Agent 注册</small></div>
+      </div>
+      <div class="composer-stub">
+        <input type="text" placeholder="对当前商品说点什么…" readonly />
+      </div>
+    </section>
+
+    <!-- Workbench -->
+    <section class="col wb" id="workbench" data-product="wok" aria-label="实体工作台">
+      <header class="wb-identity">
+        <div class="wb-cover" aria-hidden="true"></div>
+        <div>
+          <h1 class="wb-title" id="wbName">苏泊尔火红点炒锅</h1>
+          <div class="wb-meta">
+            <span class="pill on" id="wbStatus">在售</span>
+            <span class="pill" id="wbPrice">¥299</span>
+            <span class="pill">天猫 · 京东 · 抖音</span>
+          </div>
+        </div>
+        <div class="wb-stats">
+          <div><b id="wbGens">12</b> 生成物</div>
+          <div><span id="wbSignals">28</span> 条信号</div>
+        </div>
+      </header>
+
+      <div class="wb-action">
+        <div class="action-label">对这个商品做什么 · 动作可无限扩展</div>
+        <div class="action-box">
+          <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input
+            id="actionInput"
+            class="action-input"
+            type="search"
+            placeholder="搜索或描述动作：差评、生成视频、改价、上下架…"
+            autocomplete="off"
+          />
+          <div class="action-menu" id="actionMenu" role="listbox"></div>
+        </div>
+        <div class="recent-row" id="recentRow"></div>
+        <p class="hint">这里不是固定工具条：最近用过 + 搜索发现。没装的连接器不会出现「真上下架」。</p>
+      </div>
+
+      <nav class="wb-views" id="viewTabs" aria-label="查看视图">
+        <button type="button" class="view-tab is-active" data-view="overview">概览</button>
+        <button type="button" class="view-tab" data-view="signals">信号</button>
+        <button type="button" class="view-tab" data-view="gens">生成物</button>
+        <button type="button" class="view-tab" data-view="profile">档案</button>
+        <button type="button" class="view-tab" data-view="channels">渠道</button>
+      </nav>
+
+      <div class="wb-body">
+        <div class="run-banner" id="runBanner"></div>
+
+        <div class="view" data-view-panel="overview">
+          <div class="panel-card">
+            <h3>当前上下文</h3>
+            <p>工作台只固定两件事：<strong style="color:var(--ink)">你在看哪个实体</strong>，以及<strong style="color:var(--ink)">结果往哪回写</strong>。差评、视频、改价都是可插拔动作，不是页面写死的功能。</p>
+          </div>
+          <div class="panel-card">
+            <h3>建议下一步（Agent 可改）</h3>
+            <p>根据近 7 天差评，「涂层易掉」提及 9 次。可跑：汇总痛点 → 生成解释短视频 →（可选）同步到抖音草稿。</p>
+          </div>
+        </div>
+
+        <div class="view" data-view-panel="signals" hidden>
+          <div class="panel-card">
+            <h3>跨平台差评 / 问大家 · 只读信号</h3>
+            <p>由 Insight 连接器灌入，挂在本商品下。未连接的平台显示「连接后可用」。</p>
+          </div>
+          <div class="signal-list">
+            <article class="signal">
+              <div class="signal-top"><strong>天猫</strong><span>3 天前 · 差评</span></div>
+              <p>用了两个月涂层开始发黑，清洗后还是有印子，希望官方给个说法。</p>
+            </article>
+            <article class="signal">
+              <div class="signal-top"><strong>京东</strong><span>5 天前 · 差评</span></div>
+              <p>手柄螺丝松了，客服让我自己拧，体验一般。</p>
+            </article>
+            <article class="signal">
+              <div class="signal-top"><strong>抖音</strong><span>问大家</span></div>
+              <p>会不会粘锅？有人用过燃气灶吗？</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="view" data-view-panel="gens" hidden>
+          <div class="panel-card">
+            <h3>挂在本商品下的生成物</h3>
+            <p>按任务聚合，不进总库大杂烩。比例可不同：主图 1:1、详情 3:4、短视频封面 9:16。</p>
+          </div>
+          <div class="gen-grid">
+            <div class="gen"><label>主图 · 1:1</label></div>
+            <div class="gen"><label>卖点详情 · 3:4</label></div>
+            <div class="gen"><label>解释视频封面 · 9:16</label></div>
+          </div>
+        </div>
+
+        <div class="view" data-view-panel="profile" hidden>
+          <div class="panel-card">
+            <h3>档案 · schema 可扩展</h3>
+            <dl class="kv">
+              <dt>类目</dt><dd>厨具 / 炒锅</dd>
+              <dt>卖点</dt><dd>火红点测温 · 耐磨涂层 · 适用燃气/电磁</dd>
+              <dt>材质</dt><dd>铝合金 + 不粘涂层</dd>
+              <dt>约束</dt><dd>出图须露出火红点标识；禁止竞品对比夸张宣称</dd>
+              <dt>自定义</dt><dd>任意字段走 schema / customAttributes，不改内核</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="view" data-view-panel="channels" hidden>
+          <div class="panel-card">
+            <h3>渠道切片 · 不是复制多个商品</h3>
+            <div class="channel-row"><span>天猫旗舰店</span><span class="pill on">在售 · ¥299</span></div>
+            <div class="channel-row"><span>京东自营</span><span class="pill on">在售 · ¥309</span></div>
+            <div class="channel-row"><span>抖音小店</span><span class="pill warn">待连接写回</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const ACTIONS = [
+      { id: "reviews", title: "查看各平台差评", desc: "Insight · 拉信号到本商品", view: "signals", risk: false, tag: "只读" },
+      { id: "video", title: "生成解释 / 种草视频", desc: "Create · 结果写入生成物", view: "gens", risk: false, tag: "创作" },
+      { id: "images", title: "批量生成主图套装", desc: "Create · 主图+详情+卖点", view: "gens", risk: false, tag: "创作" },
+      { id: "price", title: "修改价格", desc: "Mutate · 本地档案，可选推渠道", view: "channels", risk: true, tag: "需确认" },
+      { id: "list", title: "上架 / 下架", desc: "Channel write · 未连接则不可用", view: "channels", risk: true, tag: "需确认" },
+      { id: "reply", title: "根据差评生成回复话术", desc: "Agent 临时动作 · 可保存为常用", view: "signals", risk: false, tag: "Agent" },
+      { id: "compare", title: "竞品对比表", desc: "自定义动作包示例", view: "overview", risk: false, tag: "扩展" },
+      { id: "sync", title: "同步库存到各渠道", desc: "连接器动作 · 可未安装", view: "channels", risk: true, tag: "连接器" },
+    ];
+
+    const RECENT = ["查看各平台差评", "生成解释 / 种草视频", "修改价格"];
+
+    const productList = document.getElementById("productList");
+    const workbench = document.getElementById("workbench");
+    const actionInput = document.getElementById("actionInput");
+    const actionMenu = document.getElementById("actionMenu");
+    const recentRow = document.getElementById("recentRow");
+    const runBanner = document.getElementById("runBanner");
+    const viewTabs = document.getElementById("viewTabs");
+
+    function setProduct(btn) {
+      productList.querySelectorAll(".product").forEach((el) => el.classList.toggle("is-active", el === btn));
+      workbench.dataset.product = btn.dataset.id;
+      document.getElementById("wbName").textContent = btn.dataset.name;
+      document.getElementById("wbPrice").textContent = btn.dataset.price;
+      document.getElementById("wbStatus").textContent = btn.dataset.status;
+      document.getElementById("wbStatus").classList.toggle("on", btn.dataset.status === "在售");
+      document.getElementById("wbGens").textContent = btn.dataset.id === "wok" ? "12" : btn.dataset.id === "lamp" ? "5" : "1";
+      document.getElementById("wbSignals").textContent = btn.dataset.id === "wok" ? "28" : btn.dataset.id === "lamp" ? "7" : "0";
+      runBanner.classList.remove("is-on");
+    }
+
+    productList.addEventListener("click", (e) => {
+      const btn = e.target.closest(".product");
+      if (btn) setProduct(btn);
+    });
+
+    function setView(view) {
+      viewTabs.querySelectorAll(".view-tab").forEach((tab) => {
+        tab.classList.toggle("is-active", tab.dataset.view === view);
+      });
+      document.querySelectorAll("[data-view-panel]").forEach((panel) => {
+        panel.hidden = panel.getAttribute("data-view-panel") !== view;
+      });
+    }
+
+    viewTabs.addEventListener("click", (e) => {
+      const tab = e.target.closest(".view-tab");
+      if (tab) setView(tab.dataset.view);
+    });
+
+    function renderRecent() {
+      recentRow.innerHTML = RECENT.map((title) => {
+        const action = ACTIONS.find((a) => a.title === title) || { id: title, title, view: "overview" };
+        return `<button type="button" data-action-id="${action.id}">${title}</button>`;
+      }).join("");
+    }
+
+    function runAction(action) {
+      if (!action) return;
+      setView(action.view);
+      actionMenu.classList.remove("is-open");
+      actionInput.value = "";
+      runBanner.classList.add("is-on");
+      runBanner.innerHTML = action.risk
+        ? `<strong>待确认 · ${action.title}</strong><br/>危险写回动作会先出确认卡；未连接渠道时只改本地或提示去连接。`
+        : `<strong>已排队 · ${action.title}</strong><br/>在当前商品上下文执行；产出与日志回写到本实体。视图已切到「${labelForView(action.view)}」。`;
+      if (!RECENT.includes(action.title)) {
+        RECENT.unshift(action.title);
+        if (RECENT.length > 4) RECENT.pop();
+        renderRecent();
+      }
+    }
+
+    function labelForView(view) {
+      return ({ overview: "概览", signals: "信号", gens: "生成物", profile: "档案", channels: "渠道" })[view] || view;
+    }
+
+    function renderMenu(query) {
+      const q = (query || "").trim().toLowerCase();
+      const list = ACTIONS.filter((a) => !q || a.title.includes(q) || a.desc.includes(q) || a.tag.includes(q));
+      actionMenu.innerHTML = list.map((a, i) => `
+        <button type="button" class="action-item${a.risk ? " risk" : ""}${i === 0 ? " is-active" : ""}" data-action-id="${a.id}" role="option">
+          <div>
+            <strong>${a.title}</strong>
+            <span>${a.desc}</span>
+          </div>
+          <em>${a.tag}</em>
+        </button>
+      `).join("") || `<div class="action-item"><div><strong>没有匹配的已安装动作</strong><span>可让 Agent 临时执行，或安装连接器 / 工作流</span></div></div>`;
+      actionMenu.classList.add("is-open");
+    }
+
+    actionInput.addEventListener("focus", () => renderMenu(actionInput.value));
+    actionInput.addEventListener("input", () => renderMenu(actionInput.value));
+    actionInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        actionMenu.classList.remove("is-open");
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const first = actionMenu.querySelector("[data-action-id]");
+        const action = ACTIONS.find((a) => a.id === first?.dataset.actionId);
+        if (action) runAction(action);
+        else if (actionInput.value.trim()) {
+          runBanner.classList.add("is-on");
+          runBanner.innerHTML = `<strong>交给对话执行</strong><br/>「${actionInput.value.trim()}」不是已注册动作时，可直接作为对当前商品的自然语言任务。`;
+          actionMenu.classList.remove("is-open");
+        }
+      }
+    });
+
+    actionMenu.addEventListener("click", (e) => {
+      const item = e.target.closest("[data-action-id]");
+      if (!item) return;
+      runAction(ACTIONS.find((a) => a.id === item.dataset.actionId));
+    });
+
+    recentRow.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-action-id]");
+      if (!btn) return;
+      runAction(ACTIONS.find((a) => a.id === btn.dataset.actionId));
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".action-box")) actionMenu.classList.remove("is-open");
+    });
+
+    renderRecent();
+  </script>
+</body>
+</html>

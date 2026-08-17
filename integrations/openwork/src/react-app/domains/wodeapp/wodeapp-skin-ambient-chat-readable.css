@@ -1,0 +1,446 @@
+/**
+ * Dark/busy ambient skins: force readable chat ink over transparent main.
+ * OpenWork prose/tools still emit light-theme muted/emerald colors; tokens alone
+ * do not cover that. Acceptance must sample assistant prose / tool / link live.
+ */
+
+/* —— aurora-night (dark-first) —— */
+.wapp-skin-aurora-night .wapp-workspace-main,
+.wapp-skin-aurora-night .wapp-main-panel,
+.wapp-skin-aurora-night .wapp-content,
+.wapp-skin-aurora-night .wapp-content main,
+.wapp-skin-aurora-night .wapp-session-surface {
+  --foreground: #e8f0ff;
+  --muted-foreground: #c5d4f0;
+  --card-foreground: #e8f0ff;
+  --popover-foreground: #e8f0ff;
+  --secondary-foreground: #e8f0ff;
+  --accent-foreground: #e8f0ff;
+  --dls-text-primary: #e8f0ff;
+  --dls-text-secondary: #c5d4f0;
+  --color-foreground: #e8f0ff;
+  --color-muted-foreground: #c5d4f0;
+  color: #e8f0ff;
+}
+
+.wapp-skin-aurora-night .wapp-session-surface .prose,
+.wapp-skin-aurora-night .wapp-session-surface .markdown-content,
+.wapp-skin-aurora-night .wapp-session-surface [data-message-role="assistant"],
+.wapp-skin-aurora-night .wapp-session-surface [data-message-role="assistant"] :where(p, li, h1, h2, h3, h4, h5, h6, strong, em, span, div, td, th, label),
+.wapp-skin-aurora-night .wapp-session-surface .text-foreground {
+  color: #e8f0ff !important;
+}
+
+.wapp-skin-aurora-night .wapp-session-surface .text-muted-foreground,
+.wapp-skin-aurora-night .wapp-session-surface .text-muted-foreground\/70,
+.wapp-skin-aurora-night .wapp-session-surface [class*="text-muted-foreground"] {
+  color: #c5d4f0 !important;
+}
+
+.wapp-skin-aurora-night .wapp-session-surface a,
+.wapp-skin-aurora-night .wapp-session-surface .prose a {
+  color: #5eead4 !important;
+}
+
+.wapp-skin-aurora-night .wapp-session-surface .text-emerald-500,
+.wapp-skin-aurora-night .wapp-session-surface .text-emerald-400,
+.wapp-skin-aurora-night .wapp-session-surface .text-emerald-300,
+.wapp-skin-aurora-night .wapp-session-surface .dark\:text-emerald-400,
+.wapp-skin-aurora-night .wapp-session-surface .dark\:text-emerald-300 {
+  color: #a7f3d0 !important;
+}
+
+.wapp-skin-aurora-night .wapp-session-surface .text-destructive,
+.wapp-skin-aurora-night .wapp-session-surface [class*="text-destructive"] {
+  color: #fecaca !important;
+}
+
+.wapp-skin-aurora-night .wapp-session-surface [data-message-role="user"] .rounded-3xl,
+.wapp-skin-aurora-night .wapp-session-surface .wapp-msg-user {
+  background: #f4f7ff !important;
+  color: #0b1220 !important;
+  border-color: color-mix(in srgb, #5eead4 42%, transparent) !important;
+}
+
+.wapp-skin-aurora-night .wapp-session-surface [data-message-role="user"] .rounded-3xl *,
+.wapp-skin-aurora-night .wapp-session-surface .wapp-msg-user * {
+  color: #0b1220 !important;
+}
+
+.wapp-skin-aurora-night .wapp-composer textarea,
+.wapp-skin-aurora-night .wapp-composer [contenteditable="true"],
+.wapp-skin-aurora-night .wapp-session-surface textarea,
+.wapp-skin-aurora-night .wapp-session-surface [contenteditable="true"] {
+  color: #e8f0ff !important;
+  caret-color: #5eead4;
+}
+
+.wapp-skin-aurora-night .wapp-composer textarea::placeholder,
+.wapp-skin-aurora-night .wapp-session-surface textarea::placeholder {
+  color: #9bb0d4 !important;
+}
+
+.wapp-skin-aurora-night .wapp-session-surface pre,
+.wapp-skin-aurora-night .wapp-session-surface .font-mono,
+.wapp-skin-aurora-night .wapp-session-surface [class*="bg-muted"] {
+  background: color-mix(in srgb, #0b1220 88%, #12263a) !important;
+  color: #e8f0ff !important;
+}
+
+.wapp-aurora-ambient-backdrop::after {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #0b1220 56%, transparent),
+    color-mix(in srgb, #0b1220 74%, transparent)
+  ) !important;
+}
+
+/* —— noir-jazz (dark-first) —— */
+.wapp-skin-noir-jazz .wapp-workspace-main,
+.wapp-skin-noir-jazz .wapp-main-panel,
+.wapp-skin-noir-jazz .wapp-content,
+.wapp-skin-noir-jazz .wapp-content main,
+.wapp-skin-noir-jazz .wapp-session-surface {
+  --foreground: #f2e6c9;
+  --muted-foreground: #d4c4a0;
+  --card-foreground: #f2e6c9;
+  --popover-foreground: #f2e6c9;
+  --secondary-foreground: #f2e6c9;
+  --accent-foreground: #f2e6c9;
+  --dls-text-primary: #f2e6c9;
+  --dls-text-secondary: #d4c4a0;
+  --color-foreground: #f2e6c9;
+  --color-muted-foreground: #d4c4a0;
+  color: #f2e6c9;
+}
+
+.wapp-skin-noir-jazz .wapp-session-surface .prose,
+.wapp-skin-noir-jazz .wapp-session-surface .markdown-content,
+.wapp-skin-noir-jazz .wapp-session-surface [data-message-role="assistant"],
+.wapp-skin-noir-jazz .wapp-session-surface [data-message-role="assistant"] :where(p, li, h1, h2, h3, h4, h5, h6, strong, em, span, div, td, th, label),
+.wapp-skin-noir-jazz .wapp-session-surface .text-foreground {
+  color: #f2e6c9 !important;
+}
+
+.wapp-skin-noir-jazz .wapp-session-surface .text-muted-foreground,
+.wapp-skin-noir-jazz .wapp-session-surface [class*="text-muted-foreground"] {
+  color: #d4c4a0 !important;
+}
+
+.wapp-skin-noir-jazz .wapp-session-surface a,
+.wapp-skin-noir-jazz .wapp-session-surface .prose a {
+  color: #e8c547 !important;
+}
+
+.wapp-skin-noir-jazz .wapp-session-surface .text-emerald-500,
+.wapp-skin-noir-jazz .wapp-session-surface .text-emerald-400,
+.wapp-skin-noir-jazz .wapp-session-surface .text-emerald-300,
+.wapp-skin-noir-jazz .wapp-session-surface .dark\:text-emerald-400 {
+  color: #d9f99d !important;
+}
+
+.wapp-skin-noir-jazz .wapp-session-surface .text-destructive,
+.wapp-skin-noir-jazz .wapp-session-surface [class*="text-destructive"] {
+  color: #fecaca !important;
+}
+
+.wapp-skin-noir-jazz .wapp-session-surface [data-message-role="user"] .rounded-3xl,
+.wapp-skin-noir-jazz .wapp-session-surface .wapp-msg-user {
+  background: #f7efd8 !important;
+  color: #1a1410 !important;
+  border-color: color-mix(in srgb, #e8c547 40%, transparent) !important;
+}
+
+.wapp-skin-noir-jazz .wapp-session-surface [data-message-role="user"] .rounded-3xl *,
+.wapp-skin-noir-jazz .wapp-session-surface .wapp-msg-user * {
+  color: #1a1410 !important;
+}
+
+.wapp-skin-noir-jazz .wapp-composer textarea,
+.wapp-skin-noir-jazz .wapp-composer [contenteditable="true"],
+.wapp-skin-noir-jazz .wapp-session-surface textarea,
+.wapp-skin-noir-jazz .wapp-session-surface [contenteditable="true"] {
+  color: #f2e6c9 !important;
+  caret-color: #e8c547;
+}
+
+.wapp-skin-noir-jazz .wapp-composer textarea::placeholder,
+.wapp-skin-noir-jazz .wapp-session-surface textarea::placeholder {
+  color: #b8a882 !important;
+}
+
+.wapp-skin-noir-jazz .wapp-session-surface pre,
+.wapp-skin-noir-jazz .wapp-session-surface .font-mono,
+.wapp-skin-noir-jazz .wapp-session-surface [class*="bg-muted"] {
+  background: color-mix(in srgb, #14110f 90%, #2a2218) !important;
+  color: #f2e6c9 !important;
+}
+
+.wapp-noir-ambient-backdrop::after {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #14110f 56%, transparent),
+    color-mix(in srgb, #14110f 74%, transparent)
+  ) !important;
+}
+
+/* —— forest-mist (light-first ink; wash must stay light enough for dark prose) —— */
+.wapp-skin-forest-mist .wapp-workspace-main,
+.wapp-skin-forest-mist .wapp-main-panel,
+.wapp-skin-forest-mist .wapp-content,
+.wapp-skin-forest-mist .wapp-content main,
+.wapp-skin-forest-mist .wapp-session-surface {
+  --foreground: #243528;
+  --muted-foreground: #4e6754;
+  --card-foreground: #243528;
+  --popover-foreground: #243528;
+  --dls-text-primary: #243528;
+  --dls-text-secondary: #4e6754;
+  --color-foreground: #243528;
+  --color-muted-foreground: #4e6754;
+  color: #243528;
+}
+
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-workspace-main,
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-main-panel,
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-content,
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-content main,
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface {
+  --foreground: #e4f0e6;
+  --muted-foreground: #b7cfc0;
+  --card-foreground: #e4f0e6;
+  --popover-foreground: #e4f0e6;
+  --dls-text-primary: #e4f0e6;
+  --dls-text-secondary: #b7cfc0;
+  --color-foreground: #e4f0e6;
+  --color-muted-foreground: #b7cfc0;
+  color: #e4f0e6;
+}
+
+.wapp-skin-forest-mist .wapp-session-surface .prose,
+.wapp-skin-forest-mist .wapp-session-surface .markdown-content,
+.wapp-skin-forest-mist .wapp-session-surface [data-message-role="assistant"],
+.wapp-skin-forest-mist .wapp-session-surface [data-message-role="assistant"] :where(p, li, h1, h2, h3, h4, h5, h6, strong, em, span, div, td, th, label),
+.wapp-skin-forest-mist .wapp-session-surface .text-foreground {
+  color: #243528 !important;
+}
+
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface .prose,
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface .markdown-content,
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface [data-message-role="assistant"],
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface [data-message-role="assistant"] :where(p, li, h1, h2, h3, h4, h5, h6, strong, em, span, div, td, th, label),
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface .text-foreground {
+  color: #e4f0e6 !important;
+}
+
+.wapp-skin-forest-mist .wapp-session-surface .text-muted-foreground,
+.wapp-skin-forest-mist .wapp-session-surface [class*="text-muted-foreground"] {
+  color: #4e6754 !important;
+}
+
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface .text-muted-foreground,
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface [class*="text-muted-foreground"] {
+  color: #b7cfc0 !important;
+}
+
+.wapp-skin-forest-mist .wapp-session-surface a,
+.wapp-skin-forest-mist .wapp-session-surface .prose a {
+  color: #1f6b4a !important;
+}
+
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface a,
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface .prose a {
+  color: #86efac !important;
+}
+
+.wapp-skin-forest-mist .wapp-session-surface .text-emerald-500,
+.wapp-skin-forest-mist .wapp-session-surface .text-emerald-400 {
+  color: #166534 !important;
+}
+
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface .text-emerald-500,
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface .text-emerald-400,
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface .dark\:text-emerald-400 {
+  color: #bbf7d0 !important;
+}
+
+.wapp-skin-forest-mist .wapp-session-surface .text-destructive,
+.wapp-skin-forest-mist .wapp-session-surface [class*="text-destructive"] {
+  color: #b91c1c !important;
+}
+
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface .text-destructive,
+html[data-theme="dark"] .wapp-skin-forest-mist .wapp-session-surface [class*="text-destructive"] {
+  color: #fecaca !important;
+}
+
+.wapp-skin-forest-mist .wapp-session-surface [data-message-role="user"] .rounded-3xl,
+.wapp-skin-forest-mist .wapp-session-surface .wapp-msg-user {
+  background: #ffffff !important;
+  color: #243528 !important;
+}
+
+.wapp-skin-forest-mist .wapp-session-surface [data-message-role="user"] .rounded-3xl *,
+.wapp-skin-forest-mist .wapp-session-surface .wapp-msg-user * {
+  color: #243528 !important;
+}
+
+.wapp-forest-ambient-backdrop::after {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #f7fbf6 62%, transparent),
+    color-mix(in srgb, #f7fbf6 78%, transparent)
+  ) !important;
+}
+
+html[data-theme="dark"] .wapp-forest-ambient-backdrop::after {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #142018 56%, transparent),
+    color-mix(in srgb, #142018 74%, transparent)
+  ) !important;
+}
+
+/* —— coffee-loft —— */
+.wapp-skin-coffee-loft .wapp-workspace-main,
+.wapp-skin-coffee-loft .wapp-main-panel,
+.wapp-skin-coffee-loft .wapp-content,
+.wapp-skin-coffee-loft .wapp-content main,
+.wapp-skin-coffee-loft .wapp-session-surface {
+  --foreground: #3a2a1c;
+  --muted-foreground: #7a5a42;
+  --card-foreground: #3a2a1c;
+  --popover-foreground: #3a2a1c;
+  --dls-text-primary: #3a2a1c;
+  --dls-text-secondary: #7a5a42;
+  --color-foreground: #3a2a1c;
+  --color-muted-foreground: #7a5a42;
+  color: #3a2a1c;
+}
+
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-workspace-main,
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-main-panel,
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-content,
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-content main,
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface {
+  --foreground: #f6ede2;
+  --muted-foreground: #e7d6c5;
+  --card-foreground: #f6ede2;
+  --popover-foreground: #f6ede2;
+  --dls-text-primary: #f6ede2;
+  --dls-text-secondary: #e7d6c5;
+  --color-foreground: #f6ede2;
+  --color-muted-foreground: #e7d6c5;
+  color: #f6ede2;
+}
+
+.wapp-skin-coffee-loft .wapp-session-surface .prose,
+.wapp-skin-coffee-loft .wapp-session-surface .markdown-content,
+.wapp-skin-coffee-loft .wapp-session-surface [data-message-role="assistant"],
+.wapp-skin-coffee-loft .wapp-session-surface [data-message-role="assistant"] :where(p, li, h1, h2, h3, h4, h5, h6, strong, em, span, div, td, th, label),
+.wapp-skin-coffee-loft .wapp-session-surface .text-foreground {
+  color: #3a2a1c !important;
+}
+
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface .prose,
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface .markdown-content,
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface [data-message-role="assistant"],
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface [data-message-role="assistant"] :where(p, li, h1, h2, h3, h4, h5, h6, strong, em, span, div, td, th, label),
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface .text-foreground {
+  color: #f6ede2 !important;
+}
+
+.wapp-skin-coffee-loft .wapp-session-surface .text-muted-foreground,
+.wapp-skin-coffee-loft .wapp-session-surface [class*="text-muted-foreground"] {
+  color: #7a5a42 !important;
+}
+
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface .text-muted-foreground,
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface [class*="text-muted-foreground"] {
+  color: #e7d6c5 !important;
+}
+
+.wapp-skin-coffee-loft .wapp-session-surface a,
+.wapp-skin-coffee-loft .wapp-session-surface .prose a {
+  color: #6f4e37 !important;
+}
+
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface a,
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface .prose a {
+  color: #f0c9a0 !important;
+}
+
+.wapp-skin-coffee-loft .wapp-session-surface .text-emerald-500,
+.wapp-skin-coffee-loft .wapp-session-surface .text-emerald-400 {
+  color: #3f6212 !important;
+}
+
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface .text-emerald-500,
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface .text-emerald-400,
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface .dark\:text-emerald-400 {
+  color: #d9f99d !important;
+}
+
+.wapp-skin-coffee-loft .wapp-session-surface .text-destructive,
+.wapp-skin-coffee-loft .wapp-session-surface [class*="text-destructive"] {
+  color: #b91c1c !important;
+}
+
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface .text-destructive,
+html[data-theme="dark"] .wapp-skin-coffee-loft .wapp-session-surface [class*="text-destructive"] {
+  color: #fecaca !important;
+}
+
+.wapp-skin-coffee-loft .wapp-session-surface [data-message-role="user"] .rounded-3xl,
+.wapp-skin-coffee-loft .wapp-session-surface .wapp-msg-user {
+  background: #fff8f1 !important;
+  color: #3a2a1c !important;
+}
+
+.wapp-skin-coffee-loft .wapp-session-surface [data-message-role="user"] .rounded-3xl *,
+.wapp-skin-coffee-loft .wapp-session-surface .wapp-msg-user * {
+  color: #3a2a1c !important;
+}
+
+.wapp-coffee-ambient-backdrop::after {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #fff8f1 62%, transparent),
+    color-mix(in srgb, #fff8f1 78%, transparent)
+  ) !important;
+}
+
+html[data-theme="dark"] .wapp-coffee-ambient-backdrop::after {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #1c1410 56%, transparent),
+    color-mix(in srgb, #1c1410 74%, transparent)
+  ) !important;
+}
+
+/* Soft ambient chrome: drop harsh shell dividers (topbar floor + sidebar seam). */
+.wapp-skin-aurora-night > .wapp-sidebar,
+.wapp-skin-noir-jazz > .wapp-sidebar,
+.wapp-skin-forest-mist > .wapp-sidebar,
+.wapp-skin-coffee-loft > .wapp-sidebar {
+  border-right: none !important;
+}
+
+.wapp-skin-aurora-night .wapp-topbar,
+.wapp-skin-noir-jazz .wapp-topbar,
+.wapp-skin-forest-mist .wapp-topbar,
+.wapp-skin-coffee-loft .wapp-topbar {
+  border-bottom: none !important;
+  border-bottom-color: transparent !important;
+}
+
+.wapp-skin-aurora-night .wapp-main-panel,
+.wapp-skin-noir-jazz .wapp-main-panel,
+.wapp-skin-forest-mist .wapp-main-panel,
+.wapp-skin-coffee-loft .wapp-main-panel,
+.wapp-skin-aurora-night .wapp-workspace-main,
+.wapp-skin-noir-jazz .wapp-workspace-main,
+.wapp-skin-forest-mist .wapp-workspace-main,
+.wapp-skin-coffee-loft .wapp-workspace-main {
+  border-left: none !important;
+}

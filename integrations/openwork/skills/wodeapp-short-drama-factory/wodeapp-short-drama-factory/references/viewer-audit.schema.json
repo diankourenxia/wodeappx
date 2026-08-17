@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wodeapp.cn/schemas/viewer-audit.v1.json",
+  "title": "ViewerAuditReport",
+  "description": "Model-based audience review of preview or generated footage. Does not modify Manifest; stale when manifestHash or renderHash drift.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "auditStage",
+    "auditPolicyVersion",
+    "manifestHash",
+    "renderHash",
+    "verdict",
+    "issues"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "1.0" },
+    "auditStage": { "type": "string", "enum": ["preview", "generated_footage"] },
+    "auditPolicyVersion": { "type": "string" },
+    "manifestHash": { "type": "string" },
+    "renderHash": { "type": "string" },
+    "modelId": { "type": "string" },
+    "inputArtifactHashes": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "audioReview": {
+      "type": "string",
+      "enum": ["full", "degraded", "skipped"],
+      "description": "degraded when model cannot hear audio; never claim mix was audited."
+    },
+    "verdict": { "type": "string", "enum": ["pass", "revise", "blocked"] },
+    "summary": { "type": "string" },
+    "issues": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/viewerIssue" }
+    },
+    "stale": { "type": "boolean" },
+    "auditedAt": { "type": "string" }
+  },
+  "$defs": {
+    "viewerIssue": {
+      "type": "object",
+      "required": ["severity", "type", "targetType", "targetId", "observed", "expected", "fixRoute"],
+      "additionalProperties": false,
+      "properties": {
+        "severity": { "type": "string", "enum": ["P0", "P1", "P2"] },
+        "type": { "type": "string" },
+        "targetType": { "type": "string", "enum": ["shot", "slot", "dialogue", "audio"] },
+        "targetId": { "type": "string" },
+        "atSec": { "type": "number", "minimum": 0 },
+        "observed": { "type": "string" },
+        "expected": { "type": "string" },
+        "evidence": { "type": "string" },
+        "fixRoute": {
+          "type": "string",
+          "enum": ["manifest", "scene_pack", "audio_plan", "video_task", "generated_footage"]
+        }
+      }
+    }
+  }
+}

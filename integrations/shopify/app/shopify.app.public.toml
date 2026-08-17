@@ -1,0 +1,42 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "f327f6799592aa17cfea7b87950eeaae"
+application_url = "https://wodeapp.cn/mainserver/api/shopify/app"
+embedded = true
+name = "wodeapp"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_products,write_products,read_inventory,write_inventory,read_locations"
+optional_scopes = [
+  "read_discounts",
+  "write_discounts",
+  "read_markets",
+  "write_markets",
+  "read_orders",
+  "read_customers",
+  "write_customers",
+  "read_fulfillments",
+  "write_fulfillments",
+  "read_shipping",
+  "write_shipping"
+]
+use_legacy_install_flow = false
+
+[access.admin]
+embedded_app_direct_api_access = true
+direct_api_mode = "online"
+
+[auth]
+redirect_urls = [ "https://wodeapp.cn/mainserver/api/shopify/connect/callback" ]
+
+[webhooks]
+api_version = "2026-07"
+
+[[webhooks.subscriptions]]
+topics = [ "app/uninstalled", "app/scopes_update" ]
+uri = "https://wodeapp.cn/mainserver/api/shopify/webhooks/public/events"
+
+[[webhooks.subscriptions]]
+compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+uri = "https://wodeapp.cn/mainserver/api/shopify/webhooks/public/compliance"

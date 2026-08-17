@@ -1,0 +1,1 @@
+Hello text fixture for local parse.
