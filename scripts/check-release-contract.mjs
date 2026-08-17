@@ -153,4 +153,34 @@ assertIncludes(workspaceStore, "watchedWorkspaceId", "workspace state must prese
 assertIncludes(architectureGate, "Install the correct WodeAppX build", "architecture mismatch page branding");
 assertIncludes(architectureGate, "workspaces, settings, and conversations", "architecture mismatch page conversation compatibility copy");
 
+// Verify vendor files have correct GitHub URLs after patching
+const hasGitHubOwner = builder.includes("owner: diankourenxia");
+const hasGitHubRepo = builder.includes("repo: wodeappx");
+const hasNoUpstreamOwner = !builder.includes("owner: different-ai");
+const hasNoUpstreamRepo = !builder.includes("repo: openwork");
+const updaterHasGitHub = updater.includes("https://github.com/diankourenxia/wodeappx/releases/latest/download");
+const updaterNoUpstream = !updater.includes("https://github.com/different-ai/openwork/releases");
+const updaterNoGitea = !updater.includes("https://gitea.com/diankourenxia/wodeappx/releases");
+const mainHasGitHub = main.includes("https://github.com/diankourenxia/wodeappx/releases/latest");
+const mainNoUpstream = !main.includes("https://github.com/different-ai/openwork/releases");
+const mainNoGitea = !main.includes("https://gitea.com/diankourenxia/wodeappx/releases");
+
+if (!hasGitHubOwner || !hasGitHubRepo || !hasNoUpstreamOwner || !hasNoUpstreamRepo ||
+    !updaterHasGitHub || !updaterNoUpstream || !updaterNoGitea ||
+    !mainHasGitHub || !mainNoUpstream || !mainNoGitea) {
+  const errors = [];
+  if (!hasGitHubOwner) errors.push("electron-builder.yml missing 'owner: diankourenxia'");
+  if (!hasGitHubRepo) errors.push("electron-builder.yml missing 'repo: wodeappx'");
+  if (!hasNoUpstreamOwner) errors.push("electron-builder.yml still has upstream 'owner: different-ai'");
+  if (!hasNoUpstreamRepo) errors.push("electron-builder.yml still has upstream 'repo: openwork'");
+  if (!updaterHasGitHub) errors.push("updater.mjs missing GitHub diankourenxia/wodeappx feed");
+  if (!updaterNoUpstream) errors.push("updater.mjs still has upstream different-ai/openwork feed");
+  if (!updaterNoGitea) errors.push("updater.mjs still has Gitea feed (should use GitHub)");
+  if (!mainHasGitHub) errors.push("main.mjs missing GitHub diankourenxia/wodeappx URLs");
+  if (!mainNoUpstream) errors.push("main.mjs still has upstream different-ai/openwork URLs");
+  if (!mainNoGitea) errors.push("main.mjs still has Gitea URLs (should use GitHub)");
+  
+  throw new Error(`[release-contract] Patches not applied correctly:\n  ${errors.join("\n  ")}\n\nRun: pnpm openwork:patch`);
+}
+
 console.log(`release contract ok: WodeAppX ${rootPackage.version}`);
