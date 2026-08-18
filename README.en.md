@@ -100,7 +100,7 @@ Docs index: [docs/README.md](docs/README.md)
 
 ## Quick start
 
-**Requirements:** Node.js 22, pnpm 9.15, Bun 1.3.9+, Go 1.23, and the usual desktop shell build toolchain. Node 26 currently breaks the upstream `better-sqlite3` native build.
+**Requirements:** Node.js 22, pnpm 9.15, Bun 1.3.9+, Go 1.24, and the usual desktop shell build toolchain. Node 26 currently breaks the upstream `better-sqlite3` native build.
 
 ```bash
 git clone https://github.com/diankourenxia/wodeappx.git
