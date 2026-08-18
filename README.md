@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">中文</a> · <a href="README.en.md">English</a>
+  <a href="README.md">中文</a> · <a href="README.en.md">English</a> · <a href="README.ja.md">日本語</a> · <a href="README.vi.md">Tiếng Việt</a> · <a href="README.pt-BR.md">Português</a> · <a href="README.th.md">ไทย</a> · <a href="README.fr.md">Français</a> · <a href="README.ca.md">Català</a> · <a href="README.es.md">Español</a> · <a href="README.ru.md">Русский</a>
 </p>
 
 <p align="center">
@@ -200,7 +200,7 @@ Skill / MCP / 工具现已可跑；完整运行图编辑与节点级编排是产
 
 | 给谁 | 文档 |
 |---|---|
-| 用户 / 克隆后第一份 | 本页 · [English](README.en.md) · [官网](https://x.wodeapp.cn/) |
+| 用户 / 克隆后第一份 | 本页（顶栏换语言） · [官网](https://x.wodeapp.cn/) |
 | Agent / 贡献者 | [AGENTS.md](AGENTS.md) · [CONTRIBUTING.md](CONTRIBUTING.md) |
 | 能力与本机 Key | [docs/CAPABILITIES.md](docs/CAPABILITIES.md) · [docs/LOCAL_KEY_INVOKE.md](docs/LOCAL_KEY_INVOKE.md) |
 | 全部桌面文档 | [docs/README.md](docs/README.md) |

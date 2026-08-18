@@ -4,6 +4,8 @@ This file is the machine-readable entry for clones of [github.com/diankourenxia/
 
 Product name in UI and docs: **WodeAppX**. Repo / package / process: `wodeappx`. Do not invent a second brand.
 
+User READMEs match the desktop locale list: `README.md` (zh), `README.en.md`, `README.ja.md`, `README.vi.md`, `README.pt-BR.md`, `README.th.md`, `README.fr.md`, `README.ca.md`, `README.es.md`, `README.ru.md`. This file stays English.
+
 ## What this repo is
 
 Open-source **local-first desktop AI workbench** (Apache-2.0). Users customize the agent (skills, tools, skins), mix models for text / image / video, and keep data on the machine. Official cloud (wodeapp.cn / wodeapp.ai) is optional, same rank as any other provider.
