@@ -63,6 +63,11 @@ jobs:
           if [[ "${{ github.event_name }}" != "workflow_dispatch" || -z "$platform" || "$platform" == "all" ]]; then
             platform=all
           fi
+          # For tag builds, exclude macOS to protect notarized packages
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
+            echo "Tag build detected; excluding macOS (notarized packages uploaded manually)"
+            platform=tag
+          fi
           case "$platform" in
             windows)
               echo 'matrix=[{"os":"windows-latest","name":"Windows","artifact":"wodeappx-windows","electron_args":"--win --x64","capture_targets":"x86_64-pc-windows-msvc"}]' >> "$GITHUB_OUTPUT"
@@ -72,6 +77,9 @@ jobs:
               ;;
             macos)
               echo 'matrix=[{"os":"macos-14","name":"macOS","artifact":"wodeappx-macos","electron_args":"--mac --arm64","capture_targets":"aarch64-apple-darwin"}]' >> "$GITHUB_OUTPUT"
+              ;;
+            tag)
+              echo 'matrix=[{"os":"windows-latest","name":"Windows","artifact":"wodeappx-windows","electron_args":"--win --x64","capture_targets":"x86_64-pc-windows-msvc"},{"os":"ubuntu-latest","name":"Linux","artifact":"wodeappx-linux","electron_args":"--linux --x64","capture_targets":"x86_64-unknown-linux-gnu"}]' >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo 'matrix=[{"os":"macos-14","name":"macOS","artifact":"wodeappx-macos","electron_args":"--mac --arm64","capture_targets":"aarch64-apple-darwin"},{"os":"windows-latest","name":"Windows","artifact":"wodeappx-windows","electron_args":"--win --x64","capture_targets":"x86_64-pc-windows-msvc"},{"os":"ubuntu-latest","name":"Linux","artifact":"wodeappx-linux","electron_args":"--linux --x64","capture_targets":"x86_64-unknown-linux-gnu"}]' >> "$GITHUB_OUTPUT"
