@@ -38,6 +38,7 @@
     "open-source:check": "node scripts/check-open-source-readiness.mjs",
     "open-source:export": "node scripts/export-standalone-repo.mjs",
     "open-source:export:git": "node scripts/export-standalone-repo.mjs --init-git",
+    "open-source:export:test": "node --test scripts/export-standalone-repo.test.mjs",
     "open-source:verify": "node scripts/oss-vps-verify.mjs",
     "open-source:verify:contract": "node scripts/oss-vps-verify.mjs --local-only --phase export,contract",
     "open-source:verify:test": "node --test scripts/oss-vps-verify.test.mjs",
