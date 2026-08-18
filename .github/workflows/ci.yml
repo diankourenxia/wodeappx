@@ -10,9 +10,12 @@ permissions:
   contents: read
 
 jobs:
-  source-contract:
-    name: Source and integration contract
+  integrity:
+    name: Integrity
     runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -25,11 +28,47 @@ jobs:
         with:
           node-version: 22
 
+      - name: Check open-source boundary
+        run: pnpm open-source:check
+
+  source-contract:
+    name: Source and integration contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            contract:
+              - 'scripts/**'
+              - 'integrations/**'
+              - 'capture-engine/**'
+              - 'pnpm-lock.yaml'
+              - 'package.json'
+              - 'bun.lockb'
+              - '**/Cargo.lock'
+              - '**/go.sum'
+              - '.github/workflows/ci.yml'
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - uses: oven-sh/setup-bun@v2
+        if: steps.changes.outputs.contract == 'true' || github.event_name == 'workflow_dispatch'
         with:
           bun-version: 1.3.14
 
       - uses: actions/setup-go@v5
+        if: steps.changes.outputs.contract == 'true' || github.event_name == 'workflow_dispatch'
         with:
           go-version: 1.23.x
           cache-dependency-path: capture-engine/go.sum
@@ -38,9 +77,11 @@ jobs:
         run: pnpm open-source:check
 
       - name: Bootstrap pinned OpenWork
+        if: steps.changes.outputs.contract == 'true' || github.event_name == 'workflow_dispatch'
         run: pnpm openwork:bootstrap
 
       - name: Verify reproducible integration
+        if: steps.changes.outputs.contract == 'true' || github.event_name == 'workflow_dispatch'
         run: |
           pnpm openwork:patch
           find vendor/openwork -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/wodeappx-first.sha256
@@ -49,11 +90,13 @@ jobs:
           diff -u /tmp/wodeappx-first.sha256 /tmp/wodeappx-second.sha256
 
       - name: Check release and Agent contracts
+        if: steps.changes.outputs.contract == 'true' || github.event_name == 'workflow_dispatch'
         run: |
           pnpm release:check
           pnpm openwork:install
           pnpm test:agent-capabilities
 
       - name: Test capture engine
+        if: steps.changes.outputs.contract == 'true' || github.event_name == 'workflow_dispatch'
         working-directory: capture-engine
         run: go test ./...
