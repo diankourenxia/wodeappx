@@ -193,7 +193,7 @@ jobs:
           gh release view "$TAG" >/dev/null 2>&1 || \
             gh release create "$TAG" --prerelease --latest=false \
               --title "WodeAppX ${{ needs.validate.outputs.version }} CI packages" \
-              --notes "workflow_dispatch installers (private repo). Not a product tag release. Actions artifact quota is bypassed here." || \
+              --notes "workflow_dispatch installers (public repo). Not a product tag release. Actions artifact quota is bypassed here." || \
             gh release view "$TAG" >/dev/null
           gh release upload "$TAG" release/* --clobber
 

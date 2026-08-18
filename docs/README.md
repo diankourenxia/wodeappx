@@ -2,7 +2,7 @@
 
 > **开源对外：WodeAppX**；仓内 codename `wodeappx`。默认产品名就是 WodeAppX。
 > 桌面端文档索引。产品入口见 [`../README.md`](../README.md)。  
-> 平台契约（API / 积分 / MCP）以 monorepo [`docs/README.md`](../../docs/README.md) 为准，勿在此复制 URL 表。
+> 平台契约（登录 / 凭证 / 边界）见 [`WODEAPP_PLATFORM_BOUNDARY.md`](WODEAPP_PLATFORM_BOUNDARY.md)。
 
 ## 现行文档
 
@@ -13,7 +13,7 @@
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | 桌面架构与模块边界 |
 | [`CAPABILITIES.md`](CAPABILITIES.md) | 能力面：Skill / 模型 / MCP / Computer Use |
 | [`AGENT_MINIMAL_CONTEXT.md`](AGENT_MINIMAL_CONTEXT.md) | Agent 出图/视频分轨与最小上下文契约 |
-| [`../../.agents/memories/README.md`](../../.agents/memories/README.md) | 用户习惯记忆（`USER.md` / `MEMORY.md`，学 Hermes） |
+| [`AGENTS_CONFIG.md`](AGENTS_CONFIG.md) | 用户习惯记忆（`USER.md` / `MEMORY.md`，学 Hermes） |
 | [`AGENT_CAPABILITY_TESTING.md`](AGENT_CAPABILITY_TESTING.md) | Agent 能力路由与测试门禁（P0 不变式；含 A17 sticky 禁假模型） |
 | [`../integrations/openwork/TOOL_DISCOVERY.md`](../integrations/openwork/TOOL_DISCOVERY.md) | Deferred/`tool_search`/sticky lease；无假模型、默认不烧积分验收 |
 | [`LOCAL_XLS_PRODUCT_IMPORT_TEST_PLAN.md`](LOCAL_XLS_PRODUCT_IMPORT_TEST_PLAN.md) | 本地 `.xls` + 图片理解 + 商品入库的分层回归方案 |
