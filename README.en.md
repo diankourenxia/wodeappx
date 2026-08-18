@@ -6,8 +6,9 @@
 
 <p align="center">
   <strong>Customize the agent. Mix and match models.</strong><br />
-  Open-source AI desktop. Image and video workbenches ship ready.<br />
-  Local-first. Your keys. No login wall.
+  Open-source AI desktop. Shape the agent — skills, tools, skins.<br />
+  Mix models for writing, images, and video. Image and video workbenches ship ready.<br />
+  Local-first. Data can stay on your machine. Your keys. No login wall.
 </p>
 
 <p align="center">
@@ -44,7 +45,28 @@
 
 ## What you can do
 
-Shape the agent — skills, tools, skins. Mix models for writing, images, and video. Say what you want to do.
+- **Customize the agent** — skills, tools, MCP, connectors, skins; assemble your way, no fixed template
+- **Mix and match models** — writing, images, and video each on their own model; swap anytime, no lock-in
+- **Image and video ready** — batch images, storyboards, image-to-video already wired; change vendors without building a flow from scratch
+- **Digital assets** — save generated images and video in one tap; reuse them in chat
+- **Skills you can batch** — run the same flow across a set; see and control permissions, cost, retries
+- **Self-evolve** — point the workspace at this product's source; the agent can change the app (snapshot → verify → roll back)
+- **Real work on your computer** — local folders, files, terminal, browser — not chat-only
+- **Sites and media can stay local** — publish and produce on your machine or self-hosted infra; cloud is optional
+
+Skills define what can run; the agent runs it. Say what you want to do.
+
+## Why WodeAppX
+
+Most desktop assistants are one model and one chat. WodeAppX is an agent you can shape, and a model mix you can change.
+
+- **You shape the assistant** — skills, tools, and skins are first-class; add capability without waiting for a release
+- **The right model for each job** — writing, images, and video do not have to share one vendor
+- **A production line, not an empty shell** — image and video workbenches ship ready
+- **Data can stay private** — sessions, files, terminal, and browser on your machine; OSS starts with no login
+- **Your keys** — local key or self-host first; official cloud is extra, not a gate
+- **It can change this app** — self-evolve has snapshot and rollback, not a slogan
+- **Open and auditable** — Apache-2.0; inspect, fork, redistribute
 
 <table>
   <tr>
@@ -68,8 +90,6 @@ Shape the agent — skills, tools, skins. Mix models for writing, images, and vi
     </td>
   </tr>
 </table>
-
-Skills define what can run; the agent runs it. Files, terminal, and browser stay on your machine if you want. Cloud is optional, not a gate.
 
 ## Download
 
