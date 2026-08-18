@@ -207,9 +207,19 @@ jobs:
           pattern: wodeappx-*
           path: release
           merge-multiple: true
+      # IMPORTANT: Do NOT upload CI-built macOS DMGs to product tags.
+      # Product Mac ARM/Intel DMGs are packed and notarized on the founder's Mac,
+      # then uploaded manually BEFORE this workflow runs. CI must never clobber them.
+      - name: Remove macOS DMGs from CI artifacts
+        run: |
+          echo "Removing CI-built macOS DMGs to preserve manually uploaded notarized versions..."
+          rm -fv release/wodeappx-mac*.dmg release/latest-mac.yml release/latest-mac.yaml 2>/dev/null || true
+          find release -name "*.dmg.blockmap" -type f -delete -print 2>/dev/null || true
+          echo "Remaining files for tag release:"
+          ls -lh release/ || echo "No files remaining"
       - uses: softprops/action-gh-release@v2
         with:
           name: WodeAppX ${{ needs.validate.outputs.version }}
           files: release/*
-          fail_on_unmatched_files: true
+          fail_on_unmatched_files: false
           generate_release_notes: true
