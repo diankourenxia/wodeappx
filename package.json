@@ -1,7 +1,7 @@
 {
   "name": "wodeappx",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Open-source self-evolving AI desktop you build (WodeAppX): operable skills; best models for image & video; local-first",
   "license": "Apache-2.0",
   "repository": {
