@@ -13,13 +13,22 @@ pnpm dev
 
 `pnpm run setup` 会下载 `openwork.lock.json` 固定的 OpenWork 提交、校验 SHA-256、应用 WodeAppX 改动并安装依赖。`vendor/openwork/` 是生成目录，不提交到 Git。
 
-## 修改位置
+## 外人贡献路径
 
-- WodeAppX 自有能力放在 `integrations/`、`capture-engine/` 或 `scripts/`。
-- 对上游文件的完整覆盖放在 `integrations/openwork/fork/`，并在 `apply-openwork-integration.mjs` 中显式登记。
-- 小而稳定的上游改动可写成可重复执行的 transform。
-- 不要直接把 `vendor/openwork/` 当作源代码提交；直接修改会在下一次 bootstrap 时丢失。
-- OSS 默认路径必须保持 BYOK/local-first；WodeApp Cloud 只能通过显式 `pnpm dev:cloud` 启用。
+外部贡献只改本仓自有目录：
+
+- `integrations/`
+- `scripts/`
+- `capture-engine/`
+
+不要改 `vendor/`。`vendor/openwork/` 是 bootstrap 生成目录，不进 Git；直接改会在下一次 setup 时丢失。
+
+对上游文件的完整覆盖放在 `integrations/openwork/fork/`，并在 `apply-openwork-integration.mjs` 中显式登记。小而稳定的上游改动可写成可重复执行的 transform。
+
+下面这些**不是** OSS 默认路径，不要当作默认贡献面：
+
+- `integrations/shopify/`：Shopify 连接器 / 店面聊天是可选商业集成。
+- `integrations/wodeapp-cloud/` 与 cloud 开发入口：WodeApp Cloud 是显式可选集成。OSS 默认保持 BYOK / local-first。
 
 ## 提交前检查
 
