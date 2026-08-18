@@ -34,3 +34,4 @@ evals/results/
 .DS_Store
 .tmp-*
 .wodeappx-standalone-export
+.code-team/
