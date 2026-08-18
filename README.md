@@ -100,7 +100,7 @@ WodeAppX 是**本地优先的 AI 工作流桌面**：把 Skill、模型、MCP/�
 
 ## 快速开始
 
-**环境**：Node.js 22、pnpm 9.15、Bun 1.3.9+、Go 1.23，以及桌面壳构建常用工具链。Node 26 当前会触发上游 `better-sqlite3` 原生构建问题。
+**环境**：Node.js 22、pnpm 9.15、Bun 1.3.9+、Go 1.24，以及桌面壳构建常用工具链。Node 26 当前会触发上游 `better-sqlite3` 原生构建问题。
 
 ```bash
 git clone https://github.com/diankourenxia/wodeappx.git

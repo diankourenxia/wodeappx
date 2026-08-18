@@ -70,7 +70,7 @@ jobs:
       - uses: actions/setup-go@v5
         if: steps.changes.outputs.contract == 'true' || github.event_name == 'workflow_dispatch'
         with:
-          go-version: 1.23.x
+          go-version: 1.24.x
           cache-dependency-path: capture-engine/go.sum
 
       - name: Check open-source boundary

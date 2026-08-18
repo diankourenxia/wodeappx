@@ -4,7 +4,7 @@
 
 ## 开发环境
 
-需要 Node.js 22、pnpm 9.15、Bun 1.3.9+、Go 1.23，以及上游 OpenWork 要求的桌面构建工具。
+需要 Node.js 22、pnpm 9.15、Bun 1.3.9+、Go 1.24，以及上游 OpenWork 要求的桌面构建工具。
 
 ```bash
 pnpm run setup
