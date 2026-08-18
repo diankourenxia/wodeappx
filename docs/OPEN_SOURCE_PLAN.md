@@ -2,7 +2,7 @@
 
 > 状态基线：**2026-08-17 晚**。本文把“已经实现”“开源阻塞项”和“产品路线图”分开描述。
 > 仓：[github.com/diankourenxia/wodeappx](https://github.com/diankourenxia/wodeappx)（**public**，Apache-2.0）。正式包 [`v1.0.0`](https://github.com/diankourenxia/wodeappx/releases/tag/v1.0.0)。站点 [x.wodeapp.ai](https://x.wodeapp.ai/) / [x.wodeapp.cn](https://x.wodeapp.cn/)。
-> 日常开发在 monorepo `wodeappx/`；用 `pnpm open-source:export` / `export-standalone-repo.mjs` 导出同步（orphan force-push）。
+> 日常开发在 monorepo `wodeappx/`；用 `pnpm open-source:export` / `export-standalone-repo.mjs` 增量导出同步（3-way preserve 保留公开仓独有改动）。
 > 陌生人路径验收：[`OSS_VERIFY.md`](OSS_VERIFY.md)（`pnpm open-source:verify`）。
 
 ## 0. P0 实证快照（2026-08-12）
@@ -13,7 +13,7 @@
 | `pnpm open-source:check`（monorepo） | ✅（1 warning：OpenWork lock 版本号与包版本不一致） | 本地跑过 |
 | 导出脚本 orphan 树 | ✅ | `export-standalone-repo.mjs --init-git` → `wodeappx-standalone`；无 vendor |
 | 仓内容新鲜度 | ✅ 已同步 | 2026-08-17 orphan `0c69a92`（Initial WodeAppX open-source export）= public `main` 与 tag `v1.0.0` |
-| main 分支保护 | ❌ | 私有阶段可后补 |
+| main 分支保护 | ✅ | Ruleset `main-no-force-export` 阻止删除与非快进推送（deletion + non_fast_forward，active，无 bypass） |
 | Windows/Linux CI 构建产物 + 三平台真机安装 | ✅ 安装启动已验 | CI [31790434559](https://github.com/diankourenxia/wodeappx/actions/runs/31790434559) 绿。Linux：腾讯云 TencentOS 解包 AppImage + xvfb，CDP 标题 WodeAppX、工作台壳在、无验证码（`test-results/oss-verify/linux-install-qa.json`）。Windows：GHA `windows-latest` NSIS `/S` 后启动，CDP 标题 WodeAppX（[run 31988811038](https://github.com/diankourenxia/wodeappx/actions/runs/31988811038)）。安装目录/Linux 二进制仍叫 `@openworkdesktop`，已补 `executableName: WodeAppX` 待重打 |
 | SBOM / 依赖许可证自动生成入包 | ✅ 本机 OSS DMG | `pnpm` 清单 1059 包 / 0 Unknown；`khroma@2.1.0` override=MIT。打进 `Contents/Resources/licenses/` |
 | 签名 / notarization 策略文档化 | ✅ macOS 已公证；Windows 仍无 Authenticode | 本机 Developer ID `yao hui (88B8TA3MKP)`。`release-oss/wodeappx-mac-arm64-1.0.0-oss.dmg`：`.app` `spctl` = Notarized Developer ID；`.app` 与 DMG 票已钉。DMG 文件本身未签名（`spctl --type install` 拒）。政策 `docs/RELEASE.md` §9 |
@@ -270,9 +270,9 @@ type RouteDecision = {
 | 安全报告 | 仓库 owner；GitHub private advisory；ack 2 天、分诊 7 天、高危目标 14 天。见 [`SECURITY.md`](../SECURITY.md) |
 | Cloud / 企业边界 | OSS = `wodeappx` 客户端；账号/积分/支付/网关留私有 monorepo。不开 `/ee`，不新开 platform/deploy 仓。见 [`WODEAPP_PLATFORM_BOUNDARY.md`](WODEAPP_PLATFORM_BOUNDARY.md) |
 | 公开日期 | **2026-08-17**。仓 public；落地页 x.wodeapp.ai / x.wodeapp.cn |
-| 分支保护 | 未开。导出仍需允许 orphan force-push |
+| 分支保护 | Ruleset `main-no-force-export` 阻止删除与非快进推送（增量导出无需 force-push） |
 
 ### 仍须本机证书（脚本做不了）
 
 - Windows **Authenticode 证书本身**（个人 OV 或 Azure Trusted Signing）。CI 已接 `WIN_CSC_LINK` / `WIN_CSC_KEY_PASSWORD`；secret 空则仍打 unsigned。
-- 仓已 public，Security Advisories 表单已开。分支保护仍不开（orphan force-push）。Windows Authenticode 仍无（有意）
+- 仓已 public，Security Advisories 表单已开。Ruleset `main-no-force-export` 已阻止删除与非快进推送。Windows Authenticode 仍无（有意）
