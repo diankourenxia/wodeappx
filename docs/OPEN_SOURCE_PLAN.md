@@ -1,23 +1,23 @@
 # WodeAppX 开源目标、架构与路线图
 
-> 状态基线：**2026-08-17 晚**。本文把“已经实现”“开源阻塞项”和“产品路线图”分开描述。
+> 状态基线：**2026-08-18**。`main` 已 public，Ruleset 必绿 Integrity。本文把“已经实现”“开源阻塞项”和“产品路线图”分开描述。
 > 仓：[github.com/diankourenxia/wodeappx](https://github.com/diankourenxia/wodeappx)（**public**，Apache-2.0）。正式包 [`v1.0.0`](https://github.com/diankourenxia/wodeappx/releases/tag/v1.0.0)。站点 [x.wodeapp.ai](https://x.wodeapp.ai/) / [x.wodeapp.cn](https://x.wodeapp.cn/)。
 > 日常开发在 monorepo `wodeappx/`；用 `pnpm open-source:export` / `export-standalone-repo.mjs` 增量导出同步（3-way preserve 保留公开仓独有改动）。
 > 陌生人路径验收：[`OSS_VERIFY.md`](OSS_VERIFY.md)（`pnpm open-source:verify`）。
 
-## 0. P0 实证快照（2026-08-12）
+## 0. P0 实证快照（2026-08-18）
 
 | 项 | 状态 | 证据 |
 |---|---|---|
 | 独立仓可访问 | ✅ **public** | `diankourenxia/wodeappx` 2026-08-17 改 public；匿名 clone / Releases 200 |
 | `pnpm open-source:check`（monorepo） | ✅（1 warning：OpenWork lock 版本号与包版本不一致） | 本地跑过 |
-| 导出脚本 orphan 树 | ✅ | `export-standalone-repo.mjs --init-git` → `wodeappx-standalone`；无 vendor |
-| 仓内容新鲜度 | ✅ 已同步 | 2026-08-17 orphan `0c69a92`（Initial WodeAppX open-source export）= public `main` 与 tag `v1.0.0` |
-| main 分支保护 | ✅ | Ruleset `main-no-force-export` 阻止删除与非快进推送（deletion + non_fast_forward，active，无 bypass） |
+| 导出脚本 | ✅ incremental + 3-way | `scripts/export-standalone-repo.mjs` 默认增量同步，冲突 abort；`--mode orphan` 仅例外。Ruleset 禁止日常 force-push |
+| 仓内容新鲜度 | ✅ 已同步 | 现网 `main` public，导出走 incremental + 3-way。旧 orphan SHA `0c69a92` 不再当日常基线 |
+| main 分支保护 | ✅ | Ruleset `main-no-force-export`：deletion + non_fast_forward + required Integrity（strict，active，无 bypass） |
 | Windows/Linux CI 构建产物 + 三平台真机安装 | ✅ 安装启动已验 | CI [31790434559](https://github.com/diankourenxia/wodeappx/actions/runs/31790434559) 绿。Linux：腾讯云 TencentOS 解包 AppImage + xvfb，CDP 标题 WodeAppX、工作台壳在、无验证码（`test-results/oss-verify/linux-install-qa.json`）。Windows：GHA `windows-latest` NSIS `/S` 后启动，CDP 标题 WodeAppX（[run 31988811038](https://github.com/diankourenxia/wodeappx/actions/runs/31988811038)）。安装目录/Linux 二进制仍叫 `@openworkdesktop`，已补 `executableName: WodeAppX` 待重打 |
 | SBOM / 依赖许可证自动生成入包 | ✅ 本机 OSS DMG | `pnpm` 清单 1059 包 / 0 Unknown；`khroma@2.1.0` override=MIT。打进 `Contents/Resources/licenses/` |
 | 签名 / notarization 策略文档化 | ✅ macOS 已公证；Windows 仍无 Authenticode | 本机 Developer ID `yao hui (88B8TA3MKP)`。`release-oss/wodeappx-mac-arm64-1.0.0-oss.dmg`：`.app` `spctl` = Notarized Developer ID；`.app` 与 DMG 票已钉。DMG 文件本身未签名（`spctl --type install` 拒）。政策 `docs/RELEASE.md` §9 |
-| 完整 git 历史秘密扫描 | ✅ 独立仓 orphan 1 commit | `test-results/oss-verify/l5-secret-history.json` PASS |
+| 完整 git 历史秘密扫描 | ✅ 历史扫描已过 | `test-results/oss-verify/l5-secret-history.json` PASS |
 | 干净 Linux 陌生人 setup | ✅ L0–L3 PASS（腾讯云隔离 Docker） | 报告 `wodeappx/test-results/oss-verify/vps-setup.json`。L2：`pnpm run setup`；L3：两次 patch 哈希一致。踩坑：勿用 `pnpm setup`；CN 勿 apt-get；locale `\u2026`；干净 zip 与漂移 vendor 锚点不同；Electron 须 `ELECTRON_MIRROR` |
 | L4 桌面 First Mile | ✅ 干净安装活测；公证包复测 | 14:22 未公证包：空 Key 自动弹出「开始使用」，DeepSeek 本机 Key 发「你好」有回复。17:50 公证包：asar/licenses/Gatekeeper PASS；无验证码；「开始使用」可打开，Chrome 步「安装调试 / 忽略」。自动弹出被 leftover `wodeapp/wode/*` + provider `isPending` 挡住（源码已改为只等 `isFetching`） |
 
@@ -81,13 +81,13 @@ WodeAppX 是一个本地优先、可扩展的 AI 工作流桌面。它让个人�
 
 | 缺口 | 风险 | 完成标准 | 2026-08-11 |
 |---|---|---|---|
-| 独立仓库尚未验证公开可访问 | 用户无法 Fork/Issue/下载 | public + Issues + Security advisory 表单 | ✅ **public**。vulnerability reporting 已开。Ruleset `main-no-force-export`（deletion + non_fast_forward，active，无 bypass） |
-| 公开仓落后于 monorepo | 用户拿到的不是最新开源体验 | 定期 `open-source:export` 后推送；含 BYOK 冷启动 | 现网 `0c69a92`。日常仍改 monorepo 再 export |
+| 独立仓库尚未验证公开可访问 | 用户无法 Fork/Issue/下载 | public + Issues + Security advisory 表单 | ✅ **public**。vulnerability reporting 已开。Ruleset `main-no-force-export`（deletion + non_fast_forward + required Integrity，active，无 bypass） |
+| 公开仓落后于 monorepo | 用户拿到的不是最新开源体验 | 定期 `open-source:export` 后推送；含 BYOK 冷启动 | 导出默认 incremental + 3-way（`scripts/export-standalone-repo.mjs`）。日常仍改 monorepo 再 export，禁止日常 orphan force-push |
 | Windows/Linux CI 与三平台真机安装尚未跑完 | macOS 干净生产构建通过不代表所有安装包可用 | Windows/Linux CI 通过；至少三平台各一台真机安装启动 | ✅ Linux 腾讯云 xvfb + Windows GHA NSIS 均启动出 WodeAppX。见 §0 |
 | 第三方许可证清单未自动生成 | 二进制分发可能漏署名 | 发布包附 SBOM/依赖许可证报告，无 `ee/` | ✅ 本机 OSS DMG 含 `licenses/third-party-licenses.json`（1059 包，`khroma@2.1.0`=MIT override，0 Unknown） |
 | 发布签名与密钥策略未定 | 系统告警、供应链风险 | macOS notarization、Windows signing 的密钥保管与轮换文档化 | ✅ 政策 `docs/RELEASE.md` §9。macOS Developer ID 已公证；Windows Authenticode 仍无 |
 | 首发版本与支持平台未冻结 | 承诺不清，测试范围漂移 | 明确首发矩阵、已知问题和回滚方式 | ✅ 见下节「首发矩阵（2026-08-14）」 |
-| 仓库历史秘密扫描未执行 | 当前文件干净不代表历史干净 | 对拟公开仓库完整历史扫描，问题凭证先轮换再清理 | ✅ 工作区 `pnpm open-source:check` PASS。独立仓现 orphan `652ac1c`（1215 文件 check PASS）。前一轮 `5ff55aa` 全历史扫描 PASS：无密钥命中 / 无 `.env` / 无 `vendor/` / 无 `ee/`。报告 `test-results/oss-verify/l5-secret-history.json` |
+| 仓库历史秘密扫描未执行 | 当前文件干净不代表历史干净 | 对拟公开仓库完整历史扫描，问题凭证先轮换再清理 | ✅ 工作区 `pnpm open-source:check` PASS。独立仓历史扫描 PASS（旧 orphan `652ac1c` / `5ff55aa` 为当时证据，不再当日常导出基线）：无密钥命中 / 无 `.env` / 无 `vendor/` / 无 `ee/`。报告 `test-results/oss-verify/l5-secret-history.json` |
 
 ### 产品路线图缺口
 
@@ -270,9 +270,9 @@ type RouteDecision = {
 | 安全报告 | 仓库 owner；GitHub private advisory；ack 2 天、分诊 7 天、高危目标 14 天。见 [`SECURITY.md`](../SECURITY.md) |
 | Cloud / 企业边界 | OSS = `wodeappx` 客户端；账号/积分/支付/网关留私有 monorepo。不开 `/ee`，不新开 platform/deploy 仓。见 [`WODEAPP_PLATFORM_BOUNDARY.md`](WODEAPP_PLATFORM_BOUNDARY.md) |
 | 公开日期 | **2026-08-17**。仓 public；落地页 x.wodeapp.ai / x.wodeapp.cn |
-| 分支保护 | Ruleset `main-no-force-export` 阻止删除与非快进推送（增量导出无需 force-push） |
+| 分支保护 | Ruleset `main-no-force-export`：deletion + non_fast_forward + required Integrity（增量导出无需 force-push） |
 
 ### 仍须本机证书（脚本做不了）
 
 - Windows **Authenticode 证书本身**（个人 OV 或 Azure Trusted Signing）。CI 已接 `WIN_CSC_LINK` / `WIN_CSC_KEY_PASSWORD`；secret 空则仍打 unsigned。
-- 仓已 public，Security Advisories 表单已开。Ruleset `main-no-force-export` 已阻止删除与非快进推送。Windows Authenticode 仍无（有意）
+- 仓已 public，Security Advisories 表单已开。Ruleset `main-no-force-export` 已阻止删除、非快进推送，并要求 Integrity。Windows Authenticode 仍无（有意）
