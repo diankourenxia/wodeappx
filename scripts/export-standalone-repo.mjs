@@ -4,13 +4,15 @@
  *
  * - Product brand in the export is WodeAppX (not WodeAppX).
  * - Does not copy vendor/openwork (run `pnpm run setup` after clone).
- * - Creates an orphan commit by default (no private monorepo history).
+ * - Incremental export with 3-way preserve by default (no orphan force-push).
+ * - Orphan mode only for first-time empty repo creation with FORCE_EXPORT=1.
  *
  * Usage:
  *   node scripts/export-standalone-repo.mjs
  *   node scripts/export-standalone-repo.mjs --out /path/to/wodeappx
- *   node scripts/export-standalone-repo.mjs --out ~/Desktop/wodeappx --init-git
- *   PUSH=1 REMOTE=git@github.com:diankourenxia/wodeappx.git node scripts/export-standalone-repo.mjs --out ~/Desktop/wodeappx --init-git
+ *   node scripts/export-standalone-repo.mjs --mode=orphan --dry-run
+ *   PUSH=1 node scripts/export-standalone-repo.mjs
+ *   FORCE_EXPORT=1 PUSH=1 node scripts/export-standalone-repo.mjs --mode=orphan
  */
 import { spawnSync } from "node:child_process";
 import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
@@ -22,15 +24,33 @@ const sourceRoot = path.resolve(__dirname, "..");
 
 const args = process.argv.slice(2);
 function flagValue(name, fallback = "") {
-  const idx = args.indexOf(name);
-  if (idx === -1) return fallback;
-  return args[idx + 1] ?? fallback;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === name && i + 1 < args.length) return args[i + 1];
+    if (args[i].startsWith(`${name}=`)) return args[i].slice(name.length + 1);
+  }
+  return fallback;
 }
+
+export function parseModeFlag(argv = args) {
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === "--mode" && i + 1 < argv.length) return argv[i + 1];
+    if (argv[i].startsWith("--mode=")) return argv[i].slice("--mode=".length);
+  }
+  return "";
+}
+
+// Parse flags
+const modeFlag = parseModeFlag();
 const wantsInitGit = args.includes("--init-git") || process.env.INIT_GIT === "1";
 const dryRun = args.includes("--dry-run");
 const outDir = path.resolve(
   flagValue("--out", process.env.WODEAPPX_STANDALONE_OUT || path.join(path.dirname(sourceRoot), "wodeappx-standalone")),
 );
+
+// Environment variables
+const wantsPush = process.env.PUSH === "1";
+const forceExport = process.env.FORCE_EXPORT === "1";
+const remote = process.env.REMOTE || process.env.PUBLIC_REPO || "git@github.com:diankourenxia/wodeappx.git";
 
 const EXCLUDE_DIR_NAMES = new Set([
   ".git",
@@ -47,8 +67,11 @@ const EXCLUDE_DIR_NAMES = new Set([
   ".turbo",
   "coverage",
   "target",
-  "runs", // context-bench / live harness artifacts
+  "runs",
   "tmp",
+  ".code-team",
+  ".tmp",
+  "$DB",
 ]);
 
 /** Heavy media / marketing assets — not needed to build installers. */
@@ -78,6 +101,9 @@ const TEXT_EXT = new Set([
 const BRAND_FROM = "WodeAppX";
 const BRAND_TO = "WodeAppX";
 
+const STATE_FILE = ".wodeappx-export-state.json";
+const ALLOWED_REMOTE_OWNERS = ["diankourenxia/wodeappx"];
+
 function run(cmd, cmdArgs, opts = {}) {
   const result = spawnSync(cmd, cmdArgs, {
     encoding: "utf8",
@@ -92,12 +118,54 @@ function run(cmd, cmdArgs, opts = {}) {
   return result;
 }
 
+function runSafe(cmd, cmdArgs, opts = {}) {
+  try {
+    return run(cmd, cmdArgs, opts);
+  } catch {
+    return null;
+  }
+}
+
 async function pathExists(p) {
   try {
     await stat(p);
     return true;
   } catch {
     return false;
+  }
+}
+
+function parseRemote(remoteUrl) {
+  // git@github.com:owner/repo.git or https://github.com/owner/repo.git
+  const match = remoteUrl.match(/github\.com[:/]([^/]+\/[^/]+?)(\.git)?$/);
+  if (!match) return null;
+  return match[1];
+}
+
+export function validateRemote(remoteUrl) {
+  const parsed = parseRemote(remoteUrl);
+  if (!parsed) {
+    throw new Error(`Invalid remote URL format: ${remoteUrl}`);
+  }
+  if (!ALLOWED_REMOTE_OWNERS.includes(parsed)) {
+    throw new Error(`Remote ${parsed} not in whitelist: ${ALLOWED_REMOTE_OWNERS.join(", ")}`);
+  }
+}
+
+export function validateGitArgs(gitArgs) {
+  const joined = gitArgs.join(" ");
+  // Check for bare --force (not --force-with-lease)
+  for (let i = 0; i < gitArgs.length; i++) {
+    const arg = gitArgs[i];
+    if (arg === "--force" || arg === "-f") {
+      throw new Error("Bare --force is forbidden; use --force-with-lease with explicit SHA");
+    }
+  }
+}
+
+export function validatePushOrphanWithoutForce(wantsPush, mode, forceExport) {
+  if (wantsPush && mode === "orphan" && !forceExport) {
+    throw new Error("PUSH=1 with --mode=orphan requires FORCE_EXPORT=1");
   }
 }
 
@@ -232,25 +300,76 @@ async function rewritePackageJson(targetPath) {
   await writeFile(targetPath, `${JSON.stringify(pkg, null, 2)}\n`);
 }
 
-async function main() {
-  console.log(`[export] source: ${sourceRoot}`);
-  console.log(`[export] out:    ${outDir}`);
-  if (dryRun) {
-    const files = await walkFiles(sourceRoot);
-    console.log(`[export] dry-run: would copy ${files.length} files`);
-    return;
+async function resolveLastExport(outDir) {
+  // Try to fetch state file from origin/main
+  const stateResult = runSafe("git", ["show", `origin/main:${STATE_FILE}`], { cwd: outDir });
+  if (stateResult?.stdout) {
+    try {
+      const state = JSON.parse(stateResult.stdout);
+      if (state.lastExportCommit && /^[0-9a-f]{40}$/.test(state.lastExportCommit)) {
+        // Verify it's an ancestor of origin/main
+        const isAncestor = runSafe("git", ["merge-base", "--is-ancestor", state.lastExportCommit, "origin/main"], { cwd: outDir });
+        if (isAncestor?.status === 0) {
+          return state.lastExportCommit;
+        }
+      }
+    } catch {}
   }
 
-  if (await pathExists(outDir)) {
-    const marker = path.join(outDir, ".wodeappx-standalone-export");
-    if (!(await pathExists(marker)) && (await pathExists(path.join(outDir, ".git")))) {
-      throw new Error(`refusing to overwrite existing git repo without marker: ${outDir}`);
+  // Try Export-Baseline: 1 in commit messages
+  const logResult = runSafe("git", ["log", "origin/main", "--grep=Export-Baseline: 1", "-1", "--format=%H"], { cwd: outDir });
+  if (logResult?.stdout?.trim()) {
+    const sha = logResult.stdout.trim();
+    if (/^[0-9a-f]{40}$/.test(sha)) {
+      return sha;
     }
-    await rm(outDir, { recursive: true, force: true });
   }
-  await mkdir(outDir, { recursive: true });
 
+  // Try parentless commit with specific message
+  const orphanResult = runSafe("git", ["log", "origin/main", "--format=%H %P %s", "--all"], { cwd: outDir });
+  if (orphanResult?.stdout) {
+    for (const line of orphanResult.stdout.split("\n")) {
+      const parts = line.trim().split(" ");
+      if (parts.length >= 2 && parts[1] === "" && line.includes("Initial WodeAppX open-source export")) {
+        return parts[0];
+      }
+    }
+  }
+
+  throw new Error("Could not resolve lastExport commit; refusing to guess");
+}
+
+async function threeWayMerge(outDir, lastExport) {
+  const ours = run("git", ["write-tree"], { cwd: outDir }).stdout.trim();
+  const theirs = run("git", ["rev-parse", "origin/main^{tree}"], { cwd: outDir }).stdout.trim();
+  const base = run("git", ["rev-parse", `${lastExport}^{tree}`], { cwd: outDir }).stdout.trim();
+  const merged = spawnSync("git", ["merge-tree", "--write-tree", base, ours, theirs], {
+    encoding: "utf8",
+    cwd: outDir,
+  });
+  const lines = (merged.stdout || "").trim().split("\n").filter(Boolean);
+  const tree = lines[0] || "";
+  if (!/^[0-9a-f]{40}$/.test(tree)) {
+    throw new Error(`merge-tree --write-tree failed:\n${merged.stdout || ""}\n${merged.stderr || ""}`);
+  }
+  if (merged.status !== 0) {
+    const conflicts = lines.slice(1);
+    console.error("[export] 3-way conflicts (abort, no commit, no push):");
+    for (const p of conflicts) console.error(`  ${p}`);
+    throw new Error(`3-way merge has unresolved conflicts: ${conflicts.join(", ") || "unknown"}`);
+  }
+  run("git", ["read-tree", tree], { cwd: outDir });
+  run("git", ["checkout-index", "-a", "-f"], { cwd: outDir });
+  return { tree, conflictCount: 0 };
+}
+
+async function copyExportFiles(outDir) {
   const files = await walkFiles(sourceRoot);
+  
+  if (files.length > 5000) {
+    throw new Error(`Refusing to copy ${files.length} files (limit: 5000)`);
+  }
+
   let copied = 0;
   let rewritten = 0;
   for (const relative of files) {
@@ -269,14 +388,14 @@ async function main() {
     copied += 1;
   }
 
-  // Prefer standalone gitignore (vendor stays generated / untracked).
-  const standaloneIgnore = path.join(outDir, ".gitignore-standalone");
-  if (await pathExists(standaloneIgnore)) {
-    // Standalone ignore historically versioned vendor; OSS readiness forbids that.
-    // Keep excluding vendor and release artifacts.
-    await writeFile(
-      path.join(outDir, ".gitignore"),
-      `# Standalone WodeAppX repository
+  return { copied, rewritten };
+}
+
+async function writeStandaloneFiles(outDir) {
+  // Prefer standalone gitignore
+  await writeFile(
+    path.join(outDir, ".gitignore"),
+    `# Standalone WodeAppX repository
 vendor/openwork/
 vendor/openwork-dev.zip
 node_modules/
@@ -311,12 +430,12 @@ evals/results/
 !.env.example
 .DS_Store
 .tmp-*
-.wodeappx-standalone-export
+.code-team/
 `,
-    );
-  }
+  );
 
   await rewritePackageJson(path.join(outDir, "package.json"));
+  
   await writeFile(
     path.join(outDir, ".env.example"),
     `# WodeAppX Community Edition
@@ -330,58 +449,262 @@ VITE_WODEAPPX_EDITION=oss
 # ARK_API_KEY=
 `,
   );
-  // README.md + README.en.md copied from source tree (multilingual)
-  await writeFile(
-    path.join(outDir, "docs/README.md"),
-    rewriteBrandText(await readFile(path.join(outDir, "docs/README.md"), "utf8"))
-      .replace(
-        /用户侧产品名「.*?」；代码仓与内部技术文档继续使用 codename `wodeappx`。/,
-        "开源对外产品名 **WodeAppX**；仓库 / 包名 / 兼容标识使用 `wodeappx`。",
-      ),
-  );
-  await writeFile(
-    path.join(outDir, ".wodeappx-standalone-export"),
-    `${JSON.stringify({
-      exportedAt: new Date().toISOString(),
-      source: sourceRoot,
-      brand: BRAND_TO,
-      includesVendor: false,
-    }, null, 2)}\n`,
-  );
 
-  // Drop monorepo-only cloud branding comments that confuse OSS readers? keep files.
+  // Update docs/README.md
+  const docsReadme = path.join(outDir, "docs/README.md");
+  if (await pathExists(docsReadme)) {
+    await writeFile(
+      docsReadme,
+      rewriteBrandText(await readFile(docsReadme, "utf8"))
+        .replace(
+          /用户侧产品名「.*?」；代码仓与内部技术文档继续使用 codename `wodeappx`。/,
+          "开源对外产品名 **WodeAppX**；仓库 / 包名 / 兼容标识使用 `wodeappx`。",
+        ),
+    );
+  }
+}
+
+async function writeExportState(outDir, lastExportCommit, lastExportTree = null) {
+  const state = {
+    schemaVersion: 1,
+    lastExportCommit,
+    lastExportTree,
+    exportedAt: new Date().toISOString(),
+    sourceFingerprint: null,
+  };
+  await writeFile(path.join(outDir, STATE_FILE), `${JSON.stringify(state, null, 2)}\n`);
+}
+
+async function incrementalExport(outDir) {
+  console.log("[export] mode: incremental (3-way preserve)");
+  
+  // Fetch origin/main
+  run("git", ["fetch", "origin", "main"], { cwd: outDir });
+  
+  // Resolve last export baseline
+  const lastExport = await resolveLastExport(outDir);
+  console.log(`[export] lastExport: ${lastExport}`);
+  
+  // Check for dirty worktree
+  const statusResult = run("git", ["status", "--porcelain"], { cwd: outDir });
+  if (statusResult.stdout.trim()) {
+    throw new Error("outDir has uncommitted changes; refusing to continue");
+  }
+  
+  // Stay on current branch; ff to origin/main so push can be fast-forward.
+  run("git", ["merge", "--ff-only", "origin/main"], { cwd: outDir });
+  const ancestor = spawnSync("git", ["merge-base", "--is-ancestor", "origin/main", "HEAD"], {
+    encoding: "utf8",
+    cwd: outDir,
+  });
+  if (ancestor.status !== 0) {
+    throw new Error("incremental: origin/main is not an ancestor of HEAD; refusing PUSH fallback to --force");
+  }
+
+  const { copied, rewritten } = await copyExportFiles(outDir);
   console.log(`[export] copied ${copied} files; brand-rewrote ${rewritten} text files`);
+  await writeStandaloneFiles(outDir);
+  run("git", ["add", "-A"], { cwd: outDir });
 
+  const { tree } = await threeWayMerge(outDir, lastExport);
+  console.log(`[export] 3-way merge wrote tree ${tree}`);
+  run("git", ["add", "-A"], { cwd: outDir });
+
+  await writeExportState(outDir, "0".repeat(40), tree);
+  run("git", ["add", STATE_FILE], { cwd: outDir });
+  run("git", ["commit", "-m", "export: sync standalone tree\n\nExport-Baseline: 1\nExport-Preserved-Paths: 0"], { cwd: outDir });
+
+  const newSha = run("git", ["rev-parse", "HEAD"], { cwd: outDir }).stdout.trim();
+  const newTree = run("git", ["rev-parse", "HEAD^{tree}"], { cwd: outDir }).stdout.trim();
+  await writeExportState(outDir, newSha, newTree);
+  run("git", ["add", STATE_FILE], { cwd: outDir });
+  run("git", ["commit", "--amend", "--no-edit"], { cwd: outDir });
+  return { copied, rewritten };
+}
+
+
+async function forceOrphanReset(outDir) {
+  console.log("[export] mode: orphan + FORCE_EXPORT=1 (keep .git, cherry-pick public-only)");
+  run("git", ["fetch", "origin", "main"], { cwd: outDir });
+  const lastExport = await resolveLastExport(outDir);
+  const statusResult = run("git", ["status", "--porcelain"], { cwd: outDir });
+  if (statusResult.stdout.trim()) {
+    throw new Error("outDir has uncommitted changes; refusing to continue");
+  }
+  const shas = run("git", ["rev-list", "--reverse", `${lastExport}..origin/main`], { cwd: outDir })
+    .stdout.split("\n").map((s) => s.trim()).filter(Boolean);
+
+  run("git", ["checkout", "--orphan", "export-orphan"], { cwd: outDir });
+  const { copied, rewritten } = await copyExportFiles(outDir);
+  await writeStandaloneFiles(outDir);
+  run("git", ["add", "-A"], { cwd: outDir });
+  run("git", ["commit", "-m", "Initial WodeAppX open-source export\n\nExport-Baseline: 1"], { cwd: outDir });
+
+  for (const sha of shas) {
+    const pick = spawnSync("git", ["cherry-pick", sha], { encoding: "utf8", cwd: outDir });
+    if (pick.status !== 0) {
+      const porcelain = runSafe("git", ["status", "--porcelain"], { cwd: outDir });
+      const paths = (porcelain?.stdout || "").split("\n").map((l) => l.slice(3).trim()).filter(Boolean);
+      spawnSync("git", ["cherry-pick", "--abort"], { cwd: outDir });
+      console.error("[export] cherry-pick conflict, abort, no push:");
+      for (const p of paths) console.error(`  ${p}`);
+      throw new Error(`FORCE_EXPORT cherry-pick conflict on ${sha}: ${paths.join(", ") || pick.stderr}`);
+    }
+  }
+  const newSha = run("git", ["rev-parse", "HEAD"], { cwd: outDir }).stdout.trim();
+  const newTree = run("git", ["rev-parse", "HEAD^{tree}"], { cwd: outDir }).stdout.trim();
+  await writeExportState(outDir, newSha, newTree);
+  run("git", ["add", STATE_FILE], { cwd: outDir });
+  run("git", ["commit", "-m", "export: record export state\n\nExport-Baseline: 1"], { cwd: outDir });
+  console.log(`[export] copied ${copied} files; brand-rewrote ${rewritten} text files`);
+  return { copied, rewritten };
+}
+
+async function orphanExport(outDir) {
+  console.log("[export] mode: orphan (fresh root commit)");
+  
+  // Copy export files
+  const { copied, rewritten } = await copyExportFiles(outDir);
+  console.log(`[export] copied ${copied} files; brand-rewrote ${rewritten} text files`);
+  
+  // Write standalone files
+  await writeStandaloneFiles(outDir);
+  
+  // Initialize git if requested
   if (wantsInitGit) {
     run("git", ["init", "-b", "main"], { cwd: outDir });
     run("git", ["add", "-A"], { cwd: outDir });
+    
+    await writeExportState(outDir, "0".repeat(40), null);
+    run("git", ["add", STATE_FILE], { cwd: outDir });
     run(
       "git",
-      ["commit", "-m", "Initial WodeAppX open-source export\n\nStandalone Community Edition tree with WodeAppX branding."],
+      ["commit", "-m", "Initial WodeAppX open-source export\n\nExport-Baseline: 1\nStandalone Community Edition tree with WodeAppX branding."],
       { cwd: outDir },
     );
+    const newSha = run("git", ["rev-parse", "HEAD"], { cwd: outDir }).stdout.trim();
+    const newTree = run("git", ["rev-parse", "HEAD^{tree}"], { cwd: outDir }).stdout.trim();
+    await writeExportState(outDir, newSha, newTree);
+    run("git", ["add", STATE_FILE], { cwd: outDir });
+    run("git", ["commit", "--amend", "--no-edit"], { cwd: outDir });
     console.log(`[export] git orphan/main commit created in ${outDir}`);
   }
+  
+  return { copied, rewritten };
+}
 
-  const remote = process.env.REMOTE || process.env.PUBLIC_REPO || "";
-  if (process.env.PUSH === "1") {
-    if (!remote) throw new Error("PUSH=1 requires REMOTE=git@github.com:diankourenxia/wodeappx.git");
-    if (!wantsInitGit) throw new Error("PUSH=1 requires --init-git");
+async function main() {
+  console.log(`[export] source: ${sourceRoot}`);
+  console.log(`[export] out:    ${outDir}`);
+  
+  // Validate remote
+  validateRemote(remote);
+  
+  if (dryRun) {
+    const files = await walkFiles(sourceRoot);
+    console.log(`[export] dry-run: would copy ${files.length} files`);
+    return;
+  }
+  
+  const outDirExists = await pathExists(outDir);
+  const gitExists = outDirExists && await pathExists(path.join(outDir, ".git"));
+  
+  // Determine mode
+  let mode = modeFlag;
+  if (!mode) {
+    mode = gitExists ? "incremental" : "orphan";
+  }
+  
+  // Hard rejects
+  validatePushOrphanWithoutForce(wantsPush, mode, forceExport);
+  
+  if (gitExists && wantsInitGit) {
+    throw new Error("--init-git refused: outDir already has .git");
+  }
+  
+  if (gitExists && mode === "orphan" && !forceExport) {
+    throw new Error("--mode=orphan refused: outDir already has .git (FORCE_EXPORT=1 required to reset root)");
+  }
+  
+  let result;
+  if (mode === "incremental") {
+    if (!gitExists) {
+      throw new Error("incremental mode requires existing .git in outDir");
+    }
+    result = await incrementalExport(outDir);
+  } else if (mode === "orphan") {
+    if (gitExists) {
+      if (!forceExport) {
+        throw new Error("orphan mode with existing .git requires FORCE_EXPORT=1");
+      }
+      result = await forceOrphanReset(outDir);
+    } else {
+      if (outDirExists) {
+        const marker = path.join(outDir, ".wodeappx-standalone-export");
+        if (await pathExists(marker)) {
+          throw new Error("refusing to delete outDir based on standalone marker; marker no longer authorizes destroying a tree");
+        }
+        await rm(outDir, { recursive: true, force: true });
+      }
+      await mkdir(outDir, { recursive: true });
+      result = await orphanExport(outDir);
+    }
+  } else {
+    throw new Error(`Invalid mode: ${mode}`);
+  }
+  
+  // Push if requested
+  if (wantsPush) {
+    if (!gitExists && mode === "orphan" && !wantsInitGit) {
+      throw new Error("PUSH=1 with orphan mode requires --init-git");
+    }
+    
     const remotes = run("git", ["remote"], { cwd: outDir }).stdout.split("\n").map((s) => s.trim()).filter(Boolean);
     if (remotes.includes("origin")) {
       run("git", ["remote", "set-url", "origin", remote], { cwd: outDir });
     } else {
       run("git", ["remote", "add", "origin", remote], { cwd: outDir });
     }
-    run("git", ["push", "-u", "origin", "HEAD:main"], { cwd: outDir, stdio: "inherit" });
+    
+    // Fetch to check if we can fast-forward
+    run("git", ["fetch", "origin", "main"], { cwd: outDir });
+    
+    if (mode === "orphan" && forceExport) {
+      // Get the remote SHA for force-with-lease
+      const remoteSha = runSafe("git", ["rev-parse", "origin/main"], { cwd: outDir });
+      const sha = remoteSha?.stdout?.trim() || "";
+      
+      if (!/^[0-9a-f]{40}$/.test(sha)) {
+        throw new Error("Cannot resolve origin/main SHA for --force-with-lease");
+      }
+      
+      const pushArgs = ["push", "-u", "origin", `--force-with-lease=refs/heads/main:${sha}`, "HEAD:main"];
+      validateGitArgs(pushArgs);
+      run("git", pushArgs, { cwd: outDir, stdio: "inherit" });
+    } else {
+      const anc = spawnSync("git", ["merge-base", "--is-ancestor", "origin/main", "HEAD"], {
+        encoding: "utf8",
+        cwd: outDir,
+      });
+      if (anc.status !== 0) {
+        throw new Error("PUSH=1 incremental: origin/main is not an ancestor of HEAD; refusing --force");
+      }
+      const pushArgs = ["push", "-u", "origin", "HEAD:main"];
+      validateGitArgs(pushArgs);
+      run("git", pushArgs, { cwd: outDir, stdio: "inherit" });
+    }
+    
     console.log(`[export] pushed to ${remote}`);
   }
-
+  
   console.log(`[export] done → ${outDir}`);
   console.log(`[export] next: cd ${outDir} && pnpm run setup && pnpm open-source:check && pnpm dev`);
 }
 
-main().catch((error) => {
-  console.error(`[export] ${error instanceof Error ? error.message : error}`);
-  process.exit(1);
-});
+// Only run main if this is the main module
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((error) => {
+    console.error(`[export] ${error instanceof Error ? error.message : error}`);
+    process.exit(1);
+  });
+}
