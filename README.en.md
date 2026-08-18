@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">中文</a> · <a href="README.en.md">English</a>
+  <a href="README.md">中文</a> · <a href="README.en.md">English</a> · <a href="README.ja.md">日本語</a> · <a href="README.vi.md">Tiếng Việt</a> · <a href="README.pt-BR.md">Português</a> · <a href="README.th.md">ไทย</a> · <a href="README.fr.md">Français</a> · <a href="README.ca.md">Català</a> · <a href="README.es.md">Español</a> · <a href="README.ru.md">Русский</a>
 </p>
 
 <p align="center">
@@ -200,7 +200,7 @@ Windows is not Authenticode-signed yet. macOS is notarized. You can run from sou
 
 | Audience | Docs |
 |---|---|
-| First file after clone | This page · [中文](README.md) · [Website](https://x.wodeapp.ai/) |
+| First file after clone | This page (languages in the header) · [Website](https://x.wodeapp.ai/) |
 | Agents / contributors | [AGENTS.md](AGENTS.md) · [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Capabilities and local keys | [docs/CAPABILITIES.md](docs/CAPABILITIES.md) · [docs/LOCAL_KEY_INVOKE.md](docs/LOCAL_KEY_INVOKE.md) |
 | Full desktop index | [docs/README.md](docs/README.md) |
