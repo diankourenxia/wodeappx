@@ -212,9 +212,10 @@ jobs:
       # then uploaded manually BEFORE this workflow runs. CI must never clobber them.
       - name: Remove macOS DMGs from CI artifacts
         run: |
-          echo "Removing CI-built macOS DMGs to preserve manually uploaded notarized versions..."
-          rm -fv release/wodeappx-mac*.dmg release/latest-mac.yml release/latest-mac.yaml 2>/dev/null || true
-          find release -name "*.dmg.blockmap" -type f -delete -print 2>/dev/null || true
+          echo "Removing CI-built macOS installers to preserve manually uploaded notarized versions..."
+          rm -fv release/wodeappx-mac*.dmg release/wodeappx-mac*.zip 2>/dev/null || true
+          rm -fv release/latest-mac.yml release/latest-mac.yaml 2>/dev/null || true
+          rm -fv release/wodeappx-mac*.dmg.blockmap release/wodeappx-mac*.zip.blockmap 2>/dev/null || true
           echo "Remaining files for tag release:"
           ls -lh release/ || echo "No files remaining"
       - uses: softprops/action-gh-release@v2
