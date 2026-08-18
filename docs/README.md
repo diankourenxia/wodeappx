@@ -1,8 +1,8 @@
 # WodeAppX（wodeappx）桌面端文档
 
 > **开源对外：WodeAppX**；仓内 codename `wodeappx`。默认产品名就是 WodeAppX。
-> 桌面端文档索引。产品入口见 [`../README.md`](../README.md)。  
-> 平台契约（登录 / 凭证 / 边界）见 [`WODEAPP_PLATFORM_BOUNDARY.md`](WODEAPP_PLATFORM_BOUNDARY.md)。
+> 产品入口：[README.md](../README.md) · Agent / 贡献者先读 [AGENTS.md](../AGENTS.md)。
+> 克隆的是独立仓时，以本目录与仓库根文档为准；下面个别链到上层 monorepo 的路径只在 WodeApp 主仓里存在。
 
 ## 现行文档
 
@@ -13,7 +13,7 @@
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | 桌面架构与模块边界 |
 | [`CAPABILITIES.md`](CAPABILITIES.md) | 能力面：Skill / 模型 / MCP / Computer Use |
 | [`AGENT_MINIMAL_CONTEXT.md`](AGENT_MINIMAL_CONTEXT.md) | Agent 出图/视频分轨与最小上下文契约 |
-| [`AGENTS_CONFIG.md`](AGENTS_CONFIG.md) | 用户习惯记忆（`USER.md` / `MEMORY.md`，学 Hermes） |
+| [`../../.agents/memories/README.md`](../../.agents/memories/README.md) | 用户习惯记忆（`USER.md` / `MEMORY.md`，学 Hermes） |
 | [`AGENT_CAPABILITY_TESTING.md`](AGENT_CAPABILITY_TESTING.md) | Agent 能力路由与测试门禁（P0 不变式；含 A17 sticky 禁假模型） |
 | [`../integrations/openwork/TOOL_DISCOVERY.md`](../integrations/openwork/TOOL_DISCOVERY.md) | Deferred/`tool_search`/sticky lease；无假模型、默认不烧积分验收 |
 | [`LOCAL_XLS_PRODUCT_IMPORT_TEST_PLAN.md`](LOCAL_XLS_PRODUCT_IMPORT_TEST_PLAN.md) | 本地 `.xls` + 图片理解 + 商品入库的分层回归方案 |
