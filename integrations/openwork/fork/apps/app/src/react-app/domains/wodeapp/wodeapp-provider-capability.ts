@@ -119,6 +119,7 @@ const VENDOR_ESTIMATE: Record<string, ProviderCapabilityModalities> = {
   gemini: { text: true, image: true, video: false },
   zai: { text: true, image: false, video: false },
   "openai-image": { text: false, image: true, video: false },
+  "openai-compatible": { text: true, image: false, video: false },
   wodeapp: { text: true, image: true, video: true },
 };
 
@@ -138,9 +139,7 @@ export const VIDEO_GENERATION_TOOL_IDS = [
 
 export const MODALITY_FILL_HINTS: Record<GenerationModality, readonly ProviderCapabilityFillHint[]> = {
   text: [
-    { vendorId: "volcano", label: "火山方舟（字节）", why: "同一 Key 可探测豆包对话 + Seedream + Seedance" },
-    { vendorId: "deepseek", label: "DeepSeek", why: "国内对话" },
-    { vendorId: "moonshot", label: "Kimi", why: "国内对话" },
+    { vendorId: "openai-compatible", label: "OpenAI 兼容（DeepSeek / Kimi / 火山 / OpenRouter 等）", why: "本机 Key 统一行；填一把对话 Key 即可" },
   ],
   image: [
     { vendorId: "volcano", label: "火山方舟（字节）", why: "探测到 Seedream 即可生图" },
@@ -333,6 +332,9 @@ export function sortSourcesBySupport<T extends {
 export function formatCapabilitySourceLabel(id: string, fallback = ""): string {
   const key = String(id ?? "").trim().toLowerCase();
   const base = String(fallback ?? "").trim();
+  if (key === "openai-compatible" || /openai.*兼容/.test(base)) {
+    return "OpenAI 兼容";
+  }
   if (key === "volcano" || key === "ark" || key === "doubao" || /火山方舟/.test(base)) {
     return "火山方舟（字节）";
   }
@@ -344,6 +346,7 @@ export function formatCapabilitySourceLabel(id: string, fallback = ""): string {
 
 function capabilityTablePin(id: string): number {
   const key = String(id ?? "").trim().toLowerCase();
+  if (key === "openai-compatible") return -1;
   if (key === "deepseek") return 0;
   if (key === "moonshot" || key === "kimi") return 1;
   if (key === "volcano" || key === "ark" || key === "doubao") return 2;
