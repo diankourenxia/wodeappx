@@ -41,6 +41,7 @@ import { createBrowserPanel } from "./browser-panel.mjs";
 import { registerBrowserNativeHost } from "./browser-native-host.mjs";
 import { createWorkspaceStore } from "./workspace-store.mjs";
 import { rendererBuildErrorHtml, rendererDevServerErrorHtml, validateRendererIndex, waitForRendererUrl } from "./renderer-build-guard.mjs";
+import { readWodeAppSkinFileId, writeWodeAppSkinFileId } from "./wodeapp-skin-file.mjs";
 // WODEAPP_CLOUD_INTEGRATION
 import {
   prepareWodeAppBrowserSession,
@@ -1940,6 +1941,13 @@ const desktopCommandHandlers = {
 };
 
 async function handleDesktopInvoke(event, command, ...args) {
+  if (command === "skinFileRead") {
+    return { ok: true, id: readWodeAppSkinFileId() };
+  }
+  if (command === "skinFileWrite") {
+    const payload = args[0] && typeof args[0] === "object" ? args[0] : { id: args[0] };
+    return writeWodeAppSkinFileId(payload.id);
+  }
   const handler = desktopCommandHandlers[command];
   if (!handler) {
     throw new Error(`Electron desktop bridge method is not implemented yet: ${command}`);
@@ -2002,7 +2010,16 @@ async function loadMainRenderer(window) {
 }
 
 async function applySelfEvolveRendererOverlay(window) {
-  let skin = "";
+  const fileId = readWodeAppSkinFileId();
+  try {
+    await window.webContents.executeJavaScript(
+      `window.__WODEAPP_SKIN_FILE_ID__ = ${JSON.stringify(fileId)};`,
+    );
+  } catch {
+    // Renderer may not be ready; file still wins on the next load.
+  }
+  let skin = fileId ? String(fileId).trim() : "";
+  if (!skin) {
   try {
     skin = String(
       await window.webContents.executeJavaScript(
@@ -2011,6 +2028,7 @@ async function applySelfEvolveRendererOverlay(window) {
     ).trim();
   } catch {
     skin = "";
+  }
   }
   const safeSkin = /^[a-z0-9][a-z0-9_-]{0,63}$/i.test(skin) ? skin : "";
   const wanted = ["wodeapp-skin-theme-align.css"];

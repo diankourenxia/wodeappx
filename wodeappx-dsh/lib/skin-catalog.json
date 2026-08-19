@@ -1,0 +1,75 @@
+{
+  "generatedFrom": "integrations/openwork/wodeapp/wodeapp-skins.ts",
+  "skins": [
+    {
+      "id": "default",
+      "label": "默认外观",
+      "hidden": false
+    },
+    {
+      "id": "classic-blue",
+      "label": "经典蓝色",
+      "hidden": false
+    },
+    {
+      "id": "beauty",
+      "label": "美妆种草",
+      "hidden": false
+    },
+    {
+      "id": "supor",
+      "label": "苏泊尔",
+      "hidden": true
+    },
+    {
+      "id": "pet-soft",
+      "label": "萌宠柔光",
+      "hidden": false
+    },
+    {
+      "id": "cute-pastel",
+      "label": "可爱马卡龙",
+      "hidden": false
+    },
+    {
+      "id": "ink-book",
+      "label": "水墨书卷",
+      "hidden": false
+    },
+    {
+      "id": "otome-diary",
+      "label": "蔷薇日记",
+      "hidden": false
+    },
+    {
+      "id": "red-compact",
+      "label": "红色紧凑",
+      "hidden": false
+    },
+    {
+      "id": "summer-breeze",
+      "label": "夏日海风",
+      "hidden": false
+    },
+    {
+      "id": "aurora-night",
+      "label": "极光夜航",
+      "hidden": false
+    },
+    {
+      "id": "forest-mist",
+      "label": "林间晨雾",
+      "hidden": false
+    },
+    {
+      "id": "coffee-loft",
+      "label": "咖啡阁楼",
+      "hidden": false
+    },
+    {
+      "id": "noir-jazz",
+      "label": "午夜爵士",
+      "hidden": false
+    }
+  ]
+}
