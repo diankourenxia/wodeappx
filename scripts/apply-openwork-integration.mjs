@@ -1365,6 +1365,7 @@ const FORK_OWNED_OPENWORK_TEMPLATES = [
   ["fork/apps/desktop/electron/browser-native-host.mjs", "apps/desktop/electron/browser-native-host.mjs"],
   ["fork/apps/desktop/electron/browser-native-host.test.mjs", "apps/desktop/electron/browser-native-host.test.mjs"],
   ["fork/apps/desktop/electron/main.mjs", "apps/desktop/electron/main.mjs"],
+  ["fork/apps/desktop/electron/wodeapp-skin-file.mjs", "apps/desktop/electron/wodeapp-skin-file.mjs"],
   ["fork/apps/desktop/electron/ui-control-server.mjs", "apps/desktop/electron/ui-control-server.mjs"],
   ["fork/apps/desktop/electron/local-speech.mjs", "apps/desktop/electron/local-speech.mjs"],
   ["fork/apps/desktop/electron/local-tts-worker.mjs", "apps/desktop/electron/local-tts-worker.mjs"],
