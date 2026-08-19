@@ -1,11 +1,12 @@
 import { SUBSTANTIVE_RESIDENT_TOOL_IDS } from "./wodeapp-creative-core";
 import {
+  WODEAPP_AGENT_DIRECT_TOOL_NAMES,
   WODEAPP_ASSET_DIRECT_TOOL_NAMES,
   WODEAPP_DIRECT_TOOL_NAMES,
   WODEAPP_FOUNDATION_DIRECT_TOOL_NAMES,
   WODEAPP_IMAGE_DIRECT_TOOL_NAMES,
 } from "./wodeapp-direct-action-contracts";
-import { resolveSelfEvolveAwarenessPack } from "./wodeapp-self-evolve-awareness";
+import { asksAboutSelfEvolve, resolveSelfEvolveAwarenessPack } from "./wodeapp-self-evolve-awareness";
 import {
   buildAgentProviderCapabilityPack,
   generationToolsHiddenBySnapshot,
@@ -47,6 +48,8 @@ export type CapabilityRoutingDraft = {
   workspaceDirectory?: string | null;
   /** Live BYOK/cloud key probe: which generation modalities this machine can call. */
   providerCapability?: ProviderCapabilitySnapshot | null;
+  /** Web chat vs desktop. Defaults to desktop unless the web build env is set. */
+  runtime?: "web" | "desktop";
 };
 
 export type WodeAppCapabilityId =
@@ -145,6 +148,7 @@ const CAPABILITY_TOOL_GRAPH = {
     "ai_generate_page",
     "ai_modify_section",
     "publish_project",
+    ...WODEAPP_AGENT_DIRECT_TOOL_NAMES,
     "openwork_browser_open_url",
     "browser_snapshot",
     "browser_fill",
@@ -326,6 +330,7 @@ const CAPABILITY_TOOL_GRAPH = {
     "ai_modify_section",
     "ai_generate_text",
     "ai_generate_json",
+    ...WODEAPP_AGENT_DIRECT_TOOL_NAMES,
   ],
   workspace: [
     "bash",
@@ -402,7 +407,7 @@ export {
 
 const CAPABILITY_PACKS: Partial<Record<WodeAppCapabilityId, string>> = {
   general: "General task: use the small direct coding/web surface when sufficient. Call tool_search when the needed operation is deferred, including WodeApp business actions, installed plugins, and connected MCP tools. Search by capability or integration instead of guessing an exact tool name. If tool_search returns no matches: broaden the query once, then use web_search/webfetch for public docs, or ask the user to connect the missing MCP/extension — do not invent tools or glob the workspace for a fake implementation.",
-  "agent-app": "Agent App / create application: prefer Skill materialization for tool-like agents. First list_skill_manifests (optional query) → if a skillId matches (poster/landing/copywriting/etc.), call materialize_skill_app(skillId) — mounts SkillWorkbenchSection with a real skill contract and usually publishes; verify the returned url. Second: list_templates + create_project(templateId) only for known workbenches (storyboard-video-generator, ecommerce-video, infinite-canvas, image-creation-studio, parallel-styles-visual-kit, etc.). Third (no skill/template): create_project with name only (no templateId) → ai_generate_page with a full natural-language prompt (designBrief then skeleton/content, same as generate-stream) → verify publish. Multi-page: create_page + ai_generate_page. Hand-authored HTML: write locally → wodeapp_page_import_from_file({projectId,pageId,sourcePath}) → publish_project (never paste mega template-configs into update_page.config). Never invent a chat-only shell, fake upstream toast, or hand-write empty Hero stacks when a skill/template/generation path applies. Never use build_app unless the user asks for APK, PWA, Tauri, or extension packaging. Opening a URL is not verification: snapshot the published page and confirm real UI before reporting success. Return projectId and the verified projectUrl.",
+  "agent-app": "Agent App / create application: prefer Skill materialization for tool-like agents. First list_skill_manifests (optional query) → if a skillId matches (poster/landing/copywriting/etc.), call materialize_skill_app(skillId) — mounts SkillWorkbenchSection with a real skill contract and usually publishes; verify the returned url. Second: list_templates + create_project(templateId) only for known workbenches (storyboard-video-generator, ecommerce-video, infinite-canvas, image-creation-studio, parallel-styles-visual-kit, etc.). Third (no skill/template): create_project with name only (no templateId) → ai_generate_page with a full natural-language prompt (designBrief then skeleton/content, same as generate-stream) → verify publish. ai_generate_page writes one complete compiled app section using saveData/loadData; never assemble Hero/SmartForm/SmartTable stacks via update_page. Multi-page: create_page + ai_generate_page. Hand-authored HTML: write locally → wodeapp_page_import_from_file({projectId,pageId,sourcePath}) → publish_project (never paste mega template-configs into update_page.config). After publish_project, call wodeapp_sidebar_agent_save with the 智能体 name plus projectId and launchUrl so the site is written onto that agent record. The sidebar updates immediately; do not ask the user to refresh or restart. Skill.md is not the 智能体. Never invent a chat-only shell, fake upstream toast, or hand-write empty Hero stacks when a skill/template/generation path applies. Never use build_app unless the user asks for APK, PWA, Tauri, or extension packaging. Opening a URL is not verification: snapshot the published page and confirm real UI before reporting success. Return projectId and the verified projectUrl.",
   "app-ui": "App UI task: use the runtime UI action catalog and its constrained executor; browser tools must not control the WodeAppX app itself.",
   video: "Video: single ≤15s clip → video_generate / wodeapp.video.generate. N clips / multi-scene / storyboard / >15s → wodeapp_video_storyboard_open (do not loop video_generate or curl /video/tasks). Large follow-up batches / edit one scene → wodeapp_video_storyboard_update with the same shareDocId and ONLY delta scenes (≤25/call); never resend the full board. When board JSON is large, prefer openwork_file_extract_text(offset,maxChars) or grep by groupId/E0N to sample the episodes you will change (small files may use read). Multi-episode in one project: same shareDocId + groups[] + scene.groupId (one episode = one group tab); never one shareDoc per episode and never create_page/update_page as fake grouping. Do not pass model (ignored; platform default Seedance 2.0 Mini ≤15s — split longer clips). MiniMax tier: when the user asks MiniMax/H3/海螺官方 pass provider:'minimax' (default MiniMax-H3, 4–15s, omni/ref video) and omit model. Engine availability source of truth: GET /runtime-server/api/video/tasks/providers. Upload local refs via wodeapp_image_asset_save once. Character refs: ai_generate_image with seedream-5.0. Script visuals on the board: scriptFrameUrl (单帧) / nineGridUrl (九宫格) / videoRefs (视频), switch with previewMode; subjects may carry assetId for Visual Bible. Short-drama script editing: wodeapp.short_drama.open + series_preflight; production still uses video_storyboard. Product short-video: never call wodeapp.short_drama.open or load wodeapp-short-drama-factory. Details: wodeapp_get_tool_docs('video_storyboard').",
   assets: "Digital assets: chat images use one ID vocabulary (candidateImages → selectedImageIds). product_save binds SKU shelf; image_asset_save binds 图片 shelf—same upload path. Do not re-open prior images on ordinary follow-ups (引用/脚本/生图)—use summaries, @商品 HTTPS, or selectedImageIds. Chat uploads already carry vision/attachment context. >12 ask once then pass chosen IDs. assets_list to browse. Details: wodeapp_get_tool_docs('product_save'). After successful product_save without same-turn gen ask, append followUpChoicesMarkdown (```wodeapp-choices); do not auto-run generation. Dedupe/delete only when explicitly requested.",
@@ -417,7 +422,7 @@ const CAPABILITY_PACKS: Partial<Record<WodeAppCapabilityId, string>> = {
   shopify: "Shopify task: use the local connector for fast store context and the authenticated Shopify Admin MCP for resources that fixed local tools do not cover. Call shopify_connections_list to verify the mainserver OAuth connection; wodeappx_shopify_status only checks the runtime/CLI store bridge. Never expose Admin API tokens. Before shopify_graphql, use Shopify Dev schema/docs validation when the operation is unfamiliar. Queries are read-only; mutations must be previewed or described exactly and may pass confirmed:true only after explicit user confirmation. For Feishu sync: link_status -> sync_preview -> sync_apply(confirmed:true). Shopify Dev MCP is for API/docs/schema work, not store execution.",
   automation: "Scheduled task: confirm the schedule, timezone, working directory, and intended prompt before creating or changing a recurring job. Use list/status tools to verify the saved job.",
   docs: "Documentation lookup: openwork_docs_search covers only the bundled OpenWork desktop documentation. Inspect its corpus and status fields before reading a match. Treat status=no_match as a terminal search result; do not rephrase the same query repeatedly. It is not a WodeApp product-contract corpus, so use enabled workspace tools for repository docs when available and clearly report when the requested corpus is unavailable.",
-  site: "Site / publish: prefer create_project (no templateId) → ai_generate_page (short prompt) → publish_project; preserve projectId. Hand-authored HTML: write the file locally first, then wodeapp_page_import_from_file({projectId, pageId, sourcePath}) — host reads the file; tool args stay path-sized — then publish_project. Never paste mega template-configs / cloned workbench source into update_page.config (causes finish=length or unavailable tool 'invalid'). On those errors do not retry the same large payload — call wodeapp_page_import_from_file or ai_generate_page, then still publish_project. List templates only when reusing one; build_app only for explicit packaging. Data apps: create collection, bind reads/writes, verify field names. Verify the published URL before reporting success.",
+  site: "Site / publish: prefer create_project (no templateId) → ai_generate_page (short prompt) → publish_project; preserve projectId. Hand-authored HTML: write the file locally first, then wodeapp_page_import_from_file({projectId, pageId, sourcePath}) — host reads the file; tool args stay path-sized — then publish_project. Never paste mega template-configs / cloned workbench source into update_page.config (causes finish=length or unavailable tool 'invalid'). On those errors do not retry the same large payload — call wodeapp_page_import_from_file or ai_generate_page, then still publish_project. List templates only when reusing one; build_app only for explicit packaging. Data apps: ai_generate_page writes one complete component using saveData/loadData/deleteData. Do not assemble SmartForm+SmartTable+Hero via update_page. Verify the published URL before reporting success. If this site belongs to a 智能体, call wodeapp_sidebar_agent_save with name + projectId + launchUrl after publish; the sidebar updates immediately, do not ask the user to refresh.",
   workspace: "Workspace task: inspect the relevant files before editing, preserve unrelated user changes, make scoped changes, and run the smallest meaningful verification.",
 };
 
@@ -426,6 +431,21 @@ const FOUNDATION_CAPABILITY_PACK = "Deferred Visibility + Gated Execution: OpenC
 const TOOL_LOOP_GUARD = "Tool-loop guard: use the smallest direct tool path. After three failed or repeated attempts at the same operation, stop and report the blocker instead of switching through unrelated browser, shell, rendering, or subagent paths. The runtime enforces a finite model-step budget for every turn; use the remaining step to explain a blocker instead of starting another search variant.";
 
 const DEFAULT_RESPONSE_LANGUAGE_INSTRUCTION = "默认使用简体中文回答用户。只有用户明确要求其他语言时，才使用用户指定的语言；代码、命令、专有名词和必须保持原文的内容可保留原语言。";
+
+export const WEB_SURFACE_IDENTITY_PACK =
+  "Surface: WodeAppX web chat. You are WodeAppX. Do not describe yourself as a desktop workbench. 你是 WodeAppX 网页对话，不要自称桌面端、本机工作台，也不要声称能读写用户电脑上的文件。Help with conversation, writing, images, video, and browsing. Do not claim local file, folder, or self-evolve access; if the user needs those, tell them to use the WodeAppX desktop app.";
+
+export const WEB_SELF_EVOLVE_HINT =
+  "Self-evolution is only available in the WodeAppX desktop app. 自进化只在 WodeAppX 桌面端。Do not offer snapshot, verify, or rollback from web chat.";
+
+export function isWodeAppWebRuntime(draft: Pick<CapabilityRoutingDraft, "runtime"> = {}): boolean {
+  if (draft.runtime === "web") return true;
+  if (draft.runtime === "desktop") return false;
+  const env = (typeof import.meta !== "undefined"
+    && (import.meta as { env?: { VITE_OPENWORK_DEPLOYMENT?: string } }).env?.VITE_OPENWORK_DEPLOYMENT)
+    || "";
+  return env.trim().toLowerCase() === "web";
+}
 
 const ALL_MANAGED_TOOLS = [...new Set([
   ...ALWAYS_AVAILABLE_FOUNDATION_TOOL_IDS,
@@ -728,8 +748,8 @@ export function detectWodeAppCapabilities(draft: CapabilityRoutingDraft): WodeAp
   ]);
   const agentAppIntent = !localAgentDefinitionIntent && includesAny(text, [
     /\bagent\s*app(?:lication)?\b|agent.{0,8}应用|智能体应用/i,
-    /(创建|生成|搭建|制作|发布|开发).{0,20}(?:ai\s*)?(智能体|助手|对话机器人|客服机器人)/i,
-    /(?:ai\s*)?(智能体|助手|对话机器人|客服机器人).{0,16}(创建|生成|搭建|制作|发布|开发|应用|网站|页面)/i,
+    /(创建|生成|搭建|制作|发布|开发|保存).{0,20}(?:ai\s*)?(智能体|助手|对话机器人|客服机器人)/i,
+    /(?:ai\s*)?(智能体|助手|对话机器人|客服机器人).{0,16}(创建|生成|搭建|制作|发布|开发|保存|应用|网站|页面)/i,
     /\b(?:build|create|publish|launch).{0,24}\b(?:ai agent|assistant|chatbot|bot)\b/i,
     /(?:打开|进入|使用)?创建智能体/,
   ]);
@@ -908,11 +928,16 @@ export function routeWodeAppCapabilities(draft: CapabilityRoutingDraft): WodeApp
     FOUNDATION_CAPABILITY_PACK,
     ...capabilities.map((capability) => CAPABILITY_PACKS[capability]),
     capabilities.length || substantiveTask ? TOOL_LOOP_GUARD : undefined,
-    resolveSelfEvolveAwarenessPack({
-      workspaceName: draft.workspaceName,
-      workspaceDirectory: draft.workspaceDirectory,
-      text: `${draft.resolvedText ?? draft.text ?? ""}`,
-    }),
+    isWodeAppWebRuntime(draft)
+      ? WEB_SURFACE_IDENTITY_PACK
+      : resolveSelfEvolveAwarenessPack({
+        workspaceName: draft.workspaceName,
+        workspaceDirectory: draft.workspaceDirectory,
+        text: `${draft.resolvedText ?? draft.text ?? ""}`,
+      }),
+    isWodeAppWebRuntime(draft) && asksAboutSelfEvolve(`${draft.resolvedText ?? draft.text ?? ""}`)
+      ? WEB_SELF_EVOLVE_HINT
+      : undefined,
     buildAgentProviderCapabilityPack(draft.providerCapability),
     DEFAULT_RESPONSE_LANGUAGE_INSTRUCTION,
   ].filter((value): value is string => Boolean(value)).join("\n");

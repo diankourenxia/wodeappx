@@ -80,6 +80,7 @@ import {
   type WodeAppBuiltinAgent,
 } from "@/react-app/domains/wodeapp/runtime-projects";
 import { bindWodeAppRuntimeProfileToSession } from "@/react-app/domains/wodeapp/wodeapp-runtime-profile";
+import { bindCustomAgentHomeFromCreateSession } from "@/react-app/domains/wodeapp/wodeapp-custom-agent-home";
 import {
   isWodeAppSkinId,
   WODEAPP_DEFAULT_SKIN_ID,
@@ -90,6 +91,7 @@ import {
   classifyWodeAppCreditGatedError,
 } from "@/react-app/domains/wodeapp/wodeapp-send-readiness";
 import { WODEAPP_OPEN_LOGIN_EVENT, WODEAPP_OPEN_RECHARGE_EVENT } from "@/react-app/domains/wodeapp/wodeapp-model-display";
+import { isWebDeployment } from "@/app/lib/openwork-deployment";
 import { openFirstMileGuide } from "@/react-app/domains/wodeapp/wodeapp-first-mile";
 import { useFirstMileEntryCue } from "@/react-app/domains/wodeapp/wodeapp-byok-guide-dialog";
 import { loadCachedWodeAppAuthState } from "@/app/lib/wodeapp-auth";
@@ -1019,6 +1021,9 @@ export function SessionSurface(props: SessionSurfaceProps) {
     () => deriveRenderedSessionMessages({ transcriptState, snapshot, snapshotMessages }),
     [snapshot, snapshotMessages, transcriptState],
   );
+  useEffect(() => {
+    void bindCustomAgentHomeFromCreateSession(props.sessionId, snapshot?.messages ?? renderedMessages);
+  }, [props.sessionId, renderedMessages, snapshot]);
   useEffect(() => {
     if (!shouldClearOptimisticUserMessage(optimisticUserMessage, renderedMessages, {
       baselineMessageCount: optimisticUserBaseline,
@@ -3046,17 +3051,17 @@ export function SessionSurface(props: SessionSurfaceProps) {
             </>
           ) : (
             <>
-              <div className="wapp-session-hero-kicker">你的 AI 工作台</div>
-              <h1>想做什么，直接说</h1>
-              <p>管理数字资产，生成图片与视频，或调用自定义 Agent——直接说需求，我来继续完成。</p>
-              <div className="wapp-session-hero-chips" aria-label="常用能力">
-                {firstMileCue ? (
+              <div className="wapp-session-hero-kicker">{t("wodeappx.hero.kicker")}</div>
+              <h1>{t("wodeappx.hero.title")}</h1>
+              <p>{t("wodeappx.hero.body")}</p>
+              <div className="wapp-session-hero-chips" aria-label={t("wodeappx.hero.chips")}>
+                {firstMileCue && !isWebDeployment() ? (
                   <button
                     type="button"
                     className="wapp-session-hero-chip"
                     onClick={() => openFirstMileGuide()}
                   >
-                    开始使用
+                    {t("wodeappx.hero.chip_start")}
                   </button>
                 ) : null}
                 <button
@@ -3064,28 +3069,34 @@ export function SessionSurface(props: SessionSurfaceProps) {
                   className="wapp-session-hero-chip"
                   onClick={() => handleWodeAppHeroPromptClick("把下面的资料保存整理到数字资产")}
                 >
-                  数字资产
+                  {t("wodeappx.nav.assets")}
                 </button>
                 <button
                   type="button"
                   className="wapp-session-hero-chip"
                   onClick={() => startHeroBuiltinAgent("visual-generation", "用图片智能体生成：")}
                 >
-                  生成图片
+                  {t("wodeappx.hero.chip_image")}
                 </button>
                 <button
                   type="button"
                   className="wapp-session-hero-chip"
                   onClick={() => startHeroBuiltinAgent("video-generation", "用视频智能体生成：")}
                 >
-                  生成视频
+                  {t("wodeappx.hero.chip_video")}
                 </button>
                 <button
                   type="button"
                   className="wapp-session-hero-chip"
-                  onClick={() => handleWodeAppHeroPromptClick("/自进化 ")}
+                  onClick={() => {
+                    if (isWebDeployment()) {
+                      window.dispatchEvent(new Event("wodeapp:open-add-agent"));
+                      return;
+                    }
+                    handleWodeAppHeroPromptClick("/自进化 ");
+                  }}
                 >
-                  自定义 Agent
+                  {t("wodeappx.hero.chip_custom")}
                 </button>
               </div>
             </>

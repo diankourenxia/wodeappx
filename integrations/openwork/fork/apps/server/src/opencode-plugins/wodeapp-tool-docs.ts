@@ -7,6 +7,20 @@ export type WodeAppToolDocEntry = {
 };
 
 const TOOL_DOCS: Readonly<Record<string, WodeAppToolDocEntry>> = {
+  wodeapp_sidebar_agent_save: {
+    title: "保存侧栏智能体",
+    whenToUse: "用户要生成/创建/保存一个智能体，或已经发布了对应站点、需要把站点写进智能体信息时。",
+    requiredFields: ["name"],
+    rules: [
+      "智能体=侧栏名字+策略+对应站点，不是 Skill.md。",
+      "创建或发布 runtime 项目后必须回写 projectId 与 launchUrl。",
+      "保存后侧栏立刻更新，禁止让用户刷新或重启。",
+      "有对应站点时 samplePrompt 里写上这个智能体的项目 URL。",
+    ],
+    examples: [
+      'name: "PH 管理", projectId: "80d37c53", launchUrl: "https://xn--vxup8bh7b382a-2.wodeapp.cn"',
+    ],
+  },
   wodeapp_product_save: {
     title: "保存商品到商品库",
     whenToUse: "用户要入库/上架/保存商品档案，或更新已有商品记录时。",
@@ -104,6 +118,7 @@ const TOOL_DOCS: Readonly<Record<string, WodeAppToolDocEntry>> = {
       "本地 HTML/大 CustomCode：先 write 文件，再 wodeapp_page_import_from_file({projectId,pageId,sourcePath})；不要把文件内容塞进 update_page.config。",
       "禁止把 server/data/template-configs.json 或其它整站模板源码一次性塞进 config（易 finish=length / unavailable tool 'invalid'）。",
       "出现 length/invalid 后：勿原样重试大 payload；改走 wodeapp_page_import_from_file 或 ai_generate_page，成功后仍要 publish_project。",
+      "新建自定义站/备忘录/表单/清单：走 ai_generate_page 写完整组件；禁止用本工具堆 Hero + SmartForm + SmartTable。",
       "工具返回是摘要（sectionsCount/sectionTypes/customCodeChars），不含完整 code。",
     ],
     examples: [
@@ -205,6 +220,8 @@ const TOOL_DOCS: Readonly<Record<string, WodeAppToolDocEntry>> = {
 };
 
 const ALIASES: Readonly<Record<string, string>> = {
+  sidebar_agent_save: "wodeapp_sidebar_agent_save",
+  "wodeapp.sidebar_agent.save": "wodeapp_sidebar_agent_save",
   page_import_from_file: "wodeapp_page_import_from_file",
   page_import_html: "wodeapp_page_import_from_file",
   product_save: "wodeapp_product_save",

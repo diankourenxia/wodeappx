@@ -141,6 +141,8 @@ export const MODALITY_FILL_HINTS: Record<GenerationModality, readonly ProviderCa
     { vendorId: "volcano", label: "火山方舟（字节）", why: "同一 Key 可探测豆包对话 + Seedream + Seedance" },
     { vendorId: "deepseek", label: "DeepSeek", why: "国内对话" },
     { vendorId: "moonshot", label: "Kimi", why: "国内对话" },
+    { vendorId: "openrouter", label: "OpenRouter", why: "一张 Key 可探测 GPT / Claude / Grok 等" },
+    { vendorId: "openai", label: "OpenAI", why: "原厂 GPT 对话与生图" },
   ],
   image: [
     { vendorId: "volcano", label: "火山方舟（字节）", why: "探测到 Seedream 即可生图" },

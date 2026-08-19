@@ -137,7 +137,7 @@
   letter-spacing: .18em;
 }
 .wapp-skin-noir-jazz .wapp-brand-spacer::after {
-  content: "午夜爵士";
+  content: attr(data-skin-title);
   display: block;
   padding: 2px 6px 12px;
   color: var(--wapp-noir-sidebar-icon);

@@ -210,7 +210,9 @@ describe("buildProviderCapabilitySnapshot", () => {
       "moonshot",
       "volcano",
       "dashscope",
+      "openai",
       "kling",
+      "openrouter",
       "replicate",
     ]);
     expect(rows.map((item) => item.label)).toEqual([
@@ -218,7 +220,9 @@ describe("buildProviderCapabilitySnapshot", () => {
       "Kimi / Moonshot",
       "火山方舟（字节）",
       "通义百炼（阿里）",
+      "OpenAI",
       "可灵",
+      "OpenRouter",
       "Replicate",
     ]);
     expect(rows.find((item) => item.id === "dashscope")?.keyPreview).toBe("");
@@ -260,6 +264,16 @@ describe("buildProviderCapabilitySnapshot", () => {
       text: false,
       image: false,
       video: true,
+    });
+    expect(rows.find((item) => item.id === "openrouter")?.modalities).toEqual({
+      text: true,
+      image: false,
+      video: false,
+    });
+    expect(rows.find((item) => item.id === "openai")?.modalities).toEqual({
+      text: true,
+      image: true,
+      video: false,
     });
     expect(isCapabilitySourceConfigured(rows.find((item) => item.id === "deepseek")!)).toBe(false);
     expect(capabilityConfigActionLabel(rows.find((item) => item.id === "deepseek")!)).toBe("去配置");

@@ -72,6 +72,36 @@ describe("picker families collapse vendor dumps", () => {
     expect(families.some((item) => item.modelID.includes("kimi-k2.5"))).toBe(false);
   });
 
+  test("WodeApp cloud alone does not invent GPT Claude Grok families", () => {
+    const families = buildPickerFamiliesFromSources([{
+      id: "wodeapp",
+      modelIds: [
+        "wode/doubao-pro",
+        "wode/deepseek-v4-flash",
+        "wode/qwen3.8-max",
+        "wode/kimi-k3",
+      ],
+    }]);
+    expect(families.some((item) => /gpt|claude|grok/i.test(`${item.title} ${item.modelID}`))).toBe(false);
+    expect(families.every((item) => item.providerID === "wodeapp")).toBe(true);
+  });
+
+  test("custom probed OpenAI-compatible IDs can surface catalog GPT families", () => {
+    const families = buildPickerFamiliesFromSources([{
+      id: "custom-my-proxy",
+      modelIds: [
+        "openai/gpt-5.6-sol",
+        "vendor/obscure-not-in-catalog",
+      ],
+    }]);
+    expect(families.map((item) => item.title)).toEqual(["GPT-5.6 Sol"]);
+    expect(families[0]).toEqual(expect.objectContaining({
+      providerID: "custom-my-proxy",
+      modelID: "openai/gpt-5.6-sol",
+    }));
+    expect(families.some((item) => item.modelID.includes("obscure"))).toBe(false);
+  });
+
   test("OpenRouter maps current Claude / GPT / Grok catalog families", () => {
     const families = buildPickerFamiliesFromSources([{
       id: "openrouter",
@@ -79,6 +109,8 @@ describe("picker families collapse vendor dumps", () => {
         "anthropic/claude-opus-5",
         "anthropic/claude-sonnet-5",
         "anthropic/claude-sonnet-4",
+        "openai/gpt-5.6-sol",
+        "openai/gpt-5.6-terra",
         "openai/gpt-5.6-luna-pro",
         "openai/gpt-5.6-luna",
         "openai/gpt-5.2",
@@ -90,6 +122,8 @@ describe("picker families collapse vendor dumps", () => {
     expect(families.map((item) => item.title)).toEqual([
       "Claude Opus 5",
       "Claude Sonnet 5",
+      "GPT-5.6 Sol",
+      "GPT-5.6 Terra",
       "GPT-5.6 Luna Pro",
       "GPT-5.6 Luna",
       "Grok 4.6",

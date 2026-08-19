@@ -45,6 +45,19 @@ describe("WodeAppX capabilities surface (能力中心)", () => {
   test("sidebar has a nav icon for capabilities", async () => {
     const source = await readFile(sidebarUrl, "utf8");
     expect(source).toMatch(/capabilities:\s*LayoutGrid/);
+    expect(source).toContain('t("wodeappx.nav.add_agent")');
+    expect(source).not.toContain("管理智能体");
+    expect(source).toContain("Pencil");
+    expect(source).toContain("onContextMenu");
+    expect(source).toContain("startAddAgentConversation");
+    expect(source).not.toContain("WodeAppAddAgentDialog");
+    expect(source).toContain("WodeAppManageAgentsDialog");
+    const dialog = await readFile(existingSourceUrl(
+      "../wodeapp/wodeapp-manage-agents-dialog.tsx",
+      "../src/react-app/domains/wodeapp/wodeapp-manage-agents-dialog.tsx",
+    ), "utf8");
+    expect(dialog).toContain("wx-manage-agent-title");
+    expect(dialog).toContain("保存");
   });
 
   test("skills tab wires online hub: default repos, install, uninstall, search", async () => {
@@ -87,6 +100,7 @@ describe("WodeAppX capabilities surface (能力中心)", () => {
     expect(source).toContain("publishSkinToPlaza");
     expect(source).toContain("storeWodeAppSkin");
     expect(source).toContain("saveWodeAppBrandAgents");
+    expect(source).toContain("buildBuiltinAgentTask");
     expect(source).toContain("listWodeAppPlazaCatalog");
     expect(source).toContain("saveWodeAppPlazaCatalog");
   });

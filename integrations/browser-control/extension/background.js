@@ -6,6 +6,13 @@ const COMMAND_WAIT_MS = 20000;
 const CONNECT_REFRESH_MS = 15000;
 const CONTROL_NOTICE_TTL_MS = 2600;
 const NATIVE_DEBUG_NOTICE_HOLD_MS = 600000;
+const DEBUGGER_ATTACH_TIMEOUT_MS = 1500;
+const NOTICE_SKIP_ACTIONS = new Set(["tabs.list", "page.read"]);
+const DEBUGGER_ATTACH_ACTIONS = new Set(["page.cdp", "page.screenshot", "page.key"]);
+const READ_PAGE_DEFAULT_MAX_CHARS = 12000;
+const READ_PAGE_DEFAULT_MAX_ELEMENTS = 240;
+const READ_PAGE_MAX_ELEMENTS_CAP = 400;
+const DEBUGGER_OCCUPIED_RE = /another debugger|already attached|already being debugged|被调试|已开始调试/i;
 const ACTION_LABELS = {
   "tabs.list": "检查标签页",
   "tabs.open": "打开网页",
@@ -22,6 +29,7 @@ const ACTION_LABELS = {
 const SUPPORTED_ACTIONS = Object.freeze(Object.keys(ACTION_LABELS));
 
 let pollTimer = null;
+let pollInFlight = false;
 let nativePort = null;
 let nativeRequestSequence = 0;
 const nativePendingRequests = new Map();
@@ -482,9 +490,47 @@ async function showPageControlNotice(tabId, label, state = "running", ttlMs = CO
   }
 }
 
-async function attachNativeDebugNotice(tabId) {
+function debuggerErrorMessage(error) {
+  return String(error?.message || error || "");
+}
+
+function isDebuggerOccupiedError(error) {
+  const message = debuggerErrorMessage(error);
+  return DEBUGGER_OCCUPIED_RE.test(message)
+    || message.includes("BROWSER_DEBUGGER_OCCUPIED")
+    || message.includes("BROWSER_DEBUGGER_ATTACH_TIMEOUT");
+}
+
+function debuggerOccupiedError() {
+  return new Error("BROWSER_DEBUGGER_OCCUPIED: 该标签页已被其他调试器占用（例如 ChatGPT）。请先结束对方的调试后再试。");
+}
+
+function debuggerAttachTimeoutError() {
+  return new Error("BROWSER_DEBUGGER_ATTACH_TIMEOUT: 附加调试器超时。该标签页可能已被其他调试器占用，请先结束对方的调试后再试。");
+}
+
+function withTimeout(promise, ms, createTimeoutError) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(createTimeoutError()), ms);
+    Promise.resolve(promise).then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
+async function attachNativeDebugNotice(tabId, { required = false } = {}) {
   const id = Number(tabId);
-  if (!Number.isFinite(id) || !chrome.debugger?.attach) return null;
+  if (!Number.isFinite(id) || !chrome.debugger?.attach) {
+    if (required) throw new Error("Chrome debugger attach failed for this tab");
+    return null;
+  }
 
   const existing = nativeDebugSessions.get(id);
   if (existing?.attached) {
@@ -495,16 +541,31 @@ async function attachNativeDebugNotice(tabId) {
   }
 
   try {
-    await chrome.debugger.attach({ tabId: id }, "1.3");
+    await withTimeout(
+      chrome.debugger.attach({ tabId: id }, "1.3"),
+      DEBUGGER_ATTACH_TIMEOUT_MS,
+      debuggerAttachTimeoutError,
+    );
     nativeDebugSessions.set(id, { attached: true, count: 1, detachTimer: null });
     lastStatus = { ...lastStatus, nativeDebugAttached: true };
     return id;
   } catch (error) {
+    const timeout = debuggerErrorMessage(error).includes("BROWSER_DEBUGGER_ATTACH_TIMEOUT");
+    const occupied = timeout || isDebuggerOccupiedError(error);
+    if (timeout) {
+      try {
+        await chrome.debugger.detach({ tabId: id });
+      } catch {
+        // Attach may have completed after the timeout; detach so we do not leak it.
+      }
+    }
+    const classified = timeout ? error : occupied ? debuggerOccupiedError() : error;
     lastStatus = {
       ...lastStatus,
-      lastError: String(error?.message || error),
+      lastError: debuggerErrorMessage(classified),
       nativeDebugAttached: false,
     };
+    if (occupied || required) throw classified;
     return null;
   }
 }
@@ -514,7 +575,7 @@ async function ensureDebuggerAttached(tabId) {
   if (Number.isFinite(id) && nativeDebugSessions.get(id)?.attached) {
     return id;
   }
-  const attached = await attachNativeDebugNotice(tabId);
+  const attached = await attachNativeDebugNotice(tabId, { required: true });
   if (!attached) throw new Error("Chrome debugger attach failed for this tab");
   return attached;
 }
@@ -579,8 +640,12 @@ async function beginControlNotice(action, args = {}) {
   await setActionBadge("RUN", "#1769e0", `WodeAppX 正在控制浏览器：${label}`);
 
   const tabId = await tabIdForNotice(action, args).catch(() => null);
-  const debugTabId = tabId ? await attachNativeDebugNotice(tabId) : null;
-  if (tabId) await showPageControlNotice(tabId, label, "running", CONTROL_NOTICE_TTL_MS);
+  const debugTabId = tabId && DEBUGGER_ATTACH_ACTIONS.has(action)
+    ? await attachNativeDebugNotice(tabId)
+    : null;
+  if (tabId && !NOTICE_SKIP_ACTIONS.has(action)) {
+    await showPageControlNotice(tabId, label, "running", CONTROL_NOTICE_TTL_MS);
+  }
   return { action, label, tabId, debugTabId };
 }
 
@@ -594,9 +659,10 @@ async function finishControlNotice(notice, error, result) {
   let debugTabId = notice?.debugTabId ?? null;
   const canDecorateResult = notice?.action !== "tabs.open"
     && notice?.action !== "tabs.navigate"
+    && !NOTICE_SKIP_ACTIONS.has(notice?.action)
     && result?.tab?.status !== "loading"
     && result?.status !== "loading";
-  if (!debugTabId && tabId && canDecorateResult) {
+  if (!debugTabId && tabId && canDecorateResult && DEBUGGER_ATTACH_ACTIONS.has(notice?.action)) {
     debugTabId = await attachNativeDebugNotice(tabId);
   }
   if (tabId && canDecorateResult) {
@@ -649,28 +715,28 @@ async function openUrl(args = {}) {
 
 async function readPage(args = {}) {
   const tab = await resolveTab(args.tabId);
-  const maxChars = Number(args.maxChars || 8000);
-  const maxElements = Math.max(1, Math.min(240, Number(args.maxElements || 160)));
+  const maxChars = Math.max(200, Math.min(50000, Number(args.maxChars || READ_PAGE_DEFAULT_MAX_CHARS)));
+  const maxElements = Math.max(1, Math.min(READ_PAGE_MAX_ELEMENTS_CAP, Number(args.maxElements || READ_PAGE_DEFAULT_MAX_ELEMENTS)));
   const page = await inject(tab.id, (limit, elementLimit) => {
     const nodeAttribute = "data-wodeappx-node-id";
     for (const node of document.querySelectorAll(`[${nodeAttribute}]`)) {
       node.removeAttribute(nodeAttribute);
     }
 
-    function compact(value, max = 240) {
+    function compact(value, max = 160) {
       return String(value || "").replace(/\s+/g, " ").trim().slice(0, max);
     }
 
-    function isVisible(element) {
+    function inViewport(rect) {
+      return rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth;
+    }
+
+    function isVisible(element, viewportOnly) {
       const rect = element.getBoundingClientRect();
+      if (rect.width < 2 || rect.height < 2) return false;
+      if (viewportOnly && !inViewport(rect)) return false;
       const style = window.getComputedStyle(element);
-      return (
-        rect.width > 0
-        && rect.height > 0
-        && style.visibility !== "hidden"
-        && style.display !== "none"
-        && Number(style.opacity || 1) > 0
-      );
+      return style.visibility !== "hidden" && style.display !== "none" && Number(style.opacity || 1) > 0;
     }
 
     function targetName(element) {
@@ -698,11 +764,11 @@ async function readPage(args = {}) {
       const id = element.getAttribute("id");
       const testId = element.getAttribute("data-testid");
       const name = element.getAttribute("name");
-      const ariaLabel = element.getAttribute("aria-label");
+      const aria = element.getAttribute("aria-label");
       if (id) candidates.push(`#${CSS.escape(id)}`);
       if (testId) candidates.push(`[data-testid="${CSS.escape(testId)}"]`);
       if (name) candidates.push(`${element.tagName.toLowerCase()}[name="${CSS.escape(name)}"]`);
-      if (ariaLabel) candidates.push(`${element.tagName.toLowerCase()}[aria-label="${CSS.escape(ariaLabel)}"]`);
+      if (aria) candidates.push(`[aria-label="${CSS.escape(aria)}"]`);
       for (const selector of candidates) {
         try {
           if (document.querySelectorAll(selector).length === 1) return selector;
@@ -711,6 +777,13 @@ async function readPage(args = {}) {
         }
       }
       return null;
+    }
+
+    function pageText(max) {
+      const full = String(document.body?.innerText || document.documentElement?.innerText || "")
+        .replace(/\s+/g, " ")
+        .trim();
+      return { text: full.slice(0, max), truncated: full.length > max };
     }
 
     const snapshotId = `wxa-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -734,41 +807,49 @@ async function readPage(args = {}) {
     ].join(",");
     const seen = new Set();
     const interactiveElements = [];
-    for (const element of document.querySelectorAll(targetSelector)) {
-      if (interactiveElements.length >= elementLimit) break;
-      if (seen.has(element) || !isVisible(element)) continue;
-      seen.add(element);
-      const nodeId = `${snapshotId}-${interactiveElements.length + 1}`;
-      element.setAttribute(nodeAttribute, nodeId);
-      const rect = element.getBoundingClientRect();
-      const type = compact(element.getAttribute("type"), 48);
-      const password = type.toLowerCase() === "password";
-      interactiveElements.push({
-        nodeId,
-        tag: element.tagName.toLowerCase(),
-        role: compact(element.getAttribute("role") || element.tagName.toLowerCase(), 64),
-        type: type || undefined,
-        name: targetName(element),
-        text: compact(element.innerText, 240),
-        value: password ? undefined : compact(element.value, 240),
-        placeholder: compact(element.getAttribute("placeholder"), 160) || undefined,
-        href: compact(element.getAttribute("href"), 320) || undefined,
-        selector: uniqueSelector(element) || undefined,
-        checked: typeof element.checked === "boolean" ? element.checked : undefined,
-        disabled: Boolean(element.disabled || element.getAttribute("aria-disabled") === "true"),
-        rect: {
-          x: Math.round(rect.x),
-          y: Math.round(rect.y),
-          width: Math.round(rect.width),
-          height: Math.round(rect.height),
-        },
-      });
+
+    function addInteractive(viewportOnly) {
+      for (const element of document.querySelectorAll(targetSelector)) {
+        if (interactiveElements.length >= elementLimit) return;
+        if (seen.has(element) || !isVisible(element, viewportOnly)) continue;
+        seen.add(element);
+        const nodeId = `${snapshotId}-${interactiveElements.length + 1}`;
+        element.setAttribute(nodeAttribute, nodeId);
+        const rect = element.getBoundingClientRect();
+        const type = compact(element.getAttribute("type"), 48);
+        const password = type.toLowerCase() === "password";
+        const name = targetName(element);
+        const text = compact(element.innerText, 240);
+        interactiveElements.push({
+          nodeId,
+          tag: element.tagName.toLowerCase(),
+          role: compact(element.getAttribute("role") || element.tagName.toLowerCase(), 32),
+          type: type || undefined,
+          name,
+          text,
+          value: password ? undefined : compact(element.value, 240) || undefined,
+          placeholder: compact(element.getAttribute("placeholder"), 160) || undefined,
+          href: element.tagName === "A" ? compact(element.getAttribute("href"), 400) || undefined : undefined,
+          selector: uniqueSelector(element) || undefined,
+          checked: typeof element.checked === "boolean" ? element.checked : undefined,
+          disabled: Boolean(element.disabled || element.getAttribute("aria-disabled") === "true"),
+          rect: {
+            x: Math.round(rect.x),
+            y: Math.round(rect.y),
+            width: Math.round(rect.width),
+            height: Math.round(rect.height),
+          },
+        });
+      }
     }
 
+    addInteractive(true);
+    if (interactiveElements.length < elementLimit) addInteractive(false);
+
     const selectedText = String(window.getSelection?.() || "");
-    const text = document.body?.innerText || document.documentElement?.innerText || "";
-    const headings = Array.from(document.querySelectorAll("h1,h2,h3"))
-      .slice(0, 24)
+    const visible = pageText(limit);
+    const headings = Array.from(document.querySelectorAll("h1,h2,h3,h4"))
+      .slice(0, 40)
       .map((node) => node.textContent?.trim())
       .filter(Boolean);
     return {
@@ -776,12 +857,14 @@ async function readPage(args = {}) {
       url: location.href,
       selectedText,
       headings,
-      text: text.slice(0, limit),
-      textLength: text.length,
+      text: visible.text,
+      textLength: visible.text.length,
+      textTruncated: visible.truncated,
       snapshotId,
       interactiveElements,
       interactiveElementCount: interactiveElements.length,
       interactiveElementsTruncated: interactiveElements.length >= elementLimit,
+      viewportOnly: false,
       activeElementNodeId: document.activeElement?.getAttribute?.(nodeAttribute) || null,
     };
   }, [maxChars, maxElements]);
@@ -1170,6 +1253,9 @@ async function runSteps(args = {}) {
 async function runCommand(command) {
   const action = command?.action;
   const args = command?.args || {};
+  if (NOTICE_SKIP_ACTIONS.has(action)) {
+    return executeAction(action, args);
+  }
   const notice = await beginControlNotice(action, args);
   try {
     let result;
@@ -1190,6 +1276,9 @@ async function runCommand(command) {
 }
 
 async function pollOnce() {
+  if (pollInFlight) return false;
+  pollInFlight = true;
+  try {
   const config = await getConfig();
   if (!config.bridgeUrl) return false;
   await connectBridge(false);
@@ -1227,6 +1316,9 @@ async function pollOnce() {
     lastStatus = { ...lastStatus, lastResultAt: new Date().toISOString(), lastError: String(error?.message || error) };
   }
   return true;
+  } finally {
+    pollInFlight = false;
+  }
 }
 
 function schedulePoll(delay = POLL_DELAY_MS) {

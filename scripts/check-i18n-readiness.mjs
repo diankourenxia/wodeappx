@@ -78,7 +78,6 @@ for (const relativePath of [
   "integrations/openwork/wodeapp/wodeapp-main-chrome.tsx",
   "integrations/openwork/wodeapp/wodeapp-workbench-sidebar.tsx",
   "integrations/openwork/wodeapp/wodeapp-account-footer.tsx",
-  "integrations/openwork/wodeapp/wodeapp-sidebar-updater.tsx",
   "integrations/openwork/wodeapp/wodeapp-session-starters.tsx",
   "integrations/openwork/wodeapp/wodeapp-workbench-shell.tsx",
 ]) {

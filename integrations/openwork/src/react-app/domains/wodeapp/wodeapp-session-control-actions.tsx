@@ -39,9 +39,6 @@ import {
   readWodeAppAbilityProjects,
   type WodeAppBuiltinAgent,
 } from "./runtime-projects";
-import {
-  dispatchOpenScriptWorkbench,
-} from "./wodeapp-script-pipeline";
 import { listRememberedAssetMentions, rememberAssetMention } from "./wodeapp-workbench-context";
 import { controlOptionalBooleanArgument, controlOptionalStringArgument, controlOptionalStringArrayArgument, controlOptionalRecordArrayArgument } from "./wodeapp-control-args";
 import { buildVideoStoryboardTaskUrlAsync, normalizeShareDocId } from "./wodeapp-pvs-storyboard-url";
@@ -75,6 +72,7 @@ import {
   inferBatchImageIterCount,
   type BatchImageVisualTaskPayload,
 } from "./wodeapp-pv-batch-image-capability";
+import { saveSidebarCustomAgent } from "./wodeapp-custom-agent-home";
 
 const BATCH_IMAGE_ACTION_LOG_PREFIX = "[WodeAppX][batch-image-action]";
 
@@ -1323,6 +1321,44 @@ function buildWodeAppAuthStatusControlAction(enabled: boolean): OpenworkControlA
   };
 }
 
+function buildSidebarAgentSaveControlAction(enabled: boolean, sessionId?: string): OpenworkControlAction {
+  return {
+    ...directActionMetadata("wodeapp.sidebar_agent.save"),
+    previewArgs: {
+      name: "PH 管理",
+      projectId: "80d37c53",
+      launchUrl: "https://xn--vxup8bh7b382a-2.wodeapp.cn",
+    },
+    disabled: !enabled,
+    execute: async (args, helpers) => {
+      const name = controlOptionalStringArgument(args, "name");
+      if (!name) return { ok: false, error: "name is required" };
+      const callerSession = sessionId
+        || (typeof helpers.callerSessionId === "string" ? helpers.callerSessionId.trim() : "");
+      helpers.setNarration(`正在保存智能体「${name}」`);
+      const saved = await saveSidebarCustomAgent({
+        name,
+        meta: controlOptionalStringArgument(args, "meta") || undefined,
+        samplePrompt: controlOptionalStringArgument(args, "samplePrompt") || undefined,
+        projectId: controlOptionalStringArgument(args, "projectId") || undefined,
+        launchUrl: controlOptionalStringArgument(args, "launchUrl") || undefined,
+        sessionId: callerSession || undefined,
+      });
+      if (!saved.ok) return { ok: false, error: saved.error };
+      return {
+        ok: true,
+        agentId: saved.agent.id,
+        name: saved.agent.name,
+        projectId: saved.agent.projectId || null,
+        launchUrl: saved.agent.launchUrl || null,
+        userVisibleSummary: saved.agent.launchUrl
+          ? `已保存智能体「${saved.agent.name}」，对应站点 ${saved.agent.launchUrl}`
+          : `已保存智能体「${saved.agent.name}」`,
+      };
+    },
+  };
+}
+
 function buildDigitalAssetsListControlAction(enabled: boolean): OpenworkControlAction {
   return {
     ...directActionMetadata("wodeapp.assets.list"),
@@ -2349,7 +2385,7 @@ function buildShortDramaOpenControlAction(
     id: "wodeapp.short_drama.open",
     label: "打开短剧智能体",
     description:
-      "打开「短剧智能体」剧本/梗概写作页（script.wodeapp.cn / script-storyboard）。用于写剧本、季线、角色/场景定妆文案；不是出片入口。出片与脚本可视化（单帧 scriptFrameUrl / 九宫格 nineGridUrl / 视频 videoRefs）必须用 wodeapp_video_storyboard_open。商品短视频禁止调用本动作。",
+      "在当前对话继续短剧编剧（梗概、季线、角色/场景定妆）。不打开专属云项目，也不打开 script.wodeapp.cn。出片与脚本可视化（单帧 scriptFrameUrl / 九宫格 nineGridUrl / 视频 videoRefs）必须用 wodeapp_video_storyboard_open。商品短视频禁止调用本动作。",
     sideEffect: "navigation",
     effect: "read",
     approval: "auto",
@@ -2362,26 +2398,14 @@ function buildShortDramaOpenControlAction(
     },
     disabled: !enabled,
     execute: async (args, helpers) => {
-      const abilityProjects = readWodeAppAbilityProjects();
-      const agent = findWodeAppBuiltinAgent("script-storyboard", abilityProjects);
-      if (!agent) return { ok: false, error: "script-storyboard agent is unavailable" };
       const topic = controlOptionalStringArgument(args, "topic") || "短剧智能体";
-      helpers.setNarration(`正在打开「${topic}」短剧智能体页面`);
-      const openSessionId = (
-        (typeof helpers.callerSessionId === "string" && helpers.callerSessionId.trim())
-        || (typeof mountedSessionId === "string" && mountedSessionId.trim())
-        || ""
-      ) || undefined;
-      dispatchOpenScriptWorkbench({ topic, sessionId: openSessionId });
-      const launchUrl = agent.demoUrl || "";
+      helpers.setNarration(`已进入「${topic}」短剧对话，直接在这里写剧本即可`);
       return {
         ok: true,
-        agentId: agent.id,
-        mode: "short-drama-page",
-        launchUrl,
-        status: "opened",
-        userVisibleSummary:
-          "短剧智能体页面已在第三栏打开；这是内置剧本工作台。需要时在聊天继续写梗概/分集，并把 launchUrl 展示给用户。",
+        agentId: "script-storyboard",
+        mode: "conversation",
+        status: "ready",
+        userVisibleSummary: "短剧在当前对话进行，不需要专属云项目。继续写梗概、分集或角色设定即可。",
         topic,
       };
     },
@@ -3297,6 +3321,10 @@ export function useWodeAppSessionControlActions(deps: WodeAppSessionControlActio
     () => buildWodeAppAuthStatusControlAction(deps.enabled),
     [deps.enabled],
   );
+  const sidebarAgentSaveControlAction = useMemo(
+    () => buildSidebarAgentSaveControlAction(deps.enabled, deps.sessionId),
+    [deps.enabled, deps.sessionId],
+  );
   const digitalAssetsCapabilitiesControlAction = useMemo(
     () => buildDigitalAssetsCapabilitiesControlAction(deps.enabled),
     [deps.enabled],
@@ -3371,6 +3399,7 @@ export function useWodeAppSessionControlActions(deps: WodeAppSessionControlActio
   );
 
   useControlAction(authStatusControlAction);
+  useControlAction(sidebarAgentSaveControlAction);
   useControlAction(digitalAssetsCapabilitiesControlAction);
   useControlAction(digitalAssetsListControlAction);
   useControlAction(digitalAssetsDeleteControlAction);

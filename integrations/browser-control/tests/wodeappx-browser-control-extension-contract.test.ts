@@ -14,7 +14,10 @@ describe("WodeAppX browser-control extension contract", () => {
     expect(source).toContain("interactiveElementsTruncated");
     expect(source).toContain("element.type === \"password\"");
     expect(source).toContain("password ? undefined");
-    expect(source).toContain("Math.min(240");
+    expect(source).toContain("Math.min(READ_PAGE_MAX_ELEMENTS_CAP");
+    expect(source).toContain("pageText");
+    expect(source).toContain("viewportOnly");
+    expect(source).toContain("rect:");
   });
 
   test("click and type fail closed on missing, ambiguous, or invalid targets", async () => {
@@ -74,7 +77,14 @@ describe("WodeAppX browser-control extension contract", () => {
     ]);
     const manifest = JSON.parse(manifestText);
 
-    expect(manifest.version).toBe("1.4.1");
+    expect(manifest.version).toBe("1.4.4");
+    expect(source).toContain('NOTICE_SKIP_ACTIONS = new Set(["tabs.list", "page.read"])');
+    expect(source).toContain("DEBUGGER_ATTACH_ACTIONS");
+    expect(source).toContain("pollInFlight");
+    expect(source).toContain("BROWSER_DEBUGGER_OCCUPIED");
+    expect(source).toContain("BROWSER_DEBUGGER_ATTACH_TIMEOUT");
+    expect(source).toContain("if (NOTICE_SKIP_ACTIONS.has(action))");
+    expect(source).toContain("READ_PAGE_DEFAULT_MAX_CHARS = 12000");
     expect(manifest.permissions).toContain("nativeMessaging");
     expect(source).toContain('const NATIVE_HOST_NAME = "com.wodeappx.browser_control"');
     expect(source).toContain("chrome.runtime.connectNative(NATIVE_HOST_NAME)");
@@ -86,7 +96,14 @@ describe("WodeAppX browser-control extension contract", () => {
     expect(source).toContain('notice?.action !== "tabs.navigate"');
     expect(source).toContain("chromeCall(chrome.tabs.create");
     expect(source).toContain("chromeCall(chrome.tabs.update");
-    expect(runtime).toContain('const SERVER_VERSION = "0.7.0"');
+    expect(runtime).toContain('const SERVER_VERSION = "0.7.2"');
+    expect(runtime).toContain("stringifyBrowserResult");
+    expect(runtime).toContain("prettyJson");
+    expect(runtime).toContain("MAX_RESULT_CHARS || 200000");
+    expect(runtime).toContain('req?.once?.("aborted"');
+    expect(runtime).not.toContain('req?.once?.("close"');
+    expect(runtime).toContain("if (commandWaiters.has(clientId))");
+    expect(runtime).toContain("maxChars || 12000");
     expect(runtime).toContain("nativeMessagingPreferred: true");
     expect(runtime).toContain("localhostHttpFallback: true");
     expect(runtime).toContain("nativeHostVersion");

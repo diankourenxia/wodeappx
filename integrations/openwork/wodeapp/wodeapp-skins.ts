@@ -207,8 +207,10 @@ export function listPromoWodeAppSkins(): readonly WodeAppSkinDefinition[] {
 const WODEAPP_SKIN_STORAGE_KEY = "wodeappx.skin";
 export const WODEAPP_SKIN_CHANGED_EVENT = "wodeapp:skin-changed";
 
-/** Current product demo skin (workbench shell). Independent of WODEAPPX_EDITION. */
-export const WODEAPP_DEFAULT_SKIN_ID: WodeAppSkinId = "red-compact";
+/** Product default is the plain workbench, not a promo skin. */
+export const WODEAPP_DEFAULT_SKIN_ID: WodeAppSkinId = "default";
+
+const WODEAPP_SKIN_DEFAULT_MIGRATION_KEY = "wodeappx.skin.migrated-default-20260818";
 
 export function isWodeAppBuiltinSkinId(value: string | null | undefined): value is WodeAppBuiltinSkinId {
   return WODEAPP_SKINS.some((skin) => skin.id === value);
@@ -245,6 +247,10 @@ export function readStoredWodeAppSkin(): WodeAppSkinId {
   if (typeof window === "undefined") return WODEAPP_DEFAULT_SKIN_ID;
   try {
     const stored = window.localStorage.getItem(WODEAPP_SKIN_STORAGE_KEY);
+    if (stored === "red-compact" && !window.localStorage.getItem(WODEAPP_SKIN_DEFAULT_MIGRATION_KEY)) {
+      window.localStorage.setItem(WODEAPP_SKIN_DEFAULT_MIGRATION_KEY, "1");
+      return WODEAPP_DEFAULT_SKIN_ID;
+    }
     return isWodeAppSkinId(stored) ? stored : WODEAPP_DEFAULT_SKIN_ID;
   } catch {
     return WODEAPP_DEFAULT_SKIN_ID;

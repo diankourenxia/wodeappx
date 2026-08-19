@@ -3,10 +3,21 @@
 import { canonicalizeVideoStoryboardWorkbenchUrl } from "./wodeapp-pvs-storyboard-url";
 import {
   listEnabledWodeAppBuiltinAgentConfigs,
+  listShippedBuiltinAgentIds,
+  WODEAPP_SHIPPED_BUILTIN_AGENTS_FILE,
   type WodeAppAbilityKind,
   type WodeAppBuiltinAgentConfig,
   type WodeAppBuiltinAgentKind,
 } from "./wodeapp-builtin-agents-config";
+import {
+  applyAgentProfileEdit,
+  applySidebarAgentOrder,
+  formatSidebarSkillCopy,
+  isSidebarBrandPin,
+  readWodeAppAgentsOverride,
+  resolveOfficialSkillPin,
+  type WodeAppAgentsOverride,
+} from "./wodeapp-sidebar-agents";
 import {
   brandAgentConfigToBuiltinAgent,
   listEnabledWodeAppBrandAgents,
@@ -91,6 +102,8 @@ export type WodeAppBuiltinAgentVisibilityOptions = {
   hasLocalKeys?: boolean;
   /** Force local workbench URLs (OSS / local-only). Cloud official URLs are skipped. */
   preferLocal?: boolean;
+  /** Layer 2 sidebar override (hide / re-enable shipped agents, custom order). */
+  override?: WodeAppAgentsOverride;
   profile?: string | null;
   origin?: string | null;
   issuedOrigin?: string | null;
@@ -248,7 +261,7 @@ export function localizeAbilityProjects(
 export const WODEAPP_CANVAS_AGENT_ID = "agent-infinite-canvas";
 /** 侧栏「创建智能体」：Skill 物化优先 → 模板 → 空白 ai_generate_page → 发布。 */
 export const WODEAPP_CREATE_AGENT_ID = "create-agent";
-/** 短剧智能体：剧本编辑台（script.wodeapp.cn）；出片与脚本可视化（单帧/九宫格/视频）走视频分镜工作台。 */
+/** 短剧智能体：对话内编剧；出片与脚本可视化走视频分镜工作台。不创建专属云项目。 */
 export const WODEAPP_SCRIPT_STORYBOARD_AGENT_ID = "script-storyboard";
 
 export function hasWodeAppFeishuSetupSkill(skills: unknown): boolean {
@@ -270,6 +283,7 @@ export type WodeAppBuiltinAgent = {
   /** 用户可见的短入口文案（composer 展示） */
   entryPrompt?: string;
   samplePrompt: string;
+  tools?: string[];
   /** Bind a normal conversation to compact routing metadata instead of a hidden knowledge prompt. */
   runtimeProfileId?: string;
   demoUrl?: string;
@@ -368,11 +382,16 @@ function builtinConfigToAgent(config: WodeAppBuiltinAgentConfig): WodeAppBuiltin
     defaultUrl: config.defaultUrl,
     entryPrompt: config.entryPrompt,
     samplePrompt: config.samplePrompt,
+    tools: config.tools,
     runtimeProfileId: config.runtimeProfileId,
     demoUrl: config.demoUrl,
     autoSend: config.autoSend,
   };
 }
+
+/** Layer 0: all shipped agents, including reserved / disabled sidebar entries. */
+export const WODEAPP_SHIPPED_BUILTIN_AGENTS: readonly WodeAppBuiltinAgent[] =
+  WODEAPP_SHIPPED_BUILTIN_AGENTS_FILE.agents.map(builtinConfigToAgent);
 
 /** Layer 0: shipped default config (`wodeapp-builtin-agents.default.json`). */
 export const WODEAPP_BUILTIN_AGENTS: readonly WodeAppBuiltinAgent[] =
@@ -390,12 +409,11 @@ export function isWodeAppBuiltinAgentVisible(
   agent: WodeAppBuiltinAgent,
   options: WodeAppBuiltinAgentVisibilityOptions = {},
 ): boolean {
-  const registered = WODEAPP_BUILTIN_AGENTS.some((item) => item.id === agent.id);
+  const registered = WODEAPP_SHIPPED_BUILTIN_AGENTS.some((item) => item.id === agent.id);
   if (!registered) return false;
   // Industry packs are whole-shell adaptations (self-evolve / Skill), not sidebar agents.
   if (agent.kind === "industry") return false;
   if (agent.id === WODEAPP_SCRIPT_STORYBOARD_AGENT_ID) {
-    // 短剧智能体已重新上线：默认可见；仍可用 shortDramaAgentReady:false 临时隐藏
     return options.shortDramaAgentReady !== false;
   }
   if (agent.id === WODEAPP_FEISHU_AGENT_ID) {
@@ -411,19 +429,92 @@ export function getConfiguredBrandBuiltinAgents(
   const configured = listEnabledWodeAppBrandAgents(
     options.brandAgents ?? readStoredWodeAppBrandAgents(),
   );
-  const builtinIds = new Set(WODEAPP_BUILTIN_AGENTS.map((item) => item.id));
+  const builtinIds = new Set(listShippedBuiltinAgentIds());
   return configured
-    .filter((agent) => !builtinIds.has(agent.id))
-    .map((agent) => brandAgentConfigToBuiltinAgent(agent));
+    .filter((agent) =>
+      isSidebarBrandPin(agent)
+      && !builtinIds.has(agent.id)
+      && !resolveOfficialSkillPin(agent.id)
+      && !resolveOfficialSkillPin(agent.name))
+    .map((agent) => {
+      const builtin = brandAgentConfigToBuiltinAgent(agent);
+      if (agent.brandId !== "skill") return builtin;
+      const copy = formatSidebarSkillCopy({ name: agent.name, description: agent.meta });
+      return { ...builtin, name: copy.name, meta: copy.meta };
+    });
 }
 
 export function getVisibleWodeAppBuiltinAgents(
   options: WodeAppBuiltinAgentVisibilityOptions = {},
 ): WodeAppBuiltinAgent[] {
-  return [
-    ...WODEAPP_BUILTIN_AGENTS.filter((agent) => isWodeAppBuiltinAgentVisible(agent, options)),
-    ...getConfiguredBrandBuiltinAgents(options),
-  ];
+  const override = options.override ?? readWodeAppAgentsOverride();
+  const brandSource = options.brandAgents ?? readStoredWodeAppBrandAgents();
+  const show = new Set(
+    WODEAPP_SHIPPED_BUILTIN_AGENTS_FILE.agents
+      .filter((agent) => agent.enabled !== false)
+      .map((agent) => agent.id),
+  );
+  for (const id of override.extraEnabledIds) show.add(id);
+  for (const id of override.hiddenIds) show.delete(id);
+  for (const agent of brandSource) {
+    const official = resolveOfficialSkillPin(agent.id) || resolveOfficialSkillPin(agent.name);
+    if (official) show.add(official.agentId);
+  }
+  const layer0 = WODEAPP_SHIPPED_BUILTIN_AGENTS
+    .filter((agent) => show.has(agent.id))
+    .filter((agent) => isWodeAppBuiltinAgentVisible(agent, options));
+  return applySidebarAgentOrder(
+    [...layer0, ...getConfiguredBrandBuiltinAgents(options)],
+    override.order,
+  ).map((agent) => applyAgentProfileEdit(agent, override));
+}
+
+const ENGINE_COMPOSER_AGENT_IDS = new Set(["build", "plan"]);
+
+export type WodeAppComposerAgent = {
+  name: string;
+  description?: string;
+  mode: "primary";
+  native: true;
+  hidden?: boolean;
+  permission: [];
+  options: Record<string, unknown>;
+};
+
+/** Sidebar product agents first; only keep OpenCode build/plan as extras. */
+export function listWodeAppComposerAgents(
+  engineAgents: readonly {
+    name: string;
+    description?: string;
+    mode?: string;
+    hidden?: boolean;
+  }[] = [],
+  options: WodeAppBuiltinAgentVisibilityOptions = {},
+): WodeAppComposerAgent[] {
+  const product = getVisibleWodeAppBuiltinAgents(options).map((agent) => ({
+    name: agent.id,
+    description: agent.meta || undefined,
+    mode: "primary" as const,
+    native: true as const,
+    permission: [] as [],
+    options: { wodeAppProductAgent: true },
+  }));
+  const seen = new Set(product.map((agent) => agent.name));
+  const extras: WodeAppComposerAgent[] = [];
+  for (const agent of engineAgents) {
+    if (agent.hidden || agent.mode === "subagent") continue;
+    if (!ENGINE_COMPOSER_AGENT_IDS.has(agent.name) || seen.has(agent.name)) continue;
+    extras.push({
+      name: agent.name,
+      description: agent.description,
+      mode: "primary",
+      native: true,
+      permission: [],
+      options: {},
+    });
+    seen.add(agent.name);
+  }
+  return [...product, ...extras];
 }
 
 function normalizeAbilityProjects(projects: unknown): WodeAppAbilityProject[] {
@@ -496,6 +587,7 @@ export function resolveWodeAppBuiltinAgent(
   projects: readonly WodeAppAbilityProject[] = readWodeAppAbilityProjects(),
   options: WodeAppBuiltinAgentVisibilityOptions = {},
 ): WodeAppBuiltinAgent {
+  if (agent.kind === "brand") return agent;
   const preferLocal = preferLocalWorkbench(options);
   if (preferLocal) {
     return { ...agent, demoUrl: buildLocalAbilityLaunchUrl(agent.id) };
@@ -530,8 +622,8 @@ export function isWodeAppBuiltinAgentAvailable(
   projects: readonly WodeAppAbilityProject[] = readWodeAppAbilityProjects(),
 ): boolean {
   if (agent.kind === "integration" || agent.kind === "industry" || agent.kind === "brand") return true;
-  // Chat-only entries (e.g. 创建智能体) have no workbench URL / ability project.
-  if (agent.id === WODEAPP_CREATE_AGENT_ID) return true;
+  // Chat-only entries have no workbench URL / ability project.
+  if (agent.id === WODEAPP_CREATE_AGENT_ID || agent.id === WODEAPP_SCRIPT_STORYBOARD_AGENT_ID) return true;
   // Capability agents stay in the sidebar; URL comes from the user's project or local sidecar.
   if (agent.abilityKind) return true;
   return Boolean(matchAbilityProject(agent, projects));
@@ -552,8 +644,25 @@ export function findWodeAppBuiltinAgent(
   options: WodeAppBuiltinAgentVisibilityOptions = {},
 ) {
   const agent = getVisibleWodeAppBuiltinAgents(options).find((item) => item.id === id)
+    || WODEAPP_SHIPPED_BUILTIN_AGENTS.find((item) => item.id === id)
     || WODEAPP_BUILTIN_AGENTS.find((item) => item.id === id);
   return agent ? resolveWodeAppBuiltinAgent(agent, projects, options) : undefined;
+}
+
+function resolveWodeAppBuiltinAgentRecord(idOrName: string) {
+  const raw = idOrName.trim();
+  if (!raw) return undefined;
+  return findWodeAppBuiltinAgent(raw)
+    || WODEAPP_SHIPPED_BUILTIN_AGENTS.find((item) => item.id === raw || item.name === raw)
+    || WODEAPP_BUILTIN_AGENTS.find((item) => item.id === raw || item.name === raw);
+}
+
+export function resolveWodeAppBuiltinAgentId(idOrName: string): string | null {
+  return resolveWodeAppBuiltinAgentRecord(idOrName)?.id ?? null;
+}
+
+export function formatWodeAppAgentDisplayName(idOrName: string): string | null {
+  return resolveWodeAppBuiltinAgentRecord(idOrName)?.name ?? null;
 }
 
 function withWodeAppXSourceParam(url: string): string {

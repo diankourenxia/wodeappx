@@ -96,6 +96,10 @@ test("ensureBundledSelfEvolveMonorepo extracts archive into userData", async () 
   assert.ok(first, `expected extract path, logs=${logs.join(" | ")}`);
   assert.equal(looksLikeMonorepoRoot(first), true);
   assert.ok(first.includes(path.join("self-evolve-source", "9.9.9-test", "wodeapp")));
+  const upstream = JSON.parse(readFileSync(path.join(first, "wodeappx", "UPSTREAM.json"), "utf8"));
+  assert.equal(upstream.version, "9.9.9-test");
+  assert.equal(upstream.tag, "v9.9.9-test");
+  assert.equal(upstream.origin, "https://github.com/diankourenxia/wodeappx.git");
 
   const second = await ensureBundledSelfEvolveMonorepo({
     resourcesPath: resources,
@@ -129,6 +133,10 @@ test("ensureBundledSelfEvolveMonorepo accepts OSS standalone wrap without runtim
   assert.ok(root, "expected standalone wrap to extract");
   assert.equal(looksLikeMonorepoRoot(path.dirname(root)), false);
   assert.ok(root.endsWith(`${path.sep}wodeappx`) || root.endsWith("/wodeappx"));
+  const upstream = JSON.parse(readFileSync(path.join(root, "UPSTREAM.json"), "utf8"));
+  assert.equal(upstream.version, "9.9.9-test");
+  assert.equal(upstream.tag, "v9.9.9-test");
+  assert.equal(upstream.origin, "https://github.com/diankourenxia/wodeappx.git");
 });
 
 test("ensureBundledSelfEvolveMonorepo coalesces concurrent extracts", async () => {

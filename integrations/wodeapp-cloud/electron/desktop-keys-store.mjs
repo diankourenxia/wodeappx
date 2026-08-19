@@ -110,7 +110,7 @@ const DENIED_ENV_PREFIXES = [
   "OPENCODE_",
 ];
 
-const STORABLE_ENV_SUFFIX = /_(API_KEY|API_TOKEN|API_SECRET|AUTH_TOKEN|ACCESS_KEY|SECRET_KEY|BASE_URL)$/;
+const STORABLE_ENV_SUFFIX = /_(API_KEY|API_TOKEN|API_SECRET|AUTH_TOKEN|ACCESS_KEY|SECRET_KEY|BASE_URL|LABEL)$/;
 
 function isDeniedEnvKey(key) {
   if (DENIED_ENV_KEYS.has(key)) return true;
@@ -163,7 +163,26 @@ function emptyStore() {
     updatedAt: 0,
     migratedAt: 0,
     variables: [],
+    customVendors: [],
   };
+}
+
+function normalizeCustomVendorMeta(raw) {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const id = String(item.id || "").trim();
+    const name = String(item.name || "").trim();
+    const envPrefix = String(item.envPrefix || "").trim().toUpperCase();
+    if (!id || !name || !/^[A-Z][A-Z0-9_]*$/.test(envPrefix)) continue;
+    if (seen.has(id) || seen.has(envPrefix)) continue;
+    seen.add(id);
+    seen.add(envPrefix);
+    out.push({ id, name, envPrefix });
+  }
+  return out;
 }
 
 function normalizeStore(raw) {
@@ -182,6 +201,7 @@ function normalizeStore(raw) {
     updatedAt: typeof raw?.updatedAt === "number" ? raw.updatedAt : 0,
     migratedAt: typeof raw?.migratedAt === "number" ? raw.migratedAt : 0,
     variables,
+    customVendors: normalizeCustomVendorMeta(raw?.customVendors),
   };
 }
 
@@ -277,6 +297,7 @@ export async function writeDesktopKeysStore(store, homeDir = os.homedir()) {
     updatedAt: now,
     migratedAt: typeof normalized.migratedAt === "number" ? normalized.migratedAt : 0,
     variables: normalized.variables,
+    customVendors: normalized.customVendors,
   };
   await writeFile(storePath, `${JSON.stringify(payload, null, 2)}\n`, { mode: 0o600 });
   return { storePath, store: payload };

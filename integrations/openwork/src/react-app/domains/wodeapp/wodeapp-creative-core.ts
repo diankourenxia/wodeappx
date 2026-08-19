@@ -85,6 +85,7 @@ export const CREATIVE_CORE_RESIDENT_TOOL_IDS = [
   "update_page",
   "wodeapp_page_import_from_file",
   "publish_project",
+  "wodeapp_sidebar_agent_save",
   ...PROJECT_READ_RESIDENT_TOOL_IDS,
 ] as const;
 

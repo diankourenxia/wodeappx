@@ -1,8 +1,8 @@
 # WodeAppX（wodeappx）桌面端文档
 
 > **开源对外：WodeAppX**；仓内 codename `wodeappx`。默认产品名就是 WodeAppX。
-> 产品入口：[README.md](../README.md) · Agent / 贡献者先读 [AGENTS.md](../AGENTS.md)。
-> 克隆的是独立仓时，以本目录与仓库根文档为准；下面个别链到上层 monorepo 的路径只在 WodeApp 主仓里存在。
+> 桌面端文档索引。产品入口见 [`../README.md`](../README.md)。  
+> 平台契约（API / 积分 / MCP）以 monorepo [`docs/README.md`](../../docs/README.md) 为准，勿在此复制 URL 表。
 
 ## 现行文档
 

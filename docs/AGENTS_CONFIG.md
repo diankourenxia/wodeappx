@@ -13,10 +13,10 @@
 ```text
 Layer 0  安装包默认   wodeapp-builtin-agents.default.json   （随版本发布）
 Layer 1  本机品牌     ~/.wodeapp/brand-agents.json           （用户/客户，默认真空）
-（预留） Layer 2  本机覆盖   ~/.wodeapp/agents.override.json      （禁用/排序，未做）
+Layer 2  本机覆盖   localStorage `wodeappx.agents.override.v1`   （隐藏 / 重新启用 / 排序）
 ```
 
-合并结果 = 启用的 Layer0 ∪ 启用的 Layer1（Layer1 **不得**占用 Layer0 的 id）。
+合并结果 = （Layer0 默认启用 ∪ Layer2 重新启用 − Layer2 隐藏） ∪ 启用的 Layer1（Layer1 **不得**占用 Layer0 的 id）。
 
 ---
 
@@ -26,7 +26,7 @@ Layer 1  本机品牌     ~/.wodeapp/brand-agents.json           （用户/客�
 |----|--------|----------|------|
 | 0 builtin | 产品发版 | 图片/视频/画布/短剧/创建/飞书入口… + **行业 demo**（家纺/美妆/数码 3C） | 写进包 |
 | 1 brand | 客户/本地 | Wynne 等品牌经营智能体 | 仅本机文件 |
-| 2 override | 用户（预留） | 关掉某个内置、调顺序 | 本机 |
+| 2 override | 用户 | 关掉某个内置、把画布/短剧加回来、调顺序 | 本机 |
 
 运行时门禁（如飞书需 setup skill）仍在代码里，是对配置条目的 **启用条件**，不是第二套智能体定义。
 
@@ -106,7 +106,7 @@ Layer 1  本机品牌     ~/.wodeapp/brand-agents.json           （用户/客�
 | 下一步 | 说明 |
 |--------|------|
 | 补齐家纺 / 3C 适配包 | 复制美妆 pack 模式（policy + playbook + skill） |
-| `agents.override.json` | 用户禁用/置顶内置项，不改包 |
+| 侧栏「添加智能体」 | 已安装 Skill / Git Skill 仓库 / 自定义；官方画布、短剧可重新钉上 |
 | 设置页编辑器 | 可视化改 Layer1，保存走现有 IPC |
 | 远程目录 | 企业下发品牌包（仍落成本机 JSON） |
 

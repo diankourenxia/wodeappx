@@ -127,4 +127,31 @@ describe("WodeAppX browser command long-poll", () => {
     const agentBody = await agentRes.json();
     assert.equal(agentBody.ok, true);
   });
+
+  it("keeps the first long-poll waiter when a second poll overlaps", async () => {
+    const connect = await request("/extension/connect", {
+      method: "POST",
+      body: { name: "WodeAppX Browser Control", extensionName: "WodeAppX Browser Control", supportedActions: ["tabs.list"] },
+    });
+    const { clientId } = await connect.json();
+    const first = request(`/extension/command?clientId=${clientId}&waitMs=2500`);
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    const second = request(`/extension/command?clientId=${clientId}&waitMs=2500`);
+    const secondBody = await (await second).json();
+    assert.equal(secondBody.command, null);
+    const started = Date.now();
+    const agent = request("/agent/call", {
+      method: "POST",
+      body: { action: "tabs", args: { clientId, activeOnly: true } },
+    });
+    const firstBody = await (await first).json();
+    assert.ok(firstBody.command);
+    assert.ok(Date.now() - started < 600);
+    await request("/extension/result", {
+      method: "POST",
+      body: { clientId, commandId: firstBody.command.id, ok: true, result: [{ id: 1 }] },
+    });
+    const agentBody = await (await agent).json();
+    assert.equal(agentBody.ok, true);
+  });
 });

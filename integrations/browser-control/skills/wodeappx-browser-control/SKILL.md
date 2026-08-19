@@ -32,9 +32,9 @@ raw CDP only with explicit user approval for the exact site and purpose.
    bridge URL is only a compatibility fallback.
 3. If more than one client is connected, bind `browserSession.recommendedClientId` or the user-selected client. Call `wodeappx_browser_tabs` with it, then reuse the returned `clientId` and exact `tabId`. Never invent or guess either id.
 4. Use `wodeappx_browser_open_url` only when navigation is required. Read the resulting page before acting.
-5. If the next 2+ actions are already known (open → click → type → read), call `wodeappx_browser_run` once instead of returning to the model between steps. The bridge long-polls and keeps the tab debugger attached.
+5. If the next 2+ actions are already known (open → click → type → read), call `wodeappx_browser_run` once instead of returning to the model between steps. The bridge long-polls; debugger attach is only for key/screenshot/CDP.
 6. Follow an observe → act → verify loop when a decision is still required:
-   - Observe with `wodeappx_browser_read_page`; it returns visible text plus `interactiveElements` with snapshot-scoped `nodeId` values. Use `wodeappx_browser_screenshot` only when pixels or layout matter.
+   - Observe with `wodeappx_browser_read_page`; default snapshot is a full page read (12000 chars, 240 controls) with `nodeId`, selector, and rect. Do not request a compressed snapshot. Use `wodeappx_browser_screenshot` only when pixels or layout matter.
    - Prefer the latest exact `nodeId`. If none is available, use unique selectors in this order: `data-testid` or stable `data-*`, `id`, exact `href`, `name`, `aria-label`, then exact visible text.
    - Perform one click, input, or key action.
    - Immediately read the page again or inspect a screenshot to verify the expected state.

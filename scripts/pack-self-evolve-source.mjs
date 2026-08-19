@@ -34,6 +34,25 @@ const monorepoRootDefault = path.resolve(wodeappxRoot, "..");
 export const SELF_EVOLVE_ARCHIVE_NAME = "self-evolve-source.tar.zst";
 export const SELF_EVOLVE_MANIFEST_NAME = "manifest.json";
 export const SELF_EVOLVE_ARCHIVE_ROOT = "wodeapp";
+export const SELF_EVOLVE_UPSTREAM_FILE = "wodeappx/UPSTREAM.json";
+export const SELF_EVOLVE_UPSTREAM_ORIGIN = "https://github.com/diankourenxia/wodeappx.git";
+
+export function selfEvolveUpstreamPayload(version) {
+  const normalized = String(version || "").trim().replace(/^v/i, "");
+  return {
+    product: "WodeAppX",
+    version: normalized,
+    tag: normalized ? `v${normalized}` : "",
+    origin: SELF_EVOLVE_UPSTREAM_ORIGIN,
+  };
+}
+
+export async function writeSelfEvolveUpstreamInfo(treeRoot, version) {
+  const dest = path.join(treeRoot, SELF_EVOLVE_UPSTREAM_FILE);
+  await mkdir(path.dirname(dest), { recursive: true });
+  await writeFile(dest, `${JSON.stringify(selfEvolveUpstreamPayload(version), null, 2)}\n`);
+  return SELF_EVOLVE_UPSTREAM_FILE;
+}
 
 export const INCLUDE_TOP_LEVEL_DIRS = [
   "wodeappx",
@@ -488,6 +507,9 @@ export async function packSelfEvolveSource(options = {}) {
       staged.uncompressedBytes += (await stat(path.join(staged.treeRoot, rel))).size;
     }
   }
+  const upstreamRel = await writeSelfEvolveUpstreamInfo(staged.treeRoot, version);
+  staged.files += 1;
+  staged.uncompressedBytes += (await stat(path.join(staged.treeRoot, upstreamRel))).size;
   await assertNoSecretsInSelfEvolveTree(staged.treeRoot);
   const archivePath = path.join(outDir, SELF_EVOLVE_ARCHIVE_NAME);
   await compressDirectoryToTarZst(staged.treeRoot, archivePath);

@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, type RefObject, type UIEventHandler } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, type RefObject, type UIEventHandler } from "react";
 
+import { lastUserMessageId, shouldStickToBottomOnNewUserMessage } from "./scroll-on-send";
 import { getSessionScrollState, useSessionScrollStore, type SessionScrollState } from "./scroll-store";
 
 function readScrollState(sessionId: string | null): SessionScrollState {
@@ -121,6 +122,8 @@ export function useSessionScrollController(
   const observedContainerHeightRef = useRef(0);
   const lastGestureAtRef = useRef(0);
   const previousSessionIdRef = useRef<string | null>(null);
+  const lastUserSessionIdRef = useRef<string | null>(null);
+  const lastUserMessageIdRef = useRef<string | null>(null);
   const hasScrollGesture = useCallback(
     () => Date.now() - lastGestureAtRef.current < SCROLL_GESTURE_WINDOW_MS,
     [],
@@ -394,6 +397,28 @@ export function useSessionScrollController(
       scrollToBottom("auto");
     });
   }, [options.containerRef, options.restoreManualScroll, releaseProgrammaticScrollSoon, saveScrollPosition, scrollToBottom, selectedSessionId]);
+
+  useLayoutEffect(() => {
+    const nextUserId = lastUserMessageId(options.renderedMessages);
+    const sessionChanged = selectedSessionId !== lastUserSessionIdRef.current;
+    const prevUserId = lastUserMessageIdRef.current;
+    lastUserSessionIdRef.current = selectedSessionId;
+    lastUserMessageIdRef.current = nextUserId;
+    if (
+      shouldStickToBottomOnNewUserMessage({
+        sessionId: selectedSessionId,
+        sessionChanged,
+        prevLastUserMessageId: prevUserId,
+        nextLastUserMessageId: nextUserId,
+      })
+    ) {
+      // Follow-up send: always chase the tail. Drop a stale wheel/trackpad
+      // gesture from browsing earlier rows, or handleScroll treats the
+      // programmatic jump as "user scrolled up" and saves a mid-list offset.
+      lastGestureAtRef.current = 0;
+      scrollToBottom("auto");
+    }
+  }, [options.renderedMessages, scrollToBottom, selectedSessionId]);
 
   useEffect(() => {
     void options.renderedMessages;

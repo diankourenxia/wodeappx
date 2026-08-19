@@ -9,6 +9,7 @@ import { t } from "../../../../i18n";
 import { OPENWORK_EXTENSION_CATALOG } from "../../../../app/constants";
 import { type OpenworkServerClient, type OpenworkServerStatus } from "../../../../app/lib/openwork-server";
 import { getDisplaySessionTitle } from "../../../../app/lib/session-title";
+import { isWebDeployment } from "../../../../app/lib/openwork-deployment";
 import type { BootPhase } from "../../../../app/lib/startup-boot";
 import { openDesktopPath, revealDesktopItemInDir, type WorkspaceInfo } from "../../../../app/lib/desktop";
 import { toast } from "sonner";
@@ -908,9 +909,11 @@ export function SessionPage(props: SessionPageProps) {
     props.selectedWorkspaceDisplay.displayName?.trim() ||
     props.selectedWorkspaceDisplay.name?.trim() ||
     t("session.workspace_fallback");
-  const workspaceName = rawWorkspaceName.toLowerCase() === "wodeapp"
-    ? "WodeAppX"
-    : rawWorkspaceName;
+  const workspaceName = isWebDeployment() || /guest/i.test(rawWorkspaceName)
+    ? ""
+    : rawWorkspaceName.toLowerCase() === "wodeapp"
+      ? "WodeAppX"
+      : rawWorkspaceName;
   const providerCount = props.hasUsableModel ? 1 : props.providerConnectedIds.length;
   const messageCountVisible = props.selectedSessionId ? 1 : 0;
   const showWorkspaceSetupEmptyState = props.workspaces.length === 0 && !props.selectedSessionId;
@@ -948,7 +951,7 @@ export function SessionPage(props: SessionPageProps) {
   const selectedWorkspaceErrorTitle =
     props.selectedWorkspaceDisplay.workspaceType === "remote"
       ? "Remote workspace unavailable"
-      : "OpenCode unavailable";
+      : t("session.engine_unavailable");
 
   const reactSessionBaseUrl = props.opencodeBaseUrl?.trim() ?? "";
   const reactSessionToken =
@@ -1117,6 +1120,7 @@ export function SessionPage(props: SessionPageProps) {
         )}
         style={sidebarProviderStyle}
       >
+        {shellConfig.wodeappWorkbench && isWebDeployment() ? null : (
         <AppSidebar
           workspaceSessionGroups={props.sidebar.workspaceSessionGroups}
           selectedWorkspaceId={props.sidebar.selectedWorkspaceId}
@@ -1163,6 +1167,7 @@ export function SessionPage(props: SessionPageProps) {
           onStartResize={startLeftSidebarResize}
           openworkServerClient={props.openworkServerClient}
         />
+        )}
         <SidebarInset
           className={cn(
             "min-h-0 overflow-hidden",
@@ -1647,8 +1652,8 @@ export function SessionPage(props: SessionPageProps) {
                     size="icon-sm"
                     className={railIconClass(voiceRailActive)}
                     onClick={openVoiceRailPane}
-                    title="Voice Mode"
-                    aria-label="Voice Mode"
+                    title="语音"
+                    aria-label="语音"
                     aria-pressed={voiceRailActive}
                   >
                     <Mic2 size={railInTopbar ? 14 : 17} />
@@ -1659,8 +1664,8 @@ export function SessionPage(props: SessionPageProps) {
                   size="icon-sm"
                   className={railIconClass(panelRailActive)}
                   onClick={openArtifactRailPane}
-                  title={hasArtifactTargets ? `Artifacts (${artifactTargetCount})` : "No artifacts yet"}
-                  aria-label={hasArtifactTargets ? `Artifacts (${artifactTargetCount})` : "No artifacts yet"}
+                  title={hasArtifactTargets ? `产物 (${artifactTargetCount})` : "暂无产物"}
+                  aria-label={hasArtifactTargets ? `产物 (${artifactTargetCount})` : "暂无产物"}
                   aria-pressed={panelRailActive}
                   disabled={!hasArtifactTargets}
                 >

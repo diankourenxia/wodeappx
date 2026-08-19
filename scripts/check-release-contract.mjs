@@ -90,18 +90,21 @@ for (const marker of [
   assertIncludes(builder, marker, `mac release resource ${marker}`);
 }
 
-assertIncludes(main, "https://gitea.com/diankourenxia/wodeappx/releases/latest/download", "architecture download feed");
-assertIncludes(main, "https://gitea.com/diankourenxia/wodeappx/releases/latest", "architecture release page");
+assertIncludes(main, "https://wodeapp.cn/downloads/wodeappx", "architecture download feed");
+assertIncludes(main, "https://x.wodeapp.cn/", "architecture release page");
 assertIncludes(main, "wodeappx-${platformDownloadSlug()}-${downloadAssetArch(targetArch)}-${version}.${downloadAssetExtension()}", "architecture fallback asset name");
 assertNotIncludes(main, "openwork-${platformDownloadSlug()}-${downloadAssetArch(targetArch)}", "architecture fallback must not use upstream asset name");
 
-assertIncludes(updater, "https://gitea.com/diankourenxia/wodeappx/releases/latest/download", "stable updater feed");
+assertIncludes(updater, "https://wodeapp.cn/downloads/wodeappx", "stable updater feed");
 assertIncludes(updater, "https://gitea.com/diankourenxia/wodeappx/releases/download/alpha-macos-latest", "alpha updater feed");
 
 assertIncludes(main, 'const APP_IDENTIFIER_PRODUCTION = "com.differentai.openwork";', "production app data identifier must remain stable for conversation compatibility");
 assertIncludes(main, 'path.join(app.getPath("appData"), APP_IDENTIFIER_PRODUCTION)', "user data path must be based on the stable production app identifier");
 assertIncludes(main, "applySelfEvolveRendererOverlay", "packaged desktop must load self-evolve overlay CSS from userData");
-assertIncludes(main, 'path.join(app.getPath("userData"), "self-evolve-overlay")', "self-evolve overlay must read userData overlay dir");
+assertIncludes(main, "resolveSelfEvolveRendererIndex", "packaged desktop must prefer self-evolve slot renderer over sealed app-dist");
+assertIncludes(main, "writeSelfEvolveLaunchInfo", "packaged desktop must write self-evolve-launch.json so B can relaunch the same binary");
+assertIncludes(main, "selfEvolveOverlayDirs", "self-evolve overlay dirs must honor WODEAPPX_SELF_EVOLVE_OVERLAY");
+assertIncludes(main, "self-evolve-overlay", "self-evolve overlay must read userData overlay dir");
 assertIncludes(main, 'localStorage.getItem("wodeappx.skin")', "self-evolve overlay must apply the active skin last, not every overlay CSS file");
 assertIncludes(main, "^[a-z0-9][a-z0-9_-]{0,63}$", "self-evolve overlay skin filename must reject path traversal");
 assertIncludes(main, "wodeappx-self-evolve-overlay", "self-evolve overlay must inject a document style tag so author !important in app-dist can be overridden");

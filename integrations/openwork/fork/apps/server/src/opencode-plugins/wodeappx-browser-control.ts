@@ -126,8 +126,8 @@ export default async ({ client }: { client?: OpenCodeClient } = {}) => {
         args: {
           clientId: optionalClientId,
           tabId: optionalTabId,
-          maxChars: z.number().optional().describe("Maximum page text characters to return. Defaults to 8000."),
-          maxElements: z.number().optional().describe("Maximum visible interactive elements to return. Defaults to 160 and is capped at 240."),
+          maxChars: z.number().optional().describe("Maximum page text characters to return. Defaults to 12000."),
+          maxElements: z.number().optional().describe("Maximum interactive elements to return. Defaults to 240 and is capped at 400."),
           timeoutMs: optionalTimeoutMs,
         },
         async execute(args: { clientId?: string; tabId?: number; maxChars?: number; maxElements?: number; timeoutMs?: number }) {

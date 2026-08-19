@@ -67,7 +67,7 @@
 
 - 正则：`^[a-z][a-z0-9-]{1,62}$`（小写 kebab-case）
 - 推荐后缀：`-agent`（如 `acme-brand-agent`）
-- **保留内置 id（禁止占用）：** 与 Layer0 `wodeapp-builtin-agents.default.json` 的 `agents[].id` 对齐（当前：`content-orchestrator`、`feishu-agent-mcp`、`visual-generation`、`video-generation`、`script-storyboard`、`agent-infinite-canvas`、`multi-agent-collab`、`home-textile-industry-agent`、`beauty-industry-agent`、`consumer-electronics-industry-agent`、`create-agent`）。**默认启用**：`visual-generation`、`video-generation`、`script-storyboard`、`agent-infinite-canvas`、`multi-agent-collab`；其余 `enabled: false` 仍占坑位。
+- **保留内置 id（禁止占用）：** 与 Layer0 `wodeapp-builtin-agents.default.json` 的 `agents[].id` 对齐（当前：`content-orchestrator`、`feishu-agent-mcp`、`visual-generation`、`video-generation`、`script-storyboard`、`agent-infinite-canvas`、`multi-agent-collab`、`home-textile-industry-agent`、`beauty-industry-agent`、`consumer-electronics-industry-agent`、`create-agent`）。**默认启用**：`visual-generation`、`video-generation`、`multi-agent-collab`；画布 / 短剧 `enabled: false`，可从侧栏「添加智能体」钉回；其余仍占坑位。
 - 重复 `id`：保留**第一条**，后续丢弃并记 warning
 
 ### 4.2 `brandId`

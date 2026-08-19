@@ -8,9 +8,18 @@ import {
   openWodeAppBuiltinAgentView,
   pickAbilityProjects,
   setWodeAppAbilityProjects,
+  WODEAPP_CREATE_AGENT_ID,
+  WODEAPP_SCRIPT_STORYBOARD_AGENT_ID,
   type WodeAppAbilityProject,
   type WodeAppBuiltinAgent,
 } from "./runtime-projects";
+
+export function shouldOpenBuiltinAgentWorkbench(agent: WodeAppBuiltinAgent): boolean {
+  if (agent.id === WODEAPP_CREATE_AGENT_ID) return false;
+  if (agent.id === WODEAPP_SCRIPT_STORYBOARD_AGENT_ID || agent.abilityKind === "short-drama") return false;
+  if (agent.kind === "brand" || agent.kind === "orchestrator" || agent.kind === "industry") return false;
+  return Boolean(agent.abilityKind);
+}
 
 export function describeBuiltinAgentOpenFailure(params: {
   signedIn: boolean;
@@ -61,14 +70,9 @@ export async function openBuiltinAgentWithFeedback(params: {
     openWodeAppBuiltinAgentView(params.agent, projects, params.sessionId);
 
   if (tryOpen(params.projects)) return true;
+  if (!shouldOpenBuiltinAgentWorkbench(params.agent)) return false;
 
   if (!params.signedIn) {
-    toast.error(describeBuiltinAgentOpenFailure({
-      signedIn: false,
-      agent: params.agent,
-      projects: params.projects,
-      preferLocal: getAbilityWorkbenchContext().preferLocal,
-    }));
     return false;
   }
 
@@ -91,11 +95,13 @@ export async function openBuiltinAgentWithFeedback(params: {
 
   if (tryOpen(projects)) return true;
 
-  toast.error(describeBuiltinAgentOpenFailure({
-    signedIn: true,
-    agent: params.agent,
-    projects,
-    syncError,
-  }));
+  if (syncError) {
+    toast.error(describeBuiltinAgentOpenFailure({
+      signedIn: true,
+      agent: params.agent,
+      projects,
+      syncError,
+    }));
+  }
   return false;
 }

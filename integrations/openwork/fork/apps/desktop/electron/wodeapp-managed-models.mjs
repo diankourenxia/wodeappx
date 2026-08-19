@@ -424,6 +424,47 @@ const LOCAL_CHAT_PROVIDER_SPECS = [
   },
 ];
 
+const RESERVED_CUSTOM_ENV_PREFIXES = new Set([
+  "ANTHROPIC", "OPENAI", "DEEPSEEK", "OPENROUTER", "MOONSHOT", "KIMI", "KIMICODE",
+  "DASHSCOPE", "ARK", "VOLC_ARK", "VOLCENGINE", "GOOGLE", "GEMINI",
+  "GOOGLE_GENERATIVE_AI", "ZAI", "ZHIPU", "MINIMAX", "MINIMAX_CODING",
+  "REPLICATE", "RUNWAY", "KLING", "HUGGINGFACE", "WODEAPP", "OPENWORK", "OPENCODE",
+]);
+
+function customVendorIdFromPrefix(prefix) {
+  const kebab = String(prefix || "").trim().toLowerCase().replace(/_+/g, "-").replace(/^-|-$/g, "");
+  return kebab ? `custom-${kebab}` : "custom-cloud";
+}
+
+function customChatProvidersFromEnv(env = {}, skipIds = {}) {
+  const providers = {};
+  const enabled = [];
+  const seen = new Set();
+  for (const key of Object.keys(env || {})) {
+    const match = String(key || "").match(/^([A-Z][A-Z0-9_]*)_API_KEY$/);
+    if (!match) continue;
+    const prefix = match[1];
+    if (RESERVED_CUSTOM_ENV_PREFIXES.has(prefix) || [...RESERVED_CUSTOM_ENV_PREFIXES].some((item) => prefix.startsWith(`${item}_`))) {
+      continue;
+    }
+    const apiKey = resolveEnvSecret(env, [`${prefix}_API_KEY`]);
+    const baseURL = String(env[`${prefix}_BASE_URL`] ?? "").trim().replace(/\/+$/, "");
+    if (!apiKey || !baseURL) continue;
+    const id = customVendorIdFromPrefix(prefix);
+    if (skipIds[id] || seen.has(id)) continue;
+    seen.add(id);
+    const name = String(env[`${prefix}_LABEL`] ?? "").trim() || prefix.replace(/_/g, " ");
+    providers[id] = {
+      npm: "@ai-sdk/openai-compatible",
+      name,
+      options: { apiKey, baseURL },
+      models: { default: chatFloorModel(name) },
+    };
+    enabled.push(id);
+  }
+  return { providers, enabled };
+}
+
 function localChatProvidersFromEnv(env = {}, customProviders = {}) {
   const providers = {};
   const enabled = [];
@@ -443,6 +484,12 @@ function localChatProvidersFromEnv(env = {}, customProviders = {}) {
     };
     enabled.push(spec.id);
     if (!defaultModel) defaultModel = `${spec.id}/${spec.defaultModel}`;
+  }
+  const extras = customChatProvidersFromEnv(env, { ...customProviders, ...providers });
+  Object.assign(providers, extras.providers);
+  enabled.push(...extras.enabled);
+  if (!defaultModel && extras.enabled[0]) {
+    defaultModel = `${extras.enabled[0]}/default`;
   }
   return { providers, enabled, defaultModel };
 }

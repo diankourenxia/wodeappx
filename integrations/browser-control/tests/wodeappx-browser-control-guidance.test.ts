@@ -35,6 +35,8 @@ describe("WodeAppX browser-control guidance", () => {
     expect(BROWSER_TOOL_DESCRIPTIONS.click).toContain("Click once, then verify");
     expect(BROWSER_TOOL_DESCRIPTIONS.readPage).toContain("again afterward");
     expect(BROWSER_TOOL_DESCRIPTIONS.readPage).toContain("interactiveElements");
+    expect(BROWSER_TOOL_DESCRIPTIONS.readPage).toContain("12000");
+    expect(BROWSER_TOOL_DESCRIPTIONS.readPage).toContain("240");
     expect(BROWSER_TOOL_DESCRIPTIONS.click).toContain("nodeId");
     expect(BROWSER_TOOL_DESCRIPTIONS.status).toContain("shell/CDP ports");
   });

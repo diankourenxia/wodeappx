@@ -12,6 +12,37 @@ import { spawn } from "node:child_process";
 export const BUNDLED_SELF_EVOLVE_RESOURCE_DIR = "self-evolve-source";
 export const BUNDLED_SELF_EVOLVE_ARCHIVE = "self-evolve-source.tar.zst";
 export const BUNDLED_SELF_EVOLVE_MANIFEST = "manifest.json";
+export const SELF_EVOLVE_UPSTREAM_ORIGIN = "https://github.com/diankourenxia/wodeappx.git";
+
+function normalizeUpstreamVersion(version) {
+  return String(version || "").trim().replace(/^v/i, "");
+}
+
+export function selfEvolveUpstreamPayload(version) {
+  const normalized = normalizeUpstreamVersion(version);
+  return {
+    product: "WodeAppX",
+    version: normalized,
+    tag: normalized ? `v${normalized}` : "",
+    origin: SELF_EVOLVE_UPSTREAM_ORIGIN,
+  };
+}
+
+export function resolveSelfEvolveUpstreamPath(mount) {
+  if (existsSync(path.join(mount, "scripts", "self-evolve-guard.mjs"))) {
+    return path.join(mount, "UPSTREAM.json");
+  }
+  return path.join(mount, "wodeappx", "UPSTREAM.json");
+}
+
+/** Leave official version + git origin in the mounted tree. Do not fetch or merge. */
+export async function ensureSelfEvolveUpstreamFile(mount, version) {
+  const dest = resolveSelfEvolveUpstreamPath(mount);
+  if (existsSync(dest)) return dest;
+  await mkdir(path.dirname(dest), { recursive: true });
+  await writeFile(dest, `${JSON.stringify(selfEvolveUpstreamPayload(version), null, 2)}\n`);
+  return dest;
+}
 
 /**
  * @param {string} resourcesPath process.resourcesPath
@@ -186,7 +217,10 @@ export async function ensureBundledSelfEvolveMonorepo(options) {
   const markerPath = path.join(destRoot, ".extracted");
 
   const cachedMount = existsSync(markerPath) ? accept(monorepoRoot) : "";
-  if (cachedMount) return cachedMount;
+  if (cachedMount) {
+    await ensureSelfEvolveUpstreamFile(cachedMount, extractVersion);
+    return cachedMount;
+  }
 
   return withDestLock(destRoot, async () => {
     const lockedMount = existsSync(markerPath) ? accept(monorepoRoot) : "";
@@ -204,6 +238,7 @@ export async function ensureBundledSelfEvolveMonorepo(options) {
       if (!mount) {
         throw new Error(`extracted tree is not a self-evolve source root: ${monorepoRoot}`);
       }
+      await ensureSelfEvolveUpstreamFile(mount, extractVersion);
       await writeFile(
         markerPath,
         JSON.stringify({

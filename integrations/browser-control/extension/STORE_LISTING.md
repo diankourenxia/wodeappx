@@ -4,7 +4,7 @@ Update the existing public item. Do not create a second store item.
 
 - Chrome Web Store item ID: `mfnpfomihliahiheofiijbmmhfeanhpb`
 - Canonical extension source: `wodeappx/integrations/browser-control/extension`
-- Upload package: `dist/wodeappx-browser-control-1.4.0.zip`
+- Upload package: `dist/wodeappx-browser-control-1.4.4.zip`
 - Privacy policy: `https://wodeapp.cn/privacy/ai-browser-recorder`
 - Homepage and support URL: `https://wodeapp.cn/browser-tools`
 
@@ -45,7 +45,7 @@ Messaging 与 WodeAppX 安装包内的本机宿主通信；旧版桌面端仍可
 - `activeTab`: 在用户发起任务后识别并操作当前标签页。
 - `tabs`: 获取当前标签页标题、网址与标签页状态，并按用户要求打开或切换页面。
 - `scripting`: 在任务需要时读取页面可见内容、定位元素并执行点击或输入。
-- `debugger`: 通过 Chrome DevTools Protocol 完成截图、键盘输入和需要浏览器级能力的自动化操作；仅在任务执行期间临时附加。
+- `debugger`: 通过 Chrome DevTools Protocol 完成截图、键盘输入和需要浏览器级能力的自动化操作；列标签页只读不附加；其他页操作期间临时附加，若该页已被其他调试器占用则立即失败。
 - `nativeMessaging`: 与 WodeAppX 桌面安装包内的本机宿主通信，把用户请求的浏览器命令和结果保留在本机控制链路中；不会连接任意第三方本机程序。
 - `storage`: 在本机保存桥接地址、连接令牌、会话 ID 和最近的侧栏消息。
 - `alarms`: 在后台以低频率检查本机 WodeAppX 是否有待执行的浏览器命令。
@@ -61,7 +61,7 @@ The alarms permission is used to wake the Manifest V3 service worker at a low fr
 
 **debugger**
 
-The debugger permission is used only while WodeAppX is executing a browser task explicitly requested by the user. The extension temporarily attaches to the active target tab so Chrome displays its native browser-control indicator during automation, and detaches shortly after the command completes. It is not used for persistent monitoring, advertising, or collecting browsing history.
+The debugger permission is used only while WodeAppX is executing a browser task explicitly requested by the user. Read-only tab listing does not attach. For page actions the extension attaches to the target tab so Chrome can show its native control indicator, keeps that session for a short idle window, and detaches afterward. If another debugger is already attached, the command fails immediately instead of waiting. It is not used for persistent monitoring, advertising, or collecting browsing history.
 
 **nativeMessaging**
 

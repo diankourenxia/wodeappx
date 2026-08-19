@@ -24,6 +24,7 @@ describe("WodeAppX capability routing", () => {
     expect(route.system).toContain("Deferred Visibility + Gated Execution");
     expect(route.system).toContain("approvals and effect gates remain the safety boundary");
     expect(route.system).toContain("默认使用简体中文回答用户");
+    expect(route.system).not.toContain("Surface: WodeAppX web chat");
     expect(route.system).toContain("只有用户明确要求其他语言时");
     expect(route.enabledTools).toEqual([
       "wodeapp_auth_status",
@@ -689,6 +690,7 @@ describe("WodeAppX capability routing", () => {
     expect(route.system).toContain("list_skill_manifests");
     expect(route.system).toContain("materialize_skill_app");
     expect(route.system).toContain("ai_generate_page");
+    expect(route.system).toContain("never assemble Hero/SmartForm/SmartTable stacks");
     expect(route.system).not.toContain("create_agent_app");
     expect(route.tools.list_skill_manifests).toBe(true);
     expect(route.tools.materialize_skill_app).toBe(true);
@@ -704,6 +706,8 @@ describe("WodeAppX capability routing", () => {
     expect(route.tools["wodeapp-platform_ai_generate_page"]).toBe(true);
     expect(route.tools["wodeapp-platform_publish_project"]).toBe(true);
     expect(route.tools["wodeapp-platform_build_app"]).toBe(false);
+    expect(route.tools.wodeapp_sidebar_agent_save).toBe(true);
+    expect(route.system).toContain("wodeapp_sidebar_agent_save");
     // Creative core keeps image generation tools visible alongside agent-app.
     expect(route.tools["wodeapp-platform_ai_generate_image"]).toBe(true);
     expect(route.tools.bash).toBe(true);
@@ -716,6 +720,8 @@ describe("WodeAppX capability routing", () => {
 
     expect(normal.tools.list_templates).toBe(false);
     expect(normal.tools.build_app).toBe(false);
+    expect(normal.system).toContain("saveData/loadData/deleteData");
+    expect(normal.system).not.toContain("Data apps: create collection, bind reads/writes");
     expect(template.capabilities).toContain("site");
     expect(template.tools.list_templates).toBe(true);
     expect(template.tools.build_app).toBe(false);
@@ -1115,6 +1121,25 @@ describe("WodeAppX capability routing", () => {
     expect(route.tools.video_generate).toBe(false);
     expect(route.system).toContain("不要调用 ai_generate_image");
     expect(route.system).toContain("DeepSeek");
+  });
+
+  test("labels the web surface as browser chat instead of the desktop workbench", () => {
+    const route = routeWodeAppCapabilities({
+      text: "你是谁",
+      runtime: "web",
+    });
+    expect(route.system).toContain("Surface: WodeAppX web chat");
+    expect(route.system).toContain("不要自称桌面端");
+    expect(route.system).not.toContain("Self-evolution (本工作区)");
+  });
+
+  test("points self-evolve questions on web to the desktop app", () => {
+    const route = routeWodeAppCapabilities({
+      text: "帮我改你自己的代码",
+      runtime: "web",
+    });
+    expect(route.system).toContain("自进化只在 WodeAppX 桌面端");
+    expect(route.system).not.toContain("Self-evolution (本工作区)");
   });
 
 });

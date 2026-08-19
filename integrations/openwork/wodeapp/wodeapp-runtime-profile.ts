@@ -6,9 +6,13 @@ import {
 } from "./wodeapp-brand-agent-config";
 import {
   listEnabledWodeAppBuiltinAgentConfigs,
+  WODEAPP_SHIPPED_BUILTIN_AGENTS_FILE,
   type WodeAppBuiltinAgentConfig,
 } from "./wodeapp-builtin-agents-config";
 import { findWodeAppIndustryPack, WODEAPP_BEAUTY_INDUSTRY_PACK } from "./wodeapp-industry-packs";
+import { buildAgentCapabilityText } from "./wodeapp-agent-tools";
+import { readWodeAppAgentsOverride } from "./wodeapp-sidebar-agents";
+import { buildCustomAgentHomeContract } from "./wodeapp-custom-agent-home";
 
 /** Legacy / example id used by the optional Wynne workbench when configured. */
 export const WODEAPP_WYNNE_RUNTIME_PROFILE_ID = "wynne-brand-agent";
@@ -28,6 +32,10 @@ export type WodeAppRuntimeProfile = {
   /** Optional industry playbook steps for system context. */
   playbook?: readonly string[];
   recommendedSkills?: readonly string[];
+  /** Same capability text as the agent profile (policy + tools). */
+  contract?: string;
+  /** When false, do not pass this id as OpenCode `agent=` (product capability agents). */
+  nativeOpenCode?: boolean;
 };
 
 const DEFAULT_INDUSTRY_POLICY = [
@@ -102,6 +110,24 @@ export function builtinAgentConfigToRuntimeProfile(
   };
 }
 
+function productAgentConfigToRuntimeProfile(agent: WodeAppBuiltinAgentConfig): WodeAppRuntimeProfile {
+  const edit = readWodeAppAgentsOverride().profiles?.[agent.id];
+  const name = edit?.name || agent.name;
+  return {
+    id: agent.id,
+    agentId: agent.id,
+    name,
+    brandId: agent.abilityKind || agent.kind,
+    policy: [],
+    connectorScopes: [],
+    knowledgeScopes: [],
+    toolSearchProfile: agent.id,
+    identity: [name, agent.meta].filter(Boolean).join(" · "),
+    contract: edit?.description?.trim() || buildAgentCapabilityText(agent),
+    nativeOpenCode: false,
+  };
+}
+
 function profileFromIndustryPack(pack: ReturnType<typeof findWodeAppIndustryPack>, name?: string): WodeAppRuntimeProfile | null {
   if (!pack) return null;
   return {
@@ -140,9 +166,27 @@ export function setWodeAppRuntimeProfilesFromBrandAgents(
   agents: readonly WodeAppBrandAgentConfig[] | null | undefined,
 ): void {
   const next = profilesFromShippedIndustryAgents();
+  for (const agent of WODEAPP_SHIPPED_BUILTIN_AGENTS_FILE.agents) {
+    if (next[agent.id] || agent.kind === "industry") continue;
+    next[agent.id] = productAgentConfigToRuntimeProfile(agent);
+  }
   const enabled = listEnabledWodeAppBrandAgents(agents ?? []);
+  const edits = readWodeAppAgentsOverride().profiles ?? {};
   for (const agent of enabled) {
-    next[agent.id] = brandAgentConfigToRuntimeProfile(agent);
+    const edit = edits[agent.id];
+    const name = edit?.name?.trim() || agent.name;
+    const custom = agent.brandId === "custom" || agent.id.startsWith("custom-");
+    next[agent.id] = {
+      ...brandAgentConfigToRuntimeProfile(agent),
+      name,
+      identity: name,
+      contract: custom
+        ? buildCustomAgentHomeContract(agent, edit?.description)
+        : edit?.description?.trim() || undefined,
+      // Sidebar/custom/brand ids are not OpenCode engine agents.
+      // Passing them as agent= dies in createUserMessage (UnknownError).
+      nativeOpenCode: false,
+    };
   }
   configuredProfiles = next;
   profilesHydrated = true;
@@ -182,7 +226,22 @@ export function findWodeAppRuntimeProfile(profileId: string | null | undefined):
 export function wodeAppRuntimeProfileAgentId(
   profile: WodeAppRuntimeProfile | null,
 ): string | undefined {
-  return profile?.agentId;
+  if (!profile || profile.nativeOpenCode === false) return undefined;
+  return profile.agentId || undefined;
+}
+
+/** Only real OpenCode agents (build/plan/openwork). Product/custom ids stay in system context. */
+export function resolveOpenCodePromptAgent(
+  runtimeProfile: WodeAppRuntimeProfile | null | undefined,
+  selectedAgent?: string | null,
+): string | undefined {
+  const fromProfile = wodeAppRuntimeProfileAgentId(runtimeProfile ?? null);
+  if (fromProfile) return fromProfile;
+  const selected = selectedAgent?.trim() || "";
+  if (!selected) return undefined;
+  const selectedProfile = findWodeAppRuntimeProfile(selected);
+  if (selectedProfile) return wodeAppRuntimeProfileAgentId(selectedProfile);
+  return selected;
 }
 
 export function bindWodeAppRuntimeProfileToSession(
@@ -258,6 +317,15 @@ export function buildWodeAppRuntimeProfileSystemContext(
   profile: WodeAppRuntimeProfile | null,
 ): string {
   if (!profile) return "";
+  if (profile.contract?.trim()) {
+    return [
+      `<product_agent id="${profile.id}">`,
+      profile.identity?.trim() || profile.name,
+      "",
+      profile.contract.trim(),
+      "</product_agent>",
+    ].join("\n");
+  }
   const lines = [
     `<runtime_profile id="${profile.id}" brand="${profile.brandId}">`,
     `Identity: ${profile.identity?.trim() || profile.name}.`,

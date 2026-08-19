@@ -34,6 +34,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { t } from "../../../../i18n";
+import { isWebDeployment } from "../../../../app/lib/openwork-deployment";
 import type { SettingsTab } from "../../../../app/types";
 import { useOrgRestrictions } from "../../cloud/desktop-config-provider";
 import {
@@ -178,6 +179,8 @@ export function getSettingsTabDescription(tab: SettingsTab) {
 
 /** High-frequency settings shown in the main nav. */
 export function getPrimarySettingsTabs(): SettingsTab[] {
+  // Web shares one cloud engine: no local keys, folder permissions, or app updates.
+  if (isWebDeployment()) return ["appearance"];
   // 「模型偏好」「模型服务商」「环境变量」已下线：平台模型与本机 Key 同步均在「服务与模型」。
   // 「高级 / 恢复 / 调试」不再进侧栏；页面路由仍可用。
   return ["service", "extensions", "appearance", "permissions", "updates"];

@@ -15,6 +15,7 @@ import {
   MessageSquarePlus,
   Pin,
   Plug,
+  Pencil,
   Plus,
   Radar,
   Trash2,
@@ -38,7 +39,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { t } from "@/i18n";
+import { currentLocale, t } from "@/i18n";
 import { ConfirmModal } from "@/react-app/design-system/modals/confirm-modal";
 import { RenameSessionModal } from "@/react-app/domains/session/modals/rename-session-modal";
 import {
@@ -63,8 +64,12 @@ import {
   sortSessionsByStableOrder,
 } from "./wodeapp-session-list-order";
 
+import { isWebDeployment } from "@/app/lib/openwork-deployment";
 import { WodeAppAccountFooter } from "./wodeapp-account-footer";
-import type { WodeAppBuiltinAgent } from "./runtime-projects";
+import { WodeAppManageAgentsDialog } from "./wodeapp-manage-agents-dialog";
+import { findWodeAppBuiltinAgent, WODEAPP_CREATE_AGENT_ID, type WodeAppBuiltinAgent } from "./runtime-projects";
+import { buildBuiltinAgentTask } from "./wodeapp-auto-orchestration";
+import { buildAddAgentGuideText } from "./wodeapp-sidebar-agents";
 import type { WodeAppSurface } from "./wodeapp-types";
 import { WODEAPP_NAV_ITEMS } from "./wodeapp-types";
 import {
@@ -169,17 +174,20 @@ function isSessionActivityStatus(status: string | undefined): status is SessionA
 function getRecentSessionStatusLabel(status: string | undefined): string {
   if (!status || status === "idle") return "";
   if (isSessionActivityStatus(status)) {
+    const key = `wodeappx.status.${status}`;
+    const value = t(key);
+    if (value && value !== key) return value;
     return RECENT_STATUS_LABELS[status] || getSessionActivityStatusLabel(status);
   }
-  if (isStreamingSessionStatus(status)) return "运行中";
-  return "进行中";
+  if (isStreamingSessionStatus(status)) return t("wodeappx.status.running");
+  return t("wodeappx.status.in_progress");
 }
 
 function sessionTitleForId(groups: WorkspaceSessionGroup[], sessionId: string): string {
   for (const group of groups) {
     const session = group.sessions.find((item) => item.id === sessionId);
     if (session) {
-      return getDisplaySessionTitle(session.title ?? "", "我的智能体");
+      return getDisplaySessionTitle(session.title ?? "");
     }
   }
   return "";
@@ -198,15 +206,41 @@ export function selectWodeAppCollapsedGroupIds(
 
 type WorkspaceSession = WorkspaceSessionGroup["sessions"][number];
 
+function sessionRecency(session: WorkspaceSession) {
+  return Number(session.time?.updated || session.time?.created || 0);
+}
+
+function localizeWodeAppSidebarAgentName(agent: { id: string; name: string }) {
+  for (const key of [`wodeappx.agent.${agent.id}.name`, `wodeappx.profile.${agent.id}.name`]) {
+    const value = t(key);
+    if (value && value !== key) return value;
+  }
+  return agent.name;
+}
+
+function localizeWodeAppSkinTitle(skin?: string | null) {
+  if (!skin || currentLocale() !== "zh") return "";
+  const key = `wodeappx.skin.${skin}.label`;
+  const value = t(key);
+  return value && value !== key ? value : "";
+}
+
 export function filterVisibleWodeAppSessions(sessions: WorkspaceSession[]) {
   const ids = new Set(sessions.map((session) => session.id));
-  return sessions.filter((session) => {
-    if (isSessionArchived(session) || isGeneratedSessionTitle(session.title)) return false;
+  const usable = sessions.filter((session) => {
+    if (isSessionArchived(session)) return false;
     // task/explore subagent sessions are engine-internal children; never list them in 「最近」.
     const parentID = typeof session.parentID === "string" ? session.parentID.trim() : "";
     if (parentID && ids.has(parentID)) return false;
     return true;
   });
+  const named = usable.filter((session) => !isGeneratedSessionTitle(session.title));
+  if (!isWebDeployment()) return named;
+  const untitled = usable
+    .filter((session) => isGeneratedSessionTitle(session.title))
+    .slice()
+    .sort((left, right) => sessionRecency(right) - sessionRecency(left));
+  return untitled[0] ? [untitled[0], ...named] : named;
 }
 
 /**
@@ -241,6 +275,7 @@ function useOrderedVisibleSessions(workspaceId: string, sessions: WorkspaceSessi
 }
 
 function isHomeConversationWorkspace(workspace: WorkspaceSessionGroup["workspace"]) {
+  if (isWebDeployment()) return true;
   const path = String(workspace.path ?? "").replace(/\\/g, "/");
   if (!path) return true;
   return (
@@ -254,7 +289,7 @@ function isSelfEvolveWorkspaceLike(workspace: WorkspaceSessionGroup["workspace"]
   if (!workspace) return false;
   if (isSuporWorkspaceLike(workspace)) return true;
   const name = String(workspace.displayName || workspace.name || "").trim();
-  if (name.includes("自进化")) return true;
+  if (/自进化|self[-\s]?evolv/i.test(name)) return true;
   const folderPath = String(workspace.path || "").replace(/\\/g, "/");
   if (!folderPath) return false;
   // Dev monorepo root that contains wodeappx/ + runtime-server/
@@ -268,9 +303,7 @@ function folderWorkspaceLabel(workspace: WorkspaceSessionGroup["workspace"]) {
     return SUPOR_WORKSPACE_DISPLAY_NAME;
   }
   if (isSelfEvolveWorkspaceLike(workspace)) {
-    const named = workspace.displayName?.trim() || workspace.name?.trim();
-    if (named?.includes("自进化")) return named;
-    return "wodeapp（自进化）";
+    return t("wodeappx.workspace.self_evolve");
   }
   const displayName = workspace.displayName?.trim();
   if (displayName && displayName.toLowerCase() !== "wodeapp" && displayName !== "WodeAppX" && displayName !== "WodeAppX") {
@@ -282,7 +315,9 @@ function folderWorkspaceLabel(workspace: WorkspaceSessionGroup["workspace"]) {
     if (base) return base;
   }
   const name = workspace.name?.trim();
-  if (!name || name.toLowerCase() === "wodeapp" || name === "WodeAppX" || name === "WodeAppX") return "本地工作区";
+  if (!name || name.toLowerCase() === "wodeapp" || name === "WodeAppX" || name === "WodeAppX") {
+    return t("wodeappx.workspace.local");
+  }
   return name;
 }
 
@@ -376,7 +411,7 @@ function SessionList(options: {
     rowProps,
     onToggleShowAll,
     onToggleSessionGroup,
-    emptyLabel = "暂无对话",
+    emptyLabel = t("wodeappx.recent.empty"),
   } = options;
   const orderedSessions = useOrderedVisibleSessions(workspaceId, sessions);
   const useGroupedLayout = hasGroupedSessionLayout(sessionGroups, assignments);
@@ -392,7 +427,7 @@ function SessionList(options: {
     : Math.max(0, allSessions.length - visibleSessions.length);
 
   if (sessionsLoading && allSessions.length === 0) {
-    return <p className="wapp-sidebar-muted">加载中...</p>;
+    return <p className="wapp-sidebar-muted">{t("wodeappx.common.loading")}</p>;
   }
 
   return (
@@ -445,8 +480,8 @@ function SessionList(options: {
           {showAllSessions ? <ChevronUp aria-hidden /> : <ChevronDown aria-hidden />}
           <span>
             {showAllSessions
-              ? "收起显示"
-              : `展开显示（其余 ${hiddenCount} 条）`}
+              ? t("wodeappx.recent.collapse")
+              : t("wodeappx.recent.expand_more", { count: hiddenCount })}
           </span>
         </button>
       ) : null}
@@ -534,7 +569,7 @@ function RecentSessionRow({
               <Pin className="wapp-recent-pin" aria-hidden />
             ) : null}
             <span className="wapp-recent-title">
-              {getDisplaySessionTitle(session.title ?? "", "我的智能体")}
+              {getDisplaySessionTitle(session.title ?? "")}
             </span>
             {statusLabel ? (
               <span
@@ -609,8 +644,8 @@ function RecentGroupBlock({
           <button
             type="button"
             className="wapp-recent-group-delete"
-            aria-label="删除分组"
-            title="删除分组"
+            aria-label={t("wodeappx.recent.delete_group")}
+            title={t("wodeappx.recent.delete_group")}
             onClick={(event) => {
               event.stopPropagation();
               useSessionManagementStore.getState().removeGroup(workspaceId, groupId);
@@ -632,7 +667,7 @@ function RecentGroupBlock({
               />
             ))
           ) : membershipCount > 0 ? null : (
-            <p className="wapp-sidebar-muted wapp-recent-group-empty">暂无对话</p>
+            <p className="wapp-sidebar-muted wapp-recent-group-empty">{t("wodeappx.recent.empty")}</p>
           )}
         </div>
       ) : null}
@@ -723,8 +758,8 @@ function FlatWorkspaceConversationList({
           <button
             type="button"
             className="wapp-conversation-workspace-action is-danger"
-            aria-label="删除项目"
-            title="删除项目"
+            aria-label={t("wodeappx.workspace.remove")}
+            title={t("wodeappx.workspace.remove")}
             onClick={(event) => {
               event.stopPropagation();
               onForgetWorkspace(workspaceId);
@@ -750,7 +785,7 @@ function FlatWorkspaceConversationList({
           ensureSelected();
           onToggleSessionGroup(id, groupId);
         }}
-        emptyLabel="暂无对话"
+        emptyLabel={t("wodeappx.recent.empty")}
       />
     </div>
   );
@@ -804,7 +839,7 @@ function WorkspaceConversationBlock({
           type="button"
           className="wapp-conversation-workspace-toggle"
           aria-expanded={expanded}
-          aria-label={expanded ? "折叠项目" : "展开项目"}
+          aria-label={expanded ? t("wodeappx.workspace.collapse") : t("wodeappx.workspace.expand")}
           onClick={() => onToggleExpanded(workspace.id)}
         >
           <ChevronRight
@@ -825,7 +860,7 @@ function WorkspaceConversationBlock({
         >
           <span className="wapp-conversation-workspace-title">{label}</span>
           {isConnecting ? (
-            <span className="wapp-conversation-workspace-meta">连接中...</span>
+            <span className="wapp-conversation-workspace-meta">{t("wodeappx.workspace.connecting")}</span>
           ) : null}
         </button>
         <div className="wapp-conversation-workspace-actions">
@@ -833,12 +868,12 @@ function WorkspaceConversationBlock({
             type="button"
             className="wapp-conversation-workspace-action"
             disabled={newTaskDisabled}
-            aria-label="新建对话"
-            title="新建对话"
+            aria-label={t("wodeappx.chat.new")}
+            title={t("wodeappx.chat.new")}
             onClick={(event) => {
               event.stopPropagation();
               // Leave assets/settings/etc. so the new session chat is visible
-              // (same as top 「新建对话」 and clicking an existing session).
+              // (same as top New conversation and clicking an existing session).
               onSurfaceChange("agents");
               if (!isActive && onSelectWorkspace) {
                 void Promise.resolve(onSelectWorkspace(workspace.id)).then((ok) => {
@@ -856,8 +891,8 @@ function WorkspaceConversationBlock({
             <button
               type="button"
               className="wapp-conversation-workspace-action is-danger"
-              aria-label="删除项目"
-              title="删除项目"
+              aria-label={t("wodeappx.workspace.remove")}
+              title={t("wodeappx.workspace.remove")}
               onClick={(event) => {
                 event.stopPropagation();
                 onForgetWorkspace(workspace.id);
@@ -890,6 +925,33 @@ function WorkspaceConversationBlock({
 
 export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
   const [agentsSubtreeOpen, setAgentsSubtreeOpen] = React.useState(true);
+  const startAddAgentConversation = React.useCallback(() => {
+    const agent = findWodeAppBuiltinAgent(WODEAPP_CREATE_AGENT_ID);
+    if (!agent) return;
+    props.onSurfaceChange("agents");
+    if (props.onCreateTaskWithPrompt) {
+      void props.onCreateTaskWithPrompt(
+        props.selectedWorkspaceId,
+        buildBuiltinAgentTask(agent, {
+          displayText: buildAddAgentGuideText(),
+          autoSend: false,
+        }),
+      );
+      return;
+    }
+    props.onCreateTaskInWorkspace(props.selectedWorkspaceId);
+  }, [
+    props.onCreateTaskInWorkspace,
+    props.onCreateTaskWithPrompt,
+    props.onSurfaceChange,
+    props.selectedWorkspaceId,
+  ]);
+  React.useEffect(() => {
+    const openAddAgent = () => startAddAgentConversation();
+    window.addEventListener("wodeapp:open-add-agent", openAddAgent);
+    return () => window.removeEventListener("wodeapp:open-add-agent", openAddAgent);
+  }, [startAddAgentConversation]);
+  const [profileAgentId, setProfileAgentId] = React.useState<string | null>(null);
   const [assetSurfaceMode, setAssetSurfaceMode] = React.useState<WodeAppAssetSurfaceMode>("library");
   const [expandedSessionIds, setExpandedSessionIds] = React.useState<Set<string>>(() => new Set());
   const [expandedWorkspaceIds, setExpandedWorkspaceIds] = React.useState<Set<string>>(
@@ -955,19 +1017,10 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
 
   const capabilityNavItems = React.useMemo(
     () => props.builtinAgents.filter((agent) =>
-      agent.kind === "capability" || agent.kind === "integration"),
+      agent.kind === "capability" || agent.kind === "integration" || agent.kind === "brand"),
     [props.builtinAgents],
   );
-  /**
-   * Default desk no longer surfaces the shipped/demo Supor brand agent.
-   * Supor remains available via skin / product desk; brand-agents.json can still load it.
-   */
-  const brandNavItems = React.useMemo(
-    () => [] as Array<{ id: string; name: string; meta: string }>,
-    [],
-  );
-  const hasAgentsSubtree =
-    capabilityNavItems.length > 0 || brandNavItems.length > 0;
+  const hasAgentsSubtree = true;
 
   React.useEffect(() => {
     if (!props.selectedWorkspaceId) return;
@@ -1200,7 +1253,11 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
             z-index and swallows real mouse clicks on the toggle. Window drag
             stays on .wapp-topbar.
           */}
-          <div className="wapp-brand wapp-brand-spacer mac:titlebar-no-drag" aria-hidden>
+          <div
+            className="wapp-brand wapp-brand-spacer mac:titlebar-no-drag"
+            aria-hidden
+            data-skin-title={localizeWodeAppSkinTitle(props.skin)}
+          >
             {props.skin && THEME_BRAND_AVATAR_SRC[props.skin] ? (
               <img
                 className="wapp-theme-brand-avatar"
@@ -1220,13 +1277,13 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
             disabled={props.newTaskDisabled}
           >
             <MessageSquarePlus aria-hidden />
-            新建对话
+            {t("wodeappx.chat.new")}
           </button>
         </div>
 
         <div className="wapp-sidebar-scroll">
-          <nav className="wapp-nav" aria-label="工作台导航">
-            {WODEAPP_NAV_ITEMS.map(({ id, label }) => {
+          <nav className="wapp-nav" aria-label={t("wodeappx.nav.aria_label")}>
+            {WODEAPP_NAV_ITEMS.map(({ id, labelKey }) => {
               const Icon = NAV_ICONS[id];
               const showAgentsSubtree = id === "agents" && hasAgentsSubtree;
               return (
@@ -1234,7 +1291,7 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
                   <div className={`wapp-nav-row${showAgentsSubtree ? " has-subtree" : ""}`}>
                     <button
                       type="button"
-                      className={`wapp-nav-item${props.activeSurface === id ? " is-active" : ""}${showAgentsSubtree ? " has-toggle" : ""}`}
+                      className={`wapp-nav-item${id !== "agents" && props.activeSurface === id ? " is-active" : ""}${showAgentsSubtree ? " has-toggle" : ""}`}
                       onClick={() => {
                         if (id === "assets") requestWodeAppAssetSurfaceMode("library");
                         if (id === "agents") exitSuporIsolation();
@@ -1242,13 +1299,13 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
                       }}
                     >
                       <Icon className="wapp-nav-icon" aria-hidden />
-                      <span>{label}</span>
+                      <span>{t(labelKey)}</span>
                     </button>
                     {showAgentsSubtree ? (
                       <button
                         type="button"
                         className={`wapp-nav-toggle${agentsSubtreeOpen ? " is-open" : ""}`}
-                        aria-label={agentsSubtreeOpen ? "折叠智能体" : "展开智能体"}
+                        aria-label={agentsSubtreeOpen ? t("wodeappx.agents.collapse") : t("wodeappx.agents.expand")}
                         aria-expanded={agentsSubtreeOpen}
                         onClick={() => setAgentsSubtreeOpen((open) => !open)}
                       >
@@ -1257,42 +1314,55 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
                     ) : null}
                   </div>
                   {showAgentsSubtree && agentsSubtreeOpen ? (
-                    <div className="wapp-nav-subtree" aria-label="智能体分组">
-                      {capabilityNavItems.length > 0 ? (
-                        <div className="wapp-nav-agent-group" aria-label="能力智能体">
-                          {capabilityNavItems.map((agent) => (
+                    <div className="wapp-nav-subtree" aria-label={t("wodeappx.agents.groups")}>
+                      <div className="wapp-nav-agent-group" aria-label={t("wodeappx.agents.capability_group")}>
+                        {capabilityNavItems.map((agent) => {
+                          const agentName = localizeWodeAppSidebarAgentName(agent);
+                          return (
+                          <div
+                            key={agent.id}
+                            className={`wapp-nav-subitem-row${props.selectedRuntimeProjectId === agent.id ? " is-active" : ""}`}
+                          >
                             <button
-                              key={agent.id}
                               type="button"
                               className={`wapp-nav-subitem${props.selectedRuntimeProjectId === agent.id ? " is-active" : ""}`}
                               onClick={() => props.onSelectRuntimeProject(agent.id)}
+                              onContextMenu={(event) => {
+                                event.preventDefault();
+                                setProfileAgentId(agent.id);
+                              }}
                             >
-                              <span className="wapp-nav-subitem-title">{agent.name}</span>
-                              <span className="wapp-nav-subitem-meta">{agent.meta}</span>
+                              <span className="wapp-nav-subitem-title">{agentName}</span>
                             </button>
-                          ))}
-                        </div>
-                      ) : null}
-                      {brandNavItems.length > 0 ? (
-                        <div className="wapp-nav-agent-group" aria-label="品牌智能体">
-                          <p className="wapp-nav-agent-group-label">品牌</p>
-                          {brandNavItems.map((agent) => (
                             <button
-                              key={agent.id}
                               type="button"
-                              className={`wapp-nav-subitem${props.selectedRuntimeProjectId === agent.id ? " is-active" : ""}`}
-                              onClick={() => props.onSelectRuntimeProject(agent.id)}
+                              className="wapp-nav-subitem-more"
+                              aria-label={`${t("common.edit")} ${agentName}`}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setProfileAgentId(agent.id);
+                              }}
                             >
-                              <span className="wapp-nav-subitem-title">{agent.name}</span>
-                              <span className="wapp-nav-subitem-meta">{agent.meta}</span>
+                              <Pencil aria-hidden />
                             </button>
-                          ))}
-                        </div>
-                      ) : null}
+                          </div>
+                          );
+                        })}
+                        <button
+                          type="button"
+                          className="wapp-nav-subitem wapp-nav-subitem-add"
+                          onClick={startAddAgentConversation}
+                        >
+                          <span className="wapp-nav-subitem-title">
+                            <Plus aria-hidden />
+                            <span>{t("wodeappx.nav.add_agent")}</span>
+                          </span>
+                        </button>
+                      </div>
                     </div>
                   ) : null}
                   {id === "assets" ? (
-                    <div className="wapp-nav-subtree is-assets" aria-label="数字资产快捷入口">
+                    <div className="wapp-nav-subtree is-assets" aria-label={t("wodeappx.assets.shortcuts")}>
                       <button
                         type="button"
                         className={`wapp-nav-subitem${props.activeSurface === "assets" && assetSurfaceMode === "generation-history" ? " is-active" : ""}`}
@@ -1303,9 +1373,9 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
                       >
                         <span className="wapp-nav-subitem-title">
                           <History aria-hidden />
-                          <span>生成历史</span>
+                          <span>{t("wodeappx.assets.history")}</span>
                         </span>
-                        <span className="wapp-nav-subitem-meta">按类型查看记录</span>
+                        <span className="wapp-nav-subitem-meta">{t("wodeappx.assets.history_meta")}</span>
                       </button>
                     </div>
                   ) : null}
@@ -1314,20 +1384,20 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
             })}
           </nav>
 
-          <section className="wapp-sidebar-section">
+          {isWebDeployment() ? null : <section className="wapp-sidebar-section">
             <div className="wapp-sidebar-label-row">
-              <p className="wapp-sidebar-label">项目</p>
+              <p className="wapp-sidebar-label">{t("wodeappx.workspace.projects")}</p>
               {inSuporProductDesk ? (
                 <button
                   type="button"
                   className="wapp-workspace-add"
                   onClick={handleNewChat}
                   disabled={props.newTaskDisabled}
-                  aria-label="新建对话"
-                  title="新建对话"
+                  aria-label={t("wodeappx.chat.new")}
+                  title={t("wodeappx.chat.new")}
                 >
                   <MessageSquarePlus aria-hidden />
-                  <span>新建</span>
+                  <span>{t("wodeappx.common.new")}</span>
                 </button>
               ) : canCreateProject ? (
                 <DropdownMenu>
@@ -1337,8 +1407,8 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
                       <button
                         type="button"
                         className="wapp-workspace-add"
-                        aria-label="新建项目"
-                        title="新建项目"
+                        aria-label={t("wodeappx.workspace.new_project")}
+                        title={t("wodeappx.workspace.new_project")}
                         disabled={props.createWorkspaceBusy}
                       >
                         {props.createWorkspaceBusy ? (
@@ -1346,7 +1416,7 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
                         ) : (
                           <FolderPlus aria-hidden />
                         )}
-                        <span>{props.createWorkspaceBusy ? "创建中" : "新建"}</span>
+                        <span>{props.createWorkspaceBusy ? t("wodeappx.workspace.creating") : t("wodeappx.common.new")}</span>
                       </button>
                     }
                   />
@@ -1356,14 +1426,14 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
                       onClick={handleCreateBlankProject}
                     >
                       <Plus className="size-4" />
-                      新建空白项目
+                      {t("wodeappx.workspace.new_blank")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       disabled={props.createWorkspaceBusy}
                       onClick={handleUseExistingFolder}
                     >
                       <Folder className="size-4" />
-                      使用现有文件夹
+                      {t("wodeappx.workspace.use_existing_folder")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -1416,25 +1486,25 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
             ) : (
               <p className="wapp-sidebar-muted">
                 {inSuporProductDesk
-                  ? "暂无对话。点上方「新建对话」开始。"
-                  : "暂无项目。自进化请点「新建」→「使用现有文件夹」选择本机 wodeapp 仓库根；开发版或本机已有常见克隆路径时会自动挂载「wodeapp（自进化）」。"}
+                  ? t("wodeappx.workspace.empty_chats_hint")
+                  : t("wodeappx.workspace.empty")}
               </p>
             )}
-          </section>
+          </section>}
 
           <section className="wapp-sidebar-section">
             <div className="wapp-sidebar-label-row">
-              <p className="wapp-sidebar-label">最近</p>
+              <p className="wapp-sidebar-label">{t("wodeappx.recent.title")}</p>
               <button
                 type="button"
                 className="wapp-workspace-add"
                 onClick={handleNewHomeChat}
                 disabled={props.newTaskDisabled}
-                aria-label="新建对话"
-                title="新建对话"
+                aria-label={t("wodeappx.chat.new")}
+                title={t("wodeappx.chat.new")}
               >
                 <MessageSquarePlus aria-hidden />
-                <span>新建</span>
+                <span>{t("wodeappx.common.new")}</span>
               </button>
             </div>
             <div className="wapp-home-conversation-list">
@@ -1464,11 +1534,11 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
                       ensureRecentWorkspaceSelected();
                       toggleRecentGroup(recentConversationGroup.workspace.id, groupId);
                     },
-                    emptyLabel: "暂无对话",
+                    emptyLabel: t("wodeappx.recent.empty"),
                   })}
                 </div>
               ) : (
-                <p className="wapp-sidebar-muted">暂无对话</p>
+                <p className="wapp-sidebar-muted">{t("wodeappx.recent.empty")}</p>
               )}
             </div>
           </section>
@@ -1512,6 +1582,15 @@ export function WodeAppWorkbenchSidebar(props: WodeAppWorkbenchSidebarProps) {
           }}
         />
       ) : null}
+
+      <WodeAppManageAgentsDialog
+        open={Boolean(profileAgentId)}
+        onOpenChange={(open) => {
+          if (!open) setProfileAgentId(null);
+        }}
+        agent={capabilityNavItems.find((agent) => agent.id === profileAgentId) || null}
+        onUseAgent={props.onSelectRuntimeProject}
+      />
 
       <Dialog open={createGroupOpen} onOpenChange={(open) => { if (!open) setCreateGroupOpen(false); }}>
         <DialogContent className="sm:max-w-lg">

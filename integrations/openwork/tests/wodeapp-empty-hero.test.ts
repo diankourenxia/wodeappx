@@ -17,10 +17,15 @@ describe("empty-session hero chips", () => {
     expect(source).toContain('handleWodeAppHeroPromptClick("把下面的资料保存整理到数字资产")');
     expect(source).toContain('startHeroBuiltinAgent("visual-generation", "用图片智能体生成：")');
     expect(source).toContain('startHeroBuiltinAgent("video-generation", "用视频智能体生成：")');
-    expect(source).toContain("生成图片");
-    expect(source).toContain("生成视频");
-    expect(source).toContain("自定义 Agent");
+    expect(source).toContain('t("wodeappx.hero.chip_image")');
+    expect(source).toContain('t("wodeappx.hero.chip_video")');
+    expect(source).toContain('t("wodeappx.hero.chip_custom")');
+    expect(source).toContain('t("wodeappx.hero.kicker")');
+    expect(source).toContain('t("wodeappx.hero.title")');
+    expect(source).toContain('t("wodeappx.hero.body")');
+    expect(source).toContain("wodeapp:open-add-agent");
     expect(source).toContain('handleWodeAppHeroPromptClick("/自进化 ")');
+    expect(source).not.toContain("自定义 Agent");
     expect(source).not.toContain("openHeroBuiltinAgent");
     expect(source).not.toContain("openBuiltinAgentWithFeedback");
     expect(source).not.toContain("我想管理数字资产：");

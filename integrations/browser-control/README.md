@@ -91,7 +91,7 @@ Then reload WodeAppX or run the config reload command. Ask the agent:
 
 The extension long-polls the bridge (`waitMs=20000`) so a queued command is delivered immediately instead of waiting on the 500ms empty poll. `wodeappx_browser_run` executes a known multi-step sequence in Chrome without returning to the model between steps. The tab debugger stays attached for 10 minutes of idle (or until the tab closes) instead of attaching and detaching around every command.
 
-When a browser command runs, the Chrome extension shows a `RUN` badge and attaches through Chrome's debugger API so Chrome can show its native top browser-control/debugging banner. When the target page allows extension script injection, WodeAppX also shows a short notice in the page corner. Completed commands briefly show `OK`; failed commands briefly show `ERR`.
+When a page command runs, the Chrome extension shows a `RUN` badge and attaches through Chrome's debugger API so Chrome can show its native top browser-control/debugging banner. Read-only `tabs.list` skips that notice and does not attach. If another debugger already owns the tab, the command fails immediately with `BROWSER_DEBUGGER_OCCUPIED` instead of waiting. When the target page allows extension script injection, WodeAppX also shows a short notice in the page corner. Completed commands briefly show `OK`; failed commands briefly show `ERR`.
 
 If you update the unpacked extension files, open `chrome://extensions`, enable
 Developer mode, and reload `WodeAppX Browser Control` once. Version `1.3.0`
@@ -100,7 +100,13 @@ enforcement, and persistent Chrome-client selection. Version `1.3.1` adds
 explicit extension identity reporting. Version `1.3.2` reports supported
 actions and capability-gates raw CDP. Version `1.4.0` prefers the packaged
 Chrome Native Messaging host and reports the actual local transport, while
-retaining the old loopback HTTP path as a rollout fallback.
+retaining the old loopback HTTP path as a rollout fallback. Version `1.4.1`
+keeps the tab debugger attached across idle commands. Version `1.4.2` skips
+debugger attach for tab listing and fails immediately when another debugger
+already owns the tab. Version `1.4.3` skips notice/debugger on `page.read`
+and keeps a single long-poll waiter so a queued command is not delayed by a
+full `waitMs` cycle. Version `1.4.4` returns a full page snapshot (text,
+rects, selectors) instead of a compact viewport cut.
 
 ## Native host and compatibility bridge
 

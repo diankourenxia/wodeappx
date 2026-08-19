@@ -137,7 +137,7 @@
   letter-spacing: .18em;
 }
 .wapp-skin-coffee-loft .wapp-brand-spacer::after {
-  content: "咖啡阁楼";
+  content: attr(data-skin-title);
   display: block;
   padding: 2px 6px 12px;
   color: var(--wapp-coffee-sidebar-icon);

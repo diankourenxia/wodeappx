@@ -80,7 +80,9 @@ import {
   resolveModelDisplayName,
   safeStringify,
 } from "@/app/utils";
-import { t } from "@/i18n";
+import { hideEngineBrand, t } from "@/i18n";
+import { isWebDeployment } from "@/app/lib/openwork-deployment";
+import { WEB_SURFACE_IDENTITY_PACK } from "@/react-app/domains/wodeapp/wodeapp-capability-routing";
 import {
   blankProjectName,
   resolveBlankProjectFolderPath,
@@ -180,7 +182,7 @@ import {
 } from "@/react-app/domains/wodeapp/wodeapp-session-debug";
 import { WodeAppWorkbenchShell } from "@/react-app/domains/wodeapp/wodeapp-workbench-shell";
 import { reportDesktopDiagnostic } from "@/react-app/domains/wodeapp/wodeapp-desktop-diagnostics";
-import { hasWodeAppFeishuSetupSkill } from "@/react-app/domains/wodeapp/runtime-projects";
+import { hasWodeAppFeishuSetupSkill, listWodeAppComposerAgents } from "@/react-app/domains/wodeapp/runtime-projects";
 import { createWodeAppAutomationClient } from "@/react-app/domains/wodeapp/wodeapp-automation-client";
 import {
   isWodeAppAuthAvailable,
@@ -263,9 +265,8 @@ import {
   buildWodeAppRuntimeProfileSystemContext,
   clearWodeAppRuntimeProfileForSession,
   findWodeAppRuntimeProfile,
-  listWodeAppRuntimeProfiles,
   readWodeAppRuntimeProfileForSession,
-  wodeAppRuntimeProfileAgentId,
+  resolveOpenCodePromptAgent,
   WODEAPP_RUNTIME_PROFILE_CHANGED_EVENT,
 } from "@/react-app/domains/wodeapp/wodeapp-runtime-profile";
 import { useControlAction, type OpenworkControlAction } from "./control/control-provider";
@@ -325,6 +326,9 @@ function serializeSDKError(error: unknown): string {
 function describeTaskCreateError(error: unknown) {
   const message = describeRouteError(error);
   const lower = message.toLowerCase();
+  if (lower.includes("timed out") || lower.includes("timeout")) {
+    return t("session.engine_timeout");
+  }
   if (
     lower.includes("failed to fetch") ||
     lower.includes("connection") ||
@@ -334,9 +338,9 @@ function describeTaskCreateError(error: unknown) {
     lower.includes("internal_error") ||
     lower.includes("unexpected server error")
   ) {
-    return "The local engine is unavailable for this workspace. Retry once it restarts, or restart WodeAppX if the problem continues.";
+    return t("session.engine_unavailable");
   }
-  return message;
+  return hideEngineBrand(message);
 }
 
 function taskCreateUnavailableToastId(workspaceId: string) {
@@ -1584,27 +1588,16 @@ export function SessionRoute() {
     // Include engineReloadVersion so the composer refetches after newly added
     // agent files become available, even when the inline picker is hidden.
     void engineReloadVersion;
-    const runtimeAgents: Agent[] = shellConfig.wodeappWorkbench
-      ? listWodeAppRuntimeProfiles().map((profile) => ({
-          name: profile.id,
-          description: `${profile.name} · 按会话加载品牌知识与已授权工具`,
-          mode: "primary",
-          native: true,
-          permission: [],
-          options: { wodeAppRuntimeProfile: true },
-        }))
-      : [];
-    if (!opencodeClient) return runtimeAgents;
+    if (!opencodeClient) {
+      return shellConfig.wodeappWorkbench
+        ? listWodeAppComposerAgents() as unknown as Agent[]
+        : [];
+    }
     const list = unwrap(await opencodeClient.app.agents());
-    const runtimeAgentIds = new Set(runtimeAgents.map((agent) => agent.name));
-    return [
-      ...runtimeAgents,
-      ...list.filter((agent) =>
-        !agent.hidden
-        && agent.mode !== "subagent"
-        && !runtimeAgentIds.has(agent.name)
-      ),
-    ];
+    if (shellConfig.wodeappWorkbench) {
+      return listWodeAppComposerAgents(list) as unknown as Agent[];
+    }
+    return list.filter((agent) => !agent.hidden && agent.mode !== "subagent");
   }, [engineReloadVersion, opencodeClient, shellConfig.wodeappWorkbench]);
 
   const handleOpenSettings = useCallback((route = "/settings/service", workspaceId = sidebarActiveWorkspaceId) => {
@@ -1989,6 +1982,7 @@ export function SessionRoute() {
         // Shell is not a second agent. Tool surface, AGENTS.md, and workspace
         // identity are assembled once inside OpenCode.
         const promptSystemContext = [
+          isWebDeployment() ? WEB_SURFACE_IDENTITY_PACK : "",
           runtimeProfileSystemContext,
           envSystemContext,
           draft.systemContext,
@@ -2005,7 +1999,7 @@ export function SessionRoute() {
           sessionID: targetSessionId,
           parts,
           model: promptModel,
-          agent: wodeAppRuntimeProfileAgentId(runtimeProfile) ?? selectedAgent ?? undefined,
+          agent: resolveOpenCodePromptAgent(runtimeProfile, selectedAgent),
           ...(modelVariantValue ? { variant: modelVariantValue } : {}),
           // Tool visibility is resolved inside the patched OpenCode loop.
           // Passing the capability map here would persist its `false` entries
@@ -2063,8 +2057,9 @@ export function SessionRoute() {
       onModelVariantChange: (value: string | null) => {
         setSelectedSessionVariant(value);
       },
-      agentLabel: selectedRuntimeProfile?.name
-        ?? (selectedAgent ? formatAgentDisplayName(selectedAgent) : t("session.default_agent")),
+      agentLabel: formatAgentDisplayName(
+        selectedRuntimeProfile?.id || selectedRuntimeProfile?.name || selectedAgent || "",
+      ) || t("session.default_agent"),
       selectedAgent: selectedRuntimeProfile?.id ?? selectedAgent,
       listAgents,
       onSelectAgent: handleSelectSessionAgent,
@@ -2463,11 +2458,11 @@ export function SessionRoute() {
           },
         });
       }
-      toast.error("OpenCode unavailable", {
+      toast.error(t("session.engine_unavailable"), {
         id: taskCreateUnavailableToastId(workspaceId),
         description: message,
         action: {
-          label: "Retry",
+          label: t("session.engine_unavailable_retry"),
           onClick: () => void handleCreateTaskInWorkspace(workspaceId, options),
         },
         duration: Infinity,

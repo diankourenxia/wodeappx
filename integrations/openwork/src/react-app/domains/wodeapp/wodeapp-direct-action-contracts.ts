@@ -2,7 +2,7 @@ export type WodeAppDirectActionEffect = "read" | "write" | "destructive";
 
 export type WodeAppDirectActionApproval = "auto" | "prompt" | "writes";
 
-export type WodeAppDirectActionGroup = "assets" | "foundation" | "image" | "video";
+export type WodeAppDirectActionGroup = "agents" | "assets" | "foundation" | "image" | "video";
 
 export type WodeAppJsonSchemaType =
   | "object"
@@ -319,6 +319,27 @@ export const WODEAPP_DIRECT_ACTION_CONTRACTS = Object.freeze([
       type: "object",
       properties: {},
       required: [],
+      additionalProperties: false,
+    },
+  },
+  {
+    toolName: "wodeapp_sidebar_agent_save",
+    actionId: "wodeapp.sidebar_agent.save",
+    groups: ["agents"],
+    label: "保存侧栏智能体",
+    description: "把 WodeAppX 智能体钉到侧栏，并写入它的项目信息。智能体=名字+策略+对应站点。创建或发布了 runtime 项目后必须回写 projectId 与 launchUrl，侧栏立刻更新，不要让用户刷新或重启。不要用 Skill.md 代替智能体。",
+    effect: "write",
+    approval: "auto",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", minLength: 1, maxLength: 64, description: "侧栏显示的智能体名称。" },
+        meta: { type: "string", maxLength: 80, description: "一行简介。" },
+        samplePrompt: { type: "string", maxLength: 4000, description: "这个智能体的能力说明或短策略。" },
+        projectId: { type: "string", maxLength: 80, description: "对应 runtime 项目 ID。" },
+        launchUrl: { type: "string", maxLength: 500, description: "已发布站点 URL。" },
+      },
+      required: ["name"],
       additionalProperties: false,
     },
   },
@@ -934,6 +955,8 @@ function directToolNamesForGroup(
 export const WODEAPP_ASSET_DIRECT_TOOL_NAMES = directToolNamesForGroup("assets");
 
 export const WODEAPP_FOUNDATION_DIRECT_TOOL_NAMES = directToolNamesForGroup("foundation");
+
+export const WODEAPP_AGENT_DIRECT_TOOL_NAMES = directToolNamesForGroup("agents");
 
 export const WODEAPP_IMAGE_DIRECT_TOOL_NAMES = directToolNamesForGroup("image");
 

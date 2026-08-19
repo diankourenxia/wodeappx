@@ -182,13 +182,35 @@ describe("WodeAppX sidebar empty state", () => {
     );
   });
 
+  test("web deployment hides the folder project section", async () => {
+    const source = await readFile(sidebarSourceUrl, "utf8");
+    expect(source).toContain('import { isWebDeployment } from "@/app/lib/openwork-deployment"');
+    expect(source).toContain('{isWebDeployment() ? null : <section className="wapp-sidebar-section">');
+    expect(source).toContain('t("wodeappx.workspace.projects")');
+    expect(source).toContain('t("wodeappx.recent.title")');
+    expect(source).toContain("if (isWebDeployment()) return true;");
+    expect(source).toContain("const untitled = usable");
+    expect(source).toContain("return untitled[0] ? [untitled[0], ...named] : named;");
+  });
+
   test("supor product desk flattens the nested project chrome row", async () => {
     const source = await readFile(sidebarSourceUrl, "utf8");
     expect(source).toContain("function FlatWorkspaceConversationList(");
     expect(source).toContain("inSuporProductDesk && isSuporWorkspaceLike(group.workspace)");
     expect(source).toContain("不再套一层「苏泊尔经营台（自进化）」折叠框");
     expect(source).toContain("onForgetWorkspace={props.onForgetWorkspace}");
-    expect(source).toContain('aria-label="删除项目"');
+    expect(source).toContain('t("wodeappx.workspace.remove")');
+  });
+
+  test("wires leftover English chrome to i18n instead of hardcoded Chinese", async () => {
+    const source = await readFile(sidebarSourceUrl, "utf8");
+    expect(source).toContain('t("wodeappx.common.new")');
+    expect(source).toContain('t("wodeappx.recent.expand_more"');
+    expect(source).toContain('t("wodeappx.workspace.self_evolve")');
+    expect(source).toContain("currentLocale() !== \"zh\"");
+    expect(source).not.toContain("展开显示（其余");
+    expect(source).not.toContain("<span>新建</span>");
+    expect(source).not.toContain('return "wodeapp（自进化）"');
   });
 
   test("promotes the first sent message into the recent-conversation list immediately", async () => {
@@ -202,6 +224,22 @@ describe("WodeAppX sidebar empty state", () => {
     expect(sendSource).toContain("makeSessionTitleFromText(draft.text.trim() || text)");
     expect(sendSource).toContain("setSessionsByWorkspaceId((current) =>");
     expect(sendSource).toContain("await opencodeClient.session.update({");
+  });
+
+  test("create-agent composer label and placeholder use i18n", async () => {
+    const sessionSource = await readFile(sessionRouteSourceUrl, "utf8");
+    expect(sessionSource).toContain("formatAgentDisplayName(");
+    expect(sessionSource).toContain("selectedRuntimeProfile?.id || selectedRuntimeProfile?.name || selectedAgent");
+    expect(sessionSource).not.toContain("agentLabel: selectedRuntimeProfile?.name");
+
+    const composerUrl = existingSourceUrl(
+      "../fork/apps/app/src/react-app/domains/session/surface/composer/composer.tsx",
+      "../src/react-app/domains/session/surface/composer/composer.tsx",
+    );
+    const composer = await readFile(composerUrl, "utf8");
+    expect(composer).toContain('t("composer.workbench_placeholder")');
+    expect(composer).toContain("resolveWodeAppBuiltinAgentId");
+    expect(composer).not.toContain("随心输入");
   });
 
   test("leaves tool visibility to the OpenCode dynamic discovery loop", async () => {

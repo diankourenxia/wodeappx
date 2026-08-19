@@ -42,6 +42,7 @@ describe("creative-core resident surface", () => {
     expect(CREATIVE_CORE_RESIDENT_TOOL_IDS).toContain("get_project");
     expect(CREATIVE_CORE_RESIDENT_TOOL_IDS).toContain("image_inspect");
     expect(CREATIVE_CORE_RESIDENT_TOOL_IDS).toContain("wodeapp_page_import_from_file");
+    expect(CREATIVE_CORE_RESIDENT_TOOL_IDS).toContain("wodeapp_sidebar_agent_save");
   });
 
   test("substantive turns mount coding + creative + lean web without heavy packs", () => {
@@ -82,6 +83,7 @@ describe("wodeapp tool docs", () => {
     expect(update?.title).toContain("更新");
     expect(update?.rules?.some((r) => r.includes("wodeapp_page_import_from_file"))).toBe(true);
     expect(update?.rules?.some((r) => r.includes("finish=length") || r.includes("invalid"))).toBe(true);
+    expect(update?.rules?.some((r) => r.includes("禁止用本工具堆 Hero + SmartForm + SmartTable"))).toBe(true);
     expect(resolveWodeAppToolDocs("wodeapp-platform_update_page")?.rules?.[0]).toContain("update_page");
     const fromFile = resolveWodeAppToolDocs("wodeapp_page_import_from_file");
     expect(fromFile?.requiredFields).toEqual(expect.arrayContaining(["projectId", "sourcePath"]));

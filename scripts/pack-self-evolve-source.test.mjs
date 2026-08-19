@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -8,7 +8,9 @@ import { rmSync } from "node:fs";
 import {
   ensureStandaloneSelfEvolveSiblings,
   listSelfEvolveSourceFiles,
+  selfEvolveUpstreamPayload,
   shouldIncludeSelfEvolveRelativePath,
+  writeSelfEvolveUpstreamInfo,
 } from "./pack-self-evolve-source.mjs";
 
 test("filter keeps self-evolve guard and runtime-server sources", () => {
@@ -117,5 +119,10 @@ test("ensureStandaloneSelfEvolveSiblings adds runtime-server when packing wodeap
   assert.ok(first.added.includes("AGENTS.md"));
   const second = await ensureStandaloneSelfEvolveSiblings(tree);
   assert.deepEqual(second.added, []);
+  const rel = await writeSelfEvolveUpstreamInfo(tree, "1.0.1");
+  assert.equal(rel, "wodeappx/UPSTREAM.json");
+  const payload = JSON.parse(readFileSync(path.join(tree, rel), "utf8"));
+  assert.deepEqual(payload, selfEvolveUpstreamPayload("1.0.1"));
+  assert.equal(payload.origin, "https://github.com/diankourenxia/wodeappx.git");
   rmSync(tree, { recursive: true, force: true });
 });

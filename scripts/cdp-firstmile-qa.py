@@ -109,6 +109,8 @@ INSPECT = r"""
   const allText = text(document.body).slice(0, 4000);
   const buttons = [...document.querySelectorAll("button, [role=button], a")]
     .map((el) => text(el)).filter(Boolean);
+  const dialog = document.querySelector(".wx-first-mile-dialog, .wx-local-key-dialog");
+  const dialogText = text(dialog);
   return {
     title: document.title,
     href: location.href,
@@ -118,9 +120,11 @@ INSPECT = r"""
     startChip: buttons.some((label) => label.includes("开始使用")),
     desktopOtp: /验证码/.test(allText) && /手机号|邮箱/.test(allText),
     localKeyLabel: /本机 Key/.test(allText),
-    configured: /本机 Key · 已配置/.test(allText),
+    configured: /本机 Key · 已配置/.test(allText) || /查看用量/.test(allText),
     canSkipLogin: /本机 Key · 可不登录/.test(allText),
+    deepseekSetup: /DeepSeek/.test(dialogText || allText) && /去配置/.test(dialogText || allText),
     sendVisible: buttons.some((label) => label === "发送" || label === "Send"),
+    composerFound: Boolean(document.querySelector('[contenteditable="true"], textarea, [role="textbox"]')),
     buttons: buttons.slice(0, 50),
     excerpt: allText.slice(0, 1200),
     bodyTail: allText.slice(-1500),
@@ -133,10 +137,34 @@ CLICK = r"""
   const needle = %s;
   const text = (el) => (el?.innerText || el?.textContent || "").replace(/\s+/g, " ").trim();
   const nodes = [...document.querySelectorAll("button, [role=button], a, [data-testid]")];
-  const el = nodes.find((node) => text(node).includes(needle));
+  const exact = nodes.find((node) => text(node) === needle);
+  const el = exact || nodes.find((node) => text(node).includes(needle));
   if (!el) return { ok: false, available: nodes.map(text).filter(Boolean).slice(0, 40) };
   el.click();
   return { ok: true, clicked: text(el).slice(0, 120) };
+})()
+"""
+
+DISMISS = r"""
+(() => {
+  const text = (el) => (el?.innerText || el?.textContent || "").replace(/\s+/g, " ").trim();
+  const dialog = document.querySelector(".wx-first-mile-dialog, .wx-local-key-dialog");
+  if (!dialog) return { ok: true, clicked: "", reason: "already-closed" };
+  const labels = ["稍后", "Later", "忽略", "Skip", "关闭"];
+  const nodes = [...dialog.querySelectorAll("button, [role=button], a")];
+  for (const label of labels) {
+    const el = nodes.find((node) => text(node) === label) || nodes.find((node) => text(node).includes(label));
+    if (el) {
+      el.click();
+      return { ok: true, clicked: text(el).slice(0, 80) };
+    }
+  }
+  const close = dialog.querySelector(".wx-login-dialog-close, [aria-label='关闭'], [aria-label='Close']");
+  if (close) {
+    close.click();
+    return { ok: true, clicked: "close" };
+  }
+  return { ok: false, available: nodes.map(text).filter(Boolean).slice(0, 20) };
 })()
 """
 
@@ -228,26 +256,39 @@ def main():
         if args.eval_expr:
             extra["eval"] = cdp.evaluate(args.eval_expr)
             time.sleep(0.4)
+        if args.step in ("dismiss", "dismiss-first-mile"):
+            extra["dismiss"] = cdp.evaluate(DISMISS)
+            time.sleep(0.8)
         if args.click:
             extra["click"] = cdp.evaluate(CLICK % json.dumps(args.click))
             time.sleep(0.8)
         if args.step in ("type", "live-send"):
-            extra["focus"] = cdp.evaluate(
-                """(() => {
-                  const editor = document.querySelector('[contenteditable="true"], textarea, [role="textbox"]');
-                  editor?.focus(); editor?.click?.();
-                  return { found: Boolean(editor), tag: editor?.tagName || "" };
-                })()"""
-            )
-            cdp.send("Input.insertText", {"text": args.text})
-            time.sleep(0.4)
-            extra["typed"] = cdp.evaluate(
-                """(() => {
-                  const editor = document.querySelector('[contenteditable="true"], textarea, [role="textbox"]');
-                  return editor?.innerText || editor?.value || "";
-                })()"""
-            )
-        if args.step in ("send", "live-send"):
+            blocked = cdp.evaluate(
+                """(() => ({
+                  firstMileDialog: Boolean(document.querySelector(".wx-first-mile-dialog")),
+                  localKeyDialog: Boolean(document.querySelector(".wx-local-key-dialog")),
+                }))()"""
+            ) or {}
+            extra["blocked"] = blocked
+            if blocked.get("firstMileDialog") or blocked.get("localKeyDialog"):
+                extra["send"] = {"ok": False, "reason": "dialog-open"}
+            else:
+                extra["focus"] = cdp.evaluate(
+                    """(() => {
+                      const editor = document.querySelector('[contenteditable="true"], textarea, [role="textbox"]');
+                      editor?.focus(); editor?.click?.();
+                      return { found: Boolean(editor), tag: editor?.tagName || "" };
+                    })()"""
+                )
+                cdp.send("Input.insertText", {"text": args.text})
+                time.sleep(0.4)
+                extra["typed"] = cdp.evaluate(
+                    """(() => {
+                      const editor = document.querySelector('[contenteditable="true"], textarea, [role="textbox"]');
+                      return editor?.innerText || editor?.value || "";
+                    })()"""
+                )
+        if args.step in ("send", "live-send") and not (extra.get("send") or {}).get("reason"):
             extra["send"] = cdp.evaluate(CLICK % json.dumps("发送"))
             if not extra["send"].get("ok"):
                 extra["send"] = cdp.evaluate(CLICK % json.dumps("Send"))

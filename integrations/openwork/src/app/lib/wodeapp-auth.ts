@@ -119,7 +119,7 @@ async function fetchWodeAppApi(input: string, init: RequestInit, timeoutMs: numb
 const WODEAPP_CLOUD_ORIGIN_AI = "https://wodeapp.ai";
 const WODEAPP_CLOUD_ORIGIN_CN = "https://wodeapp.cn";
 const WODEAPP_CLOUD_ORIGIN = WODEAPP_CLOUD_ORIGIN_AI;
-const WEB_CREDENTIALS_STORAGE_KEY = "wodeapp.cloud.credentials.v1";
+export const WEB_CREDENTIALS_STORAGE_KEY = "wodeapp.cloud.credentials.v1";
 const WODEAPP_PROVIDER_ID = "wodeapp";
 const WODEAPP_PREFERRED_MODEL_KEY = "wode/deepseek-v4-flash";
 const PLATFORM_MCP_HEALTH_TIMEOUT_MS = 5000;
@@ -449,6 +449,68 @@ export function isWodeAppAuthAvailable() {
   return Boolean(electronBridge()) || isWebAuthRuntime();
 }
 
+function currentWebPlatformOrigin(preferred?: string): string {
+  if (preferred && preferred.trim()) return normalizeWebCloudOrigin(preferred);
+  if (typeof window !== "undefined") return normalizeWebCloudOrigin(window.location.origin);
+  return WODEAPP_CLOUD_ORIGIN_CN;
+}
+
+function redirectToWodeAppLogin(origin: string) {
+  const loginUrl = new URL("/login", origin);
+  loginUrl.searchParams.set("return_to", window.location.href);
+  // Keep the workbench mounted. Full-page assign aborts in-flight OpenCode
+  // fetches and surfaces as "OpenCode unavailable / Request timed out."
+  window.open(loginUrl.toString(), "_blank", "noopener,noreferrer");
+}
+
+async function tryBootstrapWebFromCookie(origin: string): Promise<WodeAppAuthResponse> {
+  try {
+    const res = await fetchDirect(`${origin}/mainserver/api/auth/desktop-bootstrap`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "X-WodeApp-Desktop": "1",
+      },
+    }, 15000);
+    const json = (await res.json().catch(() => ({}))) as {
+      success?: boolean;
+      error?: string;
+      data?: {
+        apiKey?: string;
+        issuedOrigin?: string;
+        user?: { id?: string; name?: string | null } | null;
+      };
+    };
+    if (res.status === 401) {
+      return { ok: true, signedIn: false, config: null };
+    }
+    const apiKey = typeof json?.data?.apiKey === "string" ? json.data.apiKey.trim() : "";
+    if (!res.ok || !json?.success || !apiKey) {
+      return {
+        ok: false,
+        error: typeof json?.error === "string" && json.error.trim()
+          ? json.error.trim()
+          : `登录失败 (${res.status})`,
+      };
+    }
+    writeWebCredentials({
+      origin: normalizeWebCloudOrigin(json.data?.issuedOrigin || origin),
+      apiKey,
+      user: json.data?.user ?? null,
+    });
+    emitAuthChanged();
+    const stored = readWebCredentials();
+    if (!stored) return { ok: false, error: "登录凭证写入失败" };
+    return buildWebSignedInResponse(stored);
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "登录失败",
+    };
+  }
+}
+
 export async function loadWodeAppAuthState(): Promise<WodeAppAuthResponse> {
   const bridge = electronBridge();
   if (bridge) {
@@ -458,10 +520,10 @@ export async function loadWodeAppAuthState(): Promise<WodeAppAuthResponse> {
     return { ok: false, error: "WodeApp auth is unavailable in this environment" };
   }
   const credentials = readWebCredentials();
-  if (!credentials) {
-    return { ok: true, signedIn: false, config: null };
+  if (credentials) {
+    return buildWebSignedInResponse(credentials);
   }
-  return buildWebSignedInResponse(credentials);
+  return tryBootstrapWebFromCookie(currentWebPlatformOrigin());
 }
 
 /** Read the persisted desktop identity immediately, without waiting for network health checks. */
@@ -485,14 +547,72 @@ export async function refreshWodeAppAccountState(): Promise<WodeAppAuthResponse>
 /** Open the official WodeApp website login page, then bootstrap an API Key. */
 export async function signInWithWodeApp(origin?: string): Promise<WodeAppAuthResponse> {
   const bridge = electronBridge();
-  if (!bridge) {
-    return { ok: false, error: "网页版请到 WodeApp 官网登录" };
+  if (bridge) {
+    const result = (await bridge.invoke("login", { origin })) as WodeAppAuthResponse;
+    if (result.ok && result.signedIn) {
+      window.dispatchEvent(new Event("wodeapp:auth-changed"));
+    }
+    return result;
   }
-  const result = (await bridge.invoke("login", { origin })) as WodeAppAuthResponse;
-  if (result.ok && result.signedIn) {
-    window.dispatchEvent(new Event("wodeapp:auth-changed"));
+  if (!isWebAuthRuntime()) {
+    return { ok: false, error: "WodeApp auth is unavailable in this environment" };
   }
-  return result;
+  const resolved = currentWebPlatformOrigin(origin);
+  const bootstrapped = await tryBootstrapWebFromCookie(resolved);
+  if (bootstrapped.ok && bootstrapped.signedIn) return bootstrapped;
+  if (bootstrapped.ok && !bootstrapped.signedIn) {
+    redirectToWodeAppLogin(resolved);
+    return waitForWebCookieLogin(resolved);
+  }
+  return bootstrapped;
+}
+
+async function waitForWebCookieLogin(
+  origin: string,
+  timeoutMs = 5 * 60_000,
+): Promise<WodeAppAuthResponse> {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const result = await tryBootstrapWebFromCookie(origin);
+    if (result.ok && result.signedIn) return result;
+    await new Promise((resolve) => window.setTimeout(resolve, 1500));
+  }
+  return { ok: false, error: "登录未完成，请重试" };
+}
+
+/** Other-tab login / official parent cookie → refresh this workbench without a second click. */
+export function installWebAuthPresenceSync(): () => void {
+  if (!isWebAuthRuntime()) return () => {};
+  let busy = false;
+  const sync = async () => {
+    if (busy || readWebCredentials()) return;
+    busy = true;
+    try {
+      const result = await tryBootstrapWebFromCookie(currentWebPlatformOrigin());
+      if (result.ok && result.signedIn) emitAuthChanged();
+    } finally {
+      busy = false;
+    }
+  };
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === WEB_CREDENTIALS_STORAGE_KEY || event.key == null) {
+      emitAuthChanged();
+    }
+  };
+  const onVisible = () => {
+    if (document.visibilityState === "visible") void sync();
+  };
+  window.addEventListener("storage", onStorage);
+  window.addEventListener("focus", onVisible);
+  document.addEventListener("visibilitychange", onVisible);
+  const timer = window.setInterval(() => void sync(), 2500);
+  void sync();
+  return () => {
+    window.removeEventListener("storage", onStorage);
+    window.removeEventListener("focus", onVisible);
+    document.removeEventListener("visibilitychange", onVisible);
+    window.clearInterval(timer);
+  };
 }
 
 export async function cancelWodeAppLogin(): Promise<void> {
@@ -1517,6 +1637,63 @@ export async function syncWodeAppLocalByokEnv(): Promise<{
       uploaded: false,
       error: error instanceof Error ? error.message : String(error),
     };
+  }
+}
+
+export async function saveWodeAppCustomVendor(input: {
+  name: string;
+  baseURL: string;
+  apiKey: string;
+  id?: string;
+}): Promise<{
+  ok: boolean;
+  vendor?: { id: string; name: string; keyPreview: string };
+  probe?: { probeStatus: string; modelCount: number; error?: string };
+  error?: string;
+}> {
+  const bridge = electronBridge();
+  if (!bridge) {
+    return { ok: false, error: "仅桌面端可保存自定义厂商" };
+  }
+  try {
+    const result = await bridge.invoke("saveCustomVendor", input) as {
+      ok?: boolean;
+      vendor?: { id: string; name: string; keyPreview: string };
+      probe?: { probeStatus: string; modelCount: number; error?: string };
+      error?: string;
+    };
+    if (result?.ok !== true) {
+      return { ok: false, error: result?.error || "保存自定义厂商失败" };
+    }
+    return {
+      ok: true,
+      vendor: result.vendor,
+      probe: result.probe,
+    };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+export async function removeWodeAppCustomVendor(id: string): Promise<{
+  ok: boolean;
+  error?: string;
+}> {
+  const bridge = electronBridge();
+  if (!bridge) {
+    return { ok: false, error: "仅桌面端可移除自定义厂商" };
+  }
+  try {
+    const result = await bridge.invoke("removeCustomVendor", { id }) as {
+      ok?: boolean;
+      error?: string;
+    };
+    if (result?.ok !== true) {
+      return { ok: false, error: result?.error || "移除自定义厂商失败" };
+    }
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
 

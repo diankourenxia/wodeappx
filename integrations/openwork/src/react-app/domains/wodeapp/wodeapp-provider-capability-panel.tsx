@@ -3,7 +3,12 @@ import * as React from "react";
 import { Check, HardDrive, KeyRound, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { detectWodeAppProviderCapabilities, isWodeAppAuthAvailable } from "@/app/lib/wodeapp-auth";
+import {
+  detectWodeAppProviderCapabilities,
+  isWodeAppAuthAvailable,
+  removeWodeAppCustomVendor,
+  saveWodeAppCustomVendor,
+} from "@/app/lib/wodeapp-auth";
 import { usePlatform } from "@/react-app/kernel/platform";
 
 import {
@@ -79,6 +84,10 @@ export function CapabilityModalityChips({
   );
 }
 
+function isCustomCapabilitySource(source: Pick<ProviderCapabilitySource, "id">): boolean {
+  return String(source.id || "").startsWith("custom-");
+}
+
 function PlatformCell({
   source,
 }: {
@@ -89,6 +98,109 @@ function PlatformCell({
       <strong>{source.label}</strong>
       {source.keyPreview ? <span>{source.keyPreview}</span> : null}
     </div>
+  );
+}
+
+function formatCustomProbeMessage(probe?: {
+  probeStatus?: string;
+  modelCount?: number;
+  error?: string;
+}): string {
+  if (!probe) return "已保存";
+  if (probe.probeStatus === "ok") {
+    const count = Number(probe.modelCount) || 0;
+    return count > 0 ? `已探测到 ${count} 个模型` : "已保存，未列出模型";
+  }
+  if (probe.probeStatus === "unauthorized") return "Key 已保存，探测未授权";
+  if (probe.error) return `Key 已保存，探测失败：${probe.error}`;
+  return "Key 已保存，探测失败";
+}
+
+function CustomVendorForm({
+  onSaved,
+}: {
+  onSaved: () => Promise<void>;
+}) {
+  const [name, setName] = React.useState("");
+  const [baseURL, setBaseURL] = React.useState("");
+  const [apiKey, setApiKey] = React.useState("");
+  const [saving, setSaving] = React.useState(false);
+  const [message, setMessage] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const result = await saveWodeAppCustomVendor({ name, baseURL, apiKey });
+      if (!result.ok) {
+        setError(result.error || "保存失败");
+        return;
+      }
+      setMessage(formatCustomProbeMessage(result.probe));
+      setApiKey("");
+      await onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form className="wx-custom-vendor" onSubmit={(event) => void submit(event)}>
+      <div className="wx-custom-vendor-head">
+        <strong>自定义云厂商</strong>
+        <span>名称 + Base URL + Key，保存后探测 OpenAI 兼容 /models</span>
+      </div>
+      <div className="wx-custom-vendor-grid">
+        <label className="wx-custom-vendor-field">
+          <span>名称</span>
+          <input
+            type="text"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="例如 SiliconFlow"
+            maxLength={40}
+            autoComplete="off"
+            disabled={saving}
+          />
+        </label>
+        <label className="wx-custom-vendor-field">
+          <span>Base URL</span>
+          <input
+            type="url"
+            value={baseURL}
+            onChange={(event) => setBaseURL(event.target.value)}
+            placeholder="https://api.example.com/v1"
+            autoComplete="off"
+            disabled={saving}
+          />
+        </label>
+        <label className="wx-custom-vendor-field">
+          <span>Key</span>
+          <input
+            type="password"
+            value={apiKey}
+            onChange={(event) => setApiKey(event.target.value)}
+            placeholder="粘贴 API Key"
+            autoComplete="off"
+            disabled={saving}
+          />
+        </label>
+        <button
+          type="submit"
+          className="wapp-surface-button is-primary is-compact wx-custom-vendor-save"
+          disabled={saving || !name.trim() || !baseURL.trim() || !apiKey.trim()}
+        >
+          {saving ? "探测中…" : "保存并探测"}
+        </button>
+      </div>
+      {message ? <p className="wx-custom-vendor-ok">{message}</p> : null}
+      {error ? <p className="wx-custom-vendor-error">{error}</p> : null}
+    </form>
   );
 }
 
@@ -249,6 +361,7 @@ export function WodeAppProviderCapabilityPanel({
   }, [navigate, platform]);
 
   const handleSourceClick = React.useCallback((source: ProviderCapabilitySource) => {
+    if (isCustomCapabilitySource(source)) return;
     if (onJumpSource) {
       onJumpSource(source);
       return;
@@ -261,6 +374,11 @@ export function WodeAppProviderCapabilityPanel({
       }
     })();
   }, [jumpToConsole, onJumpSource]);
+
+  const handleRemoveCustom = React.useCallback(async (source: ProviderCapabilitySource) => {
+    const result = await removeWodeAppCustomVendor(source.id);
+    if (result.ok) await refresh(true);
+  }, [refresh]);
 
   return (
     <section className={`wx-key-capability ${compact ? "is-compact" : ""}${embedded ? " is-embedded" : ""}`} aria-label="本机 Key 能力">
@@ -339,21 +457,32 @@ export function WodeAppProviderCapabilityPanel({
                   ))}
                   <td className="wx-key-capability-action">
                     {configured ? (
-                      resolveCapabilityUsageUrl(source.id) ? (
-                        <button
-                          type="button"
-                          className="wx-key-capability-status is-usage"
-                          onClick={() => void jumpToUsage(source.id)}
-                        >
-                          <Check size={14} strokeWidth={2.4} aria-hidden="true" />
-                          查看用量
-                        </button>
-                      ) : (
-                        <span className="wx-key-capability-status" title={actionLabel}>
-                          <Check size={14} strokeWidth={2.4} aria-hidden="true" />
-                          {actionLabel}
-                        </span>
-                      )
+                      <div className="wx-key-capability-action-stack">
+                        {resolveCapabilityUsageUrl(source.id) ? (
+                          <button
+                            type="button"
+                            className="wx-key-capability-status is-usage"
+                            onClick={() => void jumpToUsage(source.id)}
+                          >
+                            <Check size={14} strokeWidth={2.4} aria-hidden="true" />
+                            查看用量
+                          </button>
+                        ) : (
+                          <span className="wx-key-capability-status" title={actionLabel}>
+                            <Check size={14} strokeWidth={2.4} aria-hidden="true" />
+                            {actionLabel}
+                          </span>
+                        )}
+                        {isCustomCapabilitySource(source) ? (
+                          <button
+                            type="button"
+                            className="wx-key-capability-action-btn"
+                            onClick={() => void handleRemoveCustom(source)}
+                          >
+                            移除
+                          </button>
+                        ) : null}
+                      </div>
                     ) : (
                       <button
                         type="button"
@@ -371,6 +500,7 @@ export function WodeAppProviderCapabilityPanel({
           </table>
         </div>
       ) : null}
+      {isWodeAppAuthAvailable() ? <CustomVendorForm onSaved={() => refresh(true)} /> : null}
       {embedded ? null : snapshot.guidance ? <p className="wx-key-capability-guide">{snapshot.guidance}</p> : null}
       {showFillAction && snapshot.missing.length > 0 ? (
         <button

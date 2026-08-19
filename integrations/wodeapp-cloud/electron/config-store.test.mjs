@@ -65,6 +65,23 @@ test("normalizes brand-agents config and drops invalid entries", async () => {
   assert.deepEqual(file.agents[1].connectorScopes, ["shopify"]);
 });
 
+test("keeps custom agent projectId and launchUrl", async () => {
+  const { normalizeWodeAppBrandAgentsFile } = await import("./config-store.mjs");
+  const file = normalizeWodeAppBrandAgentsFile({
+    version: 1,
+    agents: [{
+      id: "custom-jingpin-guancha",
+      name: "竞品观察",
+      brandId: "custom",
+      projectId: "6f1541e9-225c-4a60-bed4-0719047b2839",
+      launchUrl: "https://xn--jvro9nd61aygn.wodeapp.cn",
+    }],
+  });
+  assert.equal(file.ok, true);
+  assert.equal(file.agents[0].projectId, "6f1541e9-225c-4a60-bed4-0719047b2839");
+  assert.equal(file.agents[0].launchUrl, "https://xn--jvro9nd61aygn.wodeapp.cn");
+});
+
 test("brand-agents seed includes Wynne demo for missing local file", async () => {
   const { WODEAPP_BRAND_AGENTS_SEED, normalizeWodeAppBrandAgentsFile } = await import("./config-store.mjs");
   const seeded = normalizeWodeAppBrandAgentsFile(WODEAPP_BRAND_AGENTS_SEED);

@@ -179,8 +179,8 @@
     "region": "china"
   },
   {
-    "apiId": "wode/claude-opus-5",
-    "opencodeKey": "wode-claude-opus-5",
+    "apiId": "anthropic/claude-opus-5",
+    "opencodeKey": "claude-opus-5",
     "name": "Claude Opus 5",
     "subtitle": "Anthropic · 旗舰 · 多模态",
     "upstreamId": "anthropic/claude-opus-5",
@@ -192,8 +192,8 @@
     "region": "international"
   },
   {
-    "apiId": "wode/claude-sonnet-5",
-    "opencodeKey": "wode-claude-sonnet-5",
+    "apiId": "anthropic/claude-sonnet-5",
+    "opencodeKey": "claude-sonnet-5",
     "name": "Claude Sonnet 5",
     "subtitle": "Anthropic · 主力 · 多模态",
     "upstreamId": "anthropic/claude-sonnet-5",
@@ -205,10 +205,36 @@
     "region": "international"
   },
   {
-    "apiId": "wode/gpt-5.6-luna-pro",
-    "opencodeKey": "wode-gpt-5.6-luna-pro",
-    "name": "GPT-5.6 Luna Pro",
+    "apiId": "openai/gpt-5.6-sol",
+    "opencodeKey": "gpt-5.6-sol",
+    "name": "GPT-5.6 Sol",
     "subtitle": "OpenAI · 旗舰 · 多模态",
+    "upstreamId": "openai/gpt-5.6-sol",
+    "tier": "ultra",
+    "capabilities": [
+      "chat",
+      "vision"
+    ],
+    "region": "international"
+  },
+  {
+    "apiId": "openai/gpt-5.6-terra",
+    "opencodeKey": "gpt-5.6-terra",
+    "name": "GPT-5.6 Terra",
+    "subtitle": "OpenAI · 均衡 · 多模态",
+    "upstreamId": "openai/gpt-5.6-terra",
+    "tier": "high",
+    "capabilities": [
+      "chat",
+      "vision"
+    ],
+    "region": "international"
+  },
+  {
+    "apiId": "openai/gpt-5.6-luna-pro",
+    "opencodeKey": "gpt-5.6-luna-pro",
+    "name": "GPT-5.6 Luna Pro",
+    "subtitle": "OpenAI · 推理 · 多模态",
     "upstreamId": "openai/gpt-5.6-luna-pro",
     "tier": "high",
     "capabilities": [
@@ -218,10 +244,10 @@
     "region": "international"
   },
   {
-    "apiId": "wode/gpt-5.6-luna",
-    "opencodeKey": "wode-gpt-5.6-luna",
+    "apiId": "openai/gpt-5.6-luna",
+    "opencodeKey": "gpt-5.6-luna",
     "name": "GPT-5.6 Luna",
-    "subtitle": "OpenAI · 主力 · 多模态",
+    "subtitle": "OpenAI · 高吞吐 · 多模态",
     "upstreamId": "openai/gpt-5.6-luna",
     "tier": "high",
     "capabilities": [
@@ -231,8 +257,8 @@
     "region": "international"
   },
   {
-    "apiId": "wode/grok-4.6",
-    "opencodeKey": "wode-grok-4.6",
+    "apiId": "x-ai/grok-4.6",
+    "opencodeKey": "grok-4.6",
     "name": "Grok 4.6",
     "subtitle": "xAI · 旗舰 · 多模态",
     "upstreamId": "x-ai/grok-4.6",
@@ -244,8 +270,8 @@
     "region": "international"
   },
   {
-    "apiId": "wode/grok-4.5",
-    "opencodeKey": "wode-grok-4.5",
+    "apiId": "x-ai/grok-4.5",
+    "opencodeKey": "grok-4.5",
     "name": "Grok 4.5",
     "subtitle": "xAI · 主力 · 多模态",
     "upstreamId": "x-ai/grok-4.5",

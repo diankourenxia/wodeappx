@@ -21,6 +21,11 @@ import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { resolveSweepRoots, sweepOrphans } from "./self-evolve-sweep.mjs";
+import {
+  buildCandidateEnv,
+  packagedLaunchArgs,
+  resolvePackagedBin,
+} from "./self-evolve-packaged.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const wodeappxRoot = path.resolve(__dirname, "..");
@@ -66,15 +71,32 @@ function currentIterationVersion() {
     return execFileSync("git", ["rev-parse", "--short", "HEAD"], {
       env: { ...process.env, GIT_DIR: path.join(os.homedir(), ".wodeappx", "self-evolve", "repo.git") },
       encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
     }).trim();
   } catch {
     return "";
   }
 }
 
+function officialUserDataPath() {
+  return String(
+    process.env.WODEAPPX_SELF_EVOLVE_OFFICIAL_USERDATA
+      || process.env.OPENWORK_ELECTRON_USERDATA
+      || "",
+  ).trim();
+}
+
 function cmdStart(cfg, flags) {
-  if (!existsSync(electronBin)) {
-    console.error(`找不到 Electron 可执行文件：${electronBin}\n请先在 wodeappx 下完成依赖安装（pnpm install）。`);
+  const officialUserData = officialUserDataPath();
+  const launch = resolvePackagedBin({
+    env: process.env,
+    userDataPath: officialUserData,
+    vendorElectron: electronBin,
+  });
+  if (!launch.bin) {
+    console.error(
+      `找不到可启动的 WodeAppX / Electron。安装包请先打开一次官方窗口（会写下 self-evolve-launch.json），或设置 WODEAPPX_PACKAGED_BIN。开发机请先 pnpm install。`,
+    );
     process.exit(1);
   }
   const pid = readPid(cfg);
@@ -85,7 +107,7 @@ function cmdStart(cfg, flags) {
   // 启动前清扫上次运行残留的孤儿进程（实例崩溃/断电后，sidecar 与 Electron
   // helper 可能挂在 PPID 1 下持续占内存）。只清可精确归因的孤儿，规则见
   // self-evolve-sweep.mjs；健康的 detached 主进程不会被误伤。
-  const sweep = sweepOrphans(resolveSweepRoots({ desktopDir, electronBin, instanceRoot: cfg.root }));
+  const sweep = sweepOrphans(resolveSweepRoots({ desktopDir, electronBin: launch.bin, instanceRoot: cfg.root }));
   if (sweep.targets.length > 0) {
     console.log(`已清扫 ${sweep.targets.length} 个残留孤儿进程：`);
     for (const t of sweep.targets) {
@@ -98,34 +120,27 @@ function cmdStart(cfg, flags) {
   mkdirSync(cfg.userDataDir, { recursive: true });
 
   const logFd = openSync(cfg.logPath, "a");
-  // 剥掉调用方可能残留的 GIT_* 环境变量，避免污染实例内的 git 操作
-  const cleanEnv = { ...process.env };
-  delete cleanEnv.GIT_DIR;
-  delete cleanEnv.GIT_WORK_TREE;
-  delete cleanEnv.GIT_INDEX_FILE;
-  const child = spawn(electronBin, ["./electron/main.mjs"], {
-    cwd: desktopDir,
+  const childEnv = buildCandidateEnv({
+    env: process.env,
+    cfg,
+    version: currentIterationVersion(),
+    officialUserData,
+    slot: "B",
+  });
+  childEnv.WODEAPPX_INSTANCE_COLOR = process.env.WODEAPPX_INSTANCE_COLOR || "#f59e0b";
+  childEnv.WODEAPPX_DOCK_ICON = existsSync(path.join(os.homedir(), ".wodeappx", "instance-icons", `candidate-${cfg.id}.png`))
+    ? path.join(os.homedir(), ".wodeappx", "instance-icons", `candidate-${cfg.id}.png`)
+    : "";
+  const spawnArgs = launch.kind === "packaged" ? packagedLaunchArgs(process.env) : ["./electron/main.mjs"];
+  const child = spawn(launch.bin, spawnArgs, {
+    cwd: launch.kind === "vendor" ? desktopDir : path.dirname(launch.bin),
     detached: true,
-    env: {
-      ...cleanEnv,
-      OPENWORK_E2E_ALLOW_PARALLEL: "1",
-      OPENWORK_ELECTRON_APP_NAME: cfg.appName,
-      OPENWORK_ELECTRON_APP_IDENTIFIER: cfg.identifier,
-      OPENWORK_ELECTRON_USERDATA: cfg.userDataDir,
-      OPENWORK_ELECTRON_REMOTE_DEBUG_PORT: String(cfg.cdpPort),
-      WODEAPPX_TEST_INSTANCE_ID: String(cfg.id),
-      WODEAPPX_INSTANCE_LABEL: `候选实例 ${cfg.id}`,
-      WODEAPPX_INSTANCE_VERSION: currentIterationVersion(),
-      WODEAPPX_INSTANCE_COLOR: process.env.WODEAPPX_INSTANCE_COLOR || "#f59e0b",
-      WODEAPPX_DOCK_ICON: existsSync(path.join(os.homedir(), ".wodeappx", "instance-icons", `candidate-${cfg.id}.png`))
-        ? path.join(os.homedir(), ".wodeappx", "instance-icons", `candidate-${cfg.id}.png`)
-        : "",
-    },
+    env: childEnv,
     stdio: ["ignore", logFd, logFd],
   });
   child.unref();
   closeSync(logFd);
-  writeFileSync(cfg.pidPath, JSON.stringify({ pid: child.pid, startedAt: new Date().toISOString() }));
+  writeFileSync(cfg.pidPath, JSON.stringify({ pid: child.pid, startedAt: new Date().toISOString(), kind: launch.kind, bin: launch.bin }));
 
   console.log(`候选实例 ${cfg.id} 已启动：
   pid        ${child.pid}
@@ -199,10 +214,6 @@ if (rootIdx >= 0 && rest[rootIdx + 1]) {
   const codeRoot = path.resolve(rest[rootIdx + 1]);
   desktopDir = path.join(codeRoot, "vendor", "openwork", "apps", "desktop");
   electronBin = path.join(desktopDir, "node_modules", ".bin", "electron");
-  if (!existsSync(electronBin)) {
-    console.error(`副本里还没有 Electron 依赖：${electronBin}\n请先在 ${codeRoot} 执行 pnpm install。`);
-    process.exit(1);
-  }
 }
 // 不指定 --id 时自动分配空闲编号（status 除外：不带 --id 列出全部实例）
 const id = explicitId ?? (command === "start" ? findFreeInstanceId() : 2);

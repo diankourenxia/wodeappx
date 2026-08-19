@@ -6,6 +6,7 @@ import { toast } from "@/components/ui/sonner";
 import { SUGGESTED_PLUGINS } from "@/app/constants";
 import type { EnablementContext } from "@/app/enablement";
 import { createClient } from "@/app/lib/opencode";
+import { isWebDeployment } from "@/app/lib/openwork-deployment";
 import {
   createOpenworkServerClient,
   isLoopbackOpenworkServerUrl,
@@ -440,7 +441,7 @@ function SettingsRouteContent(props: SettingsSurfaceProps = {}) {
     readStoredBoolean(SETTINGS_UPDATE_AUTO_CHECK_KEY, true),
   );
   const [updateAutoDownload, setUpdateAutoDownload] = useState(() =>
-    readStoredBoolean(SETTINGS_UPDATE_AUTO_DOWNLOAD_KEY, true),
+    readStoredBoolean(SETTINGS_UPDATE_AUTO_DOWNLOAD_KEY, false),
   );
   const [configActionStatus, setConfigActionStatus] = useState<string | null>(null);
   const [revealConfigBusy, setRevealConfigBusy] = useState(false);
@@ -812,6 +813,7 @@ function SettingsRouteContent(props: SettingsSurfaceProps = {}) {
     updateAutoDownload,
     desktopConfig: desktopConfig.config,
     setError: (message) => {
+      if (isWebDeployment()) return;
       if (message) {
         // Auto-checks can fail without any user action; alert + log to the
         // notification center instead of a bare toast.
@@ -2081,6 +2083,13 @@ function SettingsRouteContent(props: SettingsSurfaceProps = {}) {
 
   if (!props.embedded && !routeWorkspaceId && selectedWorkspaceId) {
     return <Navigate to={workspaceSettingsRoute(selectedWorkspaceId, settingsPathForRoute(route))} replace state={location.state} />;
+  }
+
+  if (isWebDeployment() && !props.embedded && route.tab !== "appearance") {
+    const target = selectedWorkspaceId
+      ? workspaceSettingsRoute(selectedWorkspaceId, "appearance")
+      : "/settings/appearance";
+    return <Navigate to={target} replace state={location.state} />;
   }
 
   const openCloudAccountSettings = () => {

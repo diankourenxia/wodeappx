@@ -58,6 +58,22 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const wodeappxRoot = path.resolve(__dirname, "..");
 
 /**
+ * Isolated fixture hook for loop tests. Never point this at the real checkout
+ * unless you intend to snapshot/rollback that tree.
+ *   WODEAPPX_SELF_EVOLVE_WORKTREE  = fixture wodeappx/ or monorepo root
+ *   WODEAPPX_SELF_EVOLVE_GIT_DIR   = fixture bare version repo
+ */
+export function runtimeWodeappxRoot() {
+  const override = String(process.env.WODEAPPX_SELF_EVOLVE_WORKTREE || "").trim();
+  if (!override) return wodeappxRoot;
+  const start = path.resolve(override);
+  if (existsSync(path.join(start, "wodeappx", "package.json"))) {
+    return path.join(start, "wodeappx");
+  }
+  return start;
+}
+
+/**
  * 自进化版本管理：独立影子仓库（bare repo + GIT_WORK_TREE=wodeappx 根）。
  * 选本地 git 而不是内置 Gitea：git 本身就是完整版本系统，桌面端单用户场景
  * 不需要常驻服务端进程；Gitea 可作为后期可选 remote（多机同步 / Web 审阅）。
@@ -65,15 +81,22 @@ const wodeappxRoot = path.resolve(__dirname, "..");
 function resolveVersionRepo() {
   const fromEnv = String(process.env.WODEAPPX_SELF_EVOLVE_GIT_DIR || "").trim();
   if (fromEnv) return fromEnv;
+  const worktree = String(process.env.WODEAPPX_SELF_EVOLVE_WORKTREE || "").trim();
+  if (worktree) {
+    return path.join(path.resolve(worktree), ".self-evolve-version.git");
+  }
   const home = os.homedir();
-  if (wodeappxRoot.split(path.sep).includes("self-evolve-source")) {
-    const key = createHash("sha1").update(path.resolve(wodeappxRoot)).digest("hex").slice(0, 12);
+  const root = runtimeWodeappxRoot();
+  if (root.split(path.sep).includes("self-evolve-source")) {
+    const key = createHash("sha1").update(path.resolve(root)).digest("hex").slice(0, 12);
     return path.join(home, ".wodeappx", "self-evolve", "packaged", key, "repo.git");
   }
   return path.join(home, ".wodeappx", "self-evolve", "repo.git");
 }
 
-const VERSION_REPO = resolveVersionRepo();
+function versionRepoDir() {
+  return resolveVersionRepo();
+}
 
 /** 纳入版本管理的 wodeappx 相对路径（源码级，避开二进制与构建产物） */
 const VERSION_INCLUDE = Object.freeze([
@@ -155,14 +178,22 @@ function git(args, opts = {}) {
 
 /** Packaged extract is a filtered monorepo (`…/wodeapp/wodeappx`); dogfood is the outer clone. */
 export function findMonorepoRoot(fromWodeappx = wodeappxRoot) {
-  const parent = path.dirname(path.resolve(fromWodeappx));
+  const override = String(process.env.WODEAPPX_SELF_EVOLVE_WORKTREE || "").trim();
+  const start = path.resolve(override || fromWodeappx);
+  if (
+    existsSync(path.join(start, "wodeappx"))
+    && (existsSync(path.join(start, "AGENTS.md")) || existsSync(path.join(start, "package.json")))
+  ) {
+    return start;
+  }
+  const parent = path.dirname(start);
   if (
     existsSync(path.join(parent, "wodeappx"))
     && (existsSync(path.join(parent, "AGENTS.md")) || existsSync(path.join(parent, "package.json")))
   ) {
     return parent;
   }
-  return path.resolve(fromWodeappx);
+  return start;
 }
 
 /**
@@ -194,10 +225,11 @@ function gitRoot() {
 }
 
 function stateDir(root) {
-  // 兼容 git worktree（.git 是文件而非目录）：统一存到主仓库 common git dir
+  // 兼容 git worktree（.git 是文件而非目录）：统一存到主仓库 common git dir。
+  // 必须带 cwd=root，否则 node --test 从真实 wodeappx/ 跑夹具时会写进本仓 .git。
   try {
-    const common = git(["rev-parse", "--git-common-dir"]).trim();
-    return path.join(path.resolve(process.cwd(), common), "self-evolve");
+    const common = git(["rev-parse", "--git-common-dir"], { cwd: root }).trim();
+    return path.join(path.resolve(root, common), "self-evolve");
   } catch {
     return path.join(root, ".git", "self-evolve");
   }
@@ -632,29 +664,31 @@ function cmdRollback(id, flags) {
 
 // ------------------------------------------------- version（影子仓库版本管理）
 function vgit(args, opts = {}) {
+  const root = runtimeWodeappxRoot();
   return execFileSync("git", args, {
-    cwd: wodeappxRoot,
-    env: { ...process.env, GIT_DIR: VERSION_REPO, GIT_WORK_TREE: wodeappxRoot },
+    cwd: root,
+    env: { ...process.env, GIT_DIR: versionRepoDir(), GIT_WORK_TREE: root },
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
     ...opts,
   });
 }
 
-export function versionPathspecs(root = wodeappxRoot) {
+export function versionPathspecs(root = runtimeWodeappxRoot()) {
   // OSS extract omits native/ and vendor/openwork; `git add -f -- native` fatals.
   const present = VERSION_INCLUDE.filter((rel) => existsSync(path.join(root, rel)));
   return [...present, ...VERSION_EXCLUDE.map((e) => `:(exclude,glob)${e}`)];
 }
 
 function ensureVersionRepo() {
-  if (existsSync(VERSION_REPO)) return;
-  mkdirSync(path.dirname(VERSION_REPO), { recursive: true });
-  execFileSync("git", ["init", "--bare", VERSION_REPO], { stdio: "pipe" });
-  const env = { ...process.env, GIT_DIR: VERSION_REPO };
+  const repo = versionRepoDir();
+  if (existsSync(repo)) return;
+  mkdirSync(path.dirname(repo), { recursive: true });
+  execFileSync("git", ["init", "--bare", repo], { stdio: "pipe" });
+  const env = { ...process.env, GIT_DIR: repo };
   execFileSync("git", ["config", "user.name", "wodeappx-self-evolve"], { env });
   execFileSync("git", ["config", "user.email", "self-evolve@wodeappx.local"], { env });
-  console.log(`已初始化自进化版本库：${VERSION_REPO}`);
+  console.log(`已初始化自进化版本库：${repo}`);
 }
 
 function versionHasCommits() {
@@ -667,13 +701,17 @@ function versionHasCommits() {
 }
 
 function overlayDestDirs() {
+  const fromEnv = String(process.env.WODEAPPX_SELF_EVOLVE_OVERLAY || "").trim();
+  if (fromEnv) return [path.resolve(fromEnv)];
+  const worktree = String(process.env.WODEAPPX_SELF_EVOLVE_WORKTREE || "").trim();
+  if (worktree) return [path.join(path.resolve(worktree), ".self-evolve-overlay")];
   const dirs = [path.join(os.homedir(), ".wodeappx", "self-evolve", "overlay")];
   const userData = String(process.env.OPENWORK_ELECTRON_USERDATA || "").trim();
   if (userData) dirs.push(path.join(userData, "self-evolve-overlay"));
   return dirs;
 }
 
-export function cmdOverlaySync({ wodeappx = wodeappxRoot, destDirs = overlayDestDirs() } = {}) {
+export function cmdOverlaySync({ wodeappx = runtimeWodeappxRoot(), destDirs = overlayDestDirs() } = {}) {
   const srcDir = path.join(wodeappx, "integrations", "openwork", "wodeapp");
   const files = existsSync(srcDir)
     ? readdirSync(srcDir).filter((name) => /^wodeapp-skin-.*\.css$/.test(name))
@@ -754,6 +792,7 @@ function cmdVersionRestore(target, flags) {
   // 礼貌模式：存在其他活跃自进化会话时，可能被别人动过的文件跳过恢复/删除。
   // --session <自己的会话ID> 用于区分"别人"和"自己"（不传则保守地把所有登记会话都当作别人）。
   const vrRoot = gitRoot();
+  const wxRoot = runtimeWodeappxRoot();
   const selfSessionId = flags.__sessionId || null;
   if (selfSessionId) sessionHeartbeat(vrRoot, selfSessionId);
   const others = force ? [] : otherActiveSessions(vrRoot, selfSessionId);
@@ -761,7 +800,7 @@ function cmdVersionRestore(target, flags) {
   const skipped = [];
   const safeChanged = [];
   for (const f of changed) {
-    if (possiblyForeign(path.join(wodeappxRoot, f), others)) skipped.push(f);
+    if (possiblyForeign(path.join(wxRoot, f), others)) skipped.push(f);
     else safeChanged.push(f);
   }
   if (others.length > 0) {
@@ -775,7 +814,7 @@ function cmdVersionRestore(target, flags) {
   }
   for (const f of toDelete) {
     if (skipped.includes(f)) continue;
-    try { rmSync(path.join(wodeappxRoot, f), { force: true }); }
+    try { rmSync(path.join(wxRoot, f), { force: true }); }
     catch (err) { console.warn(`  警告：删除 ${f} 失败：${err.message}`); }
   }
   if (skipped.length > 0) {
@@ -807,8 +846,8 @@ const WORKTREES_ROOT = path.join(os.homedir(), ".wodeappx", "worktrees");
 /** worktree 管理操作只带 GIT_DIR，不带 GIT_WORK_TREE（避免路径混淆）。 */
 function vgitBare(args) {
   return execFileSync("git", args, {
-    cwd: wodeappxRoot,
-    env: { ...process.env, GIT_DIR: VERSION_REPO },
+    cwd: runtimeWodeappxRoot(),
+    env: { ...process.env, GIT_DIR: versionRepoDir() },
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
   });
@@ -926,7 +965,7 @@ function cmdWorktreePromote(id, flags) {
     vgit(["merge", "--no-ff", w.branch, "-m", msg]);
   } catch (err) {
     console.error("合并冲突：worktree 与主线改到了相同位置。请人工处理：");
-    console.error(`  主线树已处于合并中状态，解决冲突后：GIT_DIR=${VERSION_REPO} GIT_WORK_TREE=<wodeappx根> git commit`);
+    console.error(`  主线树已处于合并中状态，解决冲突后：GIT_DIR=${versionRepoDir()} GIT_WORK_TREE=<wodeappx根> git commit`);
     console.error("  放弃合并：同一环境变量下 git merge --abort");
     throw err;
   }

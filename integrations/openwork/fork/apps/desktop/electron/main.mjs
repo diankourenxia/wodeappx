@@ -41,6 +41,11 @@ import { createBrowserPanel } from "./browser-panel.mjs";
 import { registerBrowserNativeHost } from "./browser-native-host.mjs";
 import { createWorkspaceStore } from "./workspace-store.mjs";
 import { rendererBuildErrorHtml, rendererDevServerErrorHtml, validateRendererIndex, waitForRendererUrl } from "./renderer-build-guard.mjs";
+import {
+  resolveSelfEvolveRendererIndex,
+  selfEvolveOverlayDirs,
+  writeSelfEvolveLaunchInfo,
+} from "./wodeapp-self-evolve-packaged.mjs";
 // WODEAPP_CLOUD_INTEGRATION
 import {
   prepareWodeAppBrowserSession,
@@ -1988,7 +1993,13 @@ async function loadMainRenderer(window) {
 
   const packagedIndexPath = path.join(process.resourcesPath, "app-dist", "index.html");
   const devIndexPath = path.resolve(__dirname, "../../app/dist/index.html");
-  const indexPath = app.isPackaged ? packagedIndexPath : devIndexPath;
+  const indexPath = resolveSelfEvolveRendererIndex({
+    userDataPath: app.getPath("userData"),
+    packagedIndexPath,
+    devIndexPath,
+    isPackaged: app.isPackaged,
+    env: process.env,
+  }) || (app.isPackaged ? packagedIndexPath : devIndexPath);
   if (app.isPackaged) {
     const indexHtml = await readFile(indexPath, "utf8").catch(() => "");
     const validation = validateRendererIndex(indexHtml, indexPath);
@@ -2016,7 +2027,7 @@ async function applySelfEvolveRendererOverlay(window) {
   const wanted = ["wodeapp-skin-theme-align.css"];
   if (safeSkin) wanted.push(`wodeapp-skin-${safeSkin}.css`);
   const dirs = [
-    path.join(app.getPath("userData"), "self-evolve-overlay"),
+    ...selfEvolveOverlayDirs(app.getPath("userData"), process.env),
     path.join(os.homedir(), ".wodeappx", "self-evolve", "overlay"),
   ];
   const chunks = [];
@@ -2404,6 +2415,17 @@ if (process.env.OPENWORK_E2E_ALLOW_PARALLEL !== "1" && !app.requestSingleInstanc
   });
 
   app.whenReady().then(async () => {
+    if (app.isPackaged) {
+      try {
+        writeSelfEvolveLaunchInfo(app.getPath("userData"), {
+          bin: app.getPath("exe"),
+          resourcesPath: process.resourcesPath,
+          version: app.getVersion(),
+        });
+      } catch (error) {
+        console.warn("[self-evolve-launch] write failed", error?.message || error);
+      }
+    }
     if (INSTANCE_LABEL && INSTANCE_DOCK_ICON) {
       try {
         app.dock?.setIcon(INSTANCE_DOCK_ICON);

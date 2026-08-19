@@ -1,157 +1,106 @@
-<p align="center">
-  <img src="branding/wodeappx-logo-180.png" alt="WodeAppX" width="128" />
-</p>
-
-<h1 align="center">WodeAppX</h1>
+# WodeAppX
 
 <p align="center">
-  <strong>Agent 能自定义，模型随便搭。</strong><br />
-  开源桌面 AI 工作台。技能、工具、皮肤按你定。写文案、出图、做视频可以各用各的模型。<br />
-  图片、视频等工作台开箱即用。本地优先，数据可不出本机。本机 Key，不必先登录。
+  <img src="branding/wodeappx-logo-180.png" alt="WodeAppX" width="160" />
 </p>
 
-<p align="center">
-  <a href="README.md">中文</a> · <a href="README.en.md">English</a> · <a href="README.ja.md">日本語</a> · <a href="README.vi.md">Tiếng Việt</a> · <a href="README.pt-BR.md">Português</a> · <a href="README.th.md">ไทย</a> · <a href="README.fr.md">Français</a> · <a href="README.ca.md">Català</a> · <a href="README.es.md">Español</a> · <a href="README.ru.md">Русский</a>
-</p>
+<p align="center"><strong>Languages:</strong> <a href="README.md">中文</a> · <a href="README.en.md">English</a></p>
 
-<p align="center">
-  <a href="https://github.com/diankourenxia/wodeappx/releases/tag/v1.0.3"><img src="https://img.shields.io/github/v/release/diankourenxia/wodeappx?color=111111&label=release" alt="release" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-111111" alt="Apache-2.0" /></a>
-  <a href="https://github.com/diankourenxia/wodeappx/stargazers"><img src="https://img.shields.io/github/stars/diankourenxia/wodeappx?style=flat&color=111111" alt="stars" /></a>
-</p>
+> 开源桌面 AI 工作台。
+> **Agent 能自定义，模型随便搭。**
+> Agent 按你的想法改；文字、图片、视频的模型可以任意搭配。图片、视频等工作台开箱即用，多模型已经接好。本地优先，数据可不出本机。
 
-<p align="center">
-  <a href="https://x.wodeapp.cn/">官网</a>
-  ·
-  <a href="https://wodeapp.cn/chat">浏览器里试</a>
-  ·
-  <a href="https://github.com/diankourenxia/wodeappx/releases/tag/v1.0.3">下载 v1.0.3</a>
-  ·
-  <a href="https://youtu.be/__H5DZ6MjHE">推广片</a>
-  ·
-  <a href="AGENTS.md">给 Agent</a>
-  ·
-  <a href="https://x.com/wodeappai">X</a>
-</p>
+**开源对外产品名：WodeAppX**（`wodeappx`）。这是默认产品名；旧商业名仅作兼容探测，不再作为窗口/安装包主名。
 
-<p align="center">
-  <a href="https://youtu.be/__H5DZ6MjHE">
-    <img src="https://img.youtube.com/vi/__H5DZ6MjHE/hqdefault.jpg" alt="Watch the WodeAppX trailer" width="720" />
-  </a>
-</p>
+## 定位摘要
 
-<p align="center">
-  <img src="https://x.wodeapp.ai/product-hunt/01-hero-workbench.png" alt="WodeAppX 工作台" width="920" />
-</p>
+WodeAppX 是**本地优先的 AI 工作流桌面**：把 Skill、模型、MCP/工具、本地文件与可选平台能力组合成**可重复执行**的流程，而不是只做一次性聊天。
 
----
+它面向**内容生产、建站发布、本地自动化**等场景，也适合开发者把 AI 安全地用在真实工作区（文件、终端、浏览器）。相对 Cursor / Codex 等编程助手：它们擅长改**你的项目代码**；WodeAppX 还强调 **Agent 能自定义**、**模型随便搭**、智能体可改进产品本身，并把可视化工作流当作产品主线。
 
-## 目录
+开源版默认 **BYOK / 自托管**，无需登录即可开始；官方云端是显式可选项，不是硬依赖。
 
-- [先这样开始](#先这样开始)
-- [能做什么](#能做什么)
-- [为什么是 WodeAppX](#为什么是-wodeappx)
-- [下载](#下载)
-- [打开后怎么用](#打开后怎么用)
-- [从源码跑](#从源码跑)
-- [给 Agent / 贡献者](#给-agent--贡献者)
-- [常见问题](#常见问题)
-- [文档](#文档)
-- [License](#license)
+## 适合谁
 
-## 先这样开始
-
-| 路径 | 适合 | 做什么 |
+| 角色 | 典型诉求 | 示例流程 |
 |---|---|---|
-| [下载桌面端](#下载) | 日常使用 | 装包 → 配本机 Key（或云端登录）→ 说话 |
-| [浏览器里试](https://wodeapp.cn/chat) | 先看一眼 | 官网侧栏对话；国际站 [wodeapp.ai/chat](https://wodeapp.ai/chat) |
-| [从源码跑](#从源码跑) | 改产品 / 贡献 | `pnpm run setup && pnpm dev` |
+| 独立创作者 / 运营 | 降低重复内容成本 | 素材 → 文案 / 图 / 视频 → 审核 → 发布包 |
+| 开发者 | 在本地工作区安全用 AI | 理解任务 → 改文件 / 跑终端 / 控浏览器 → 验证 |
+| 内容 / 品牌团队 | 图、视频与站点规模化 | 素材入库 → 批量生成 → 发布 |
+| 自动化 / 平台团队 | 接既有系统且可治理 | 触发 → 审批 → 执行 → 审计 / 通知 |
 
-国内落地页 [x.wodeapp.cn](https://x.wodeapp.cn/) · 国际 [x.wodeapp.ai](https://x.wodeapp.ai/)。对照：[vs Cursor](https://x.wodeapp.cn/vs-cursor/) · [vs Claude Code](https://x.wodeapp.cn/vs-claude-code/) · [vs Codex](https://x.wodeapp.cn/vs-codex/)。
+## 技能 vs 智能体
 
-## 能做什么
+这两个词在 WodeAppX 里分工不同，README 和文档会分开写：
 
-- **自定义 Agent**：技能、工具、MCP、连接器、皮肤按你的方式组装，不被固定模板绑死
-- **模型随便搭**：文字、图片、视频各用各的模型，想换就换，不锁一家
-- **图片、视频开箱即用**：批量出图、分镜、图生视频已经接好；侧栏有图片 / 视频 / 短剧 / 画布 / 多模型智能体
-- **数字资产随手存**：生成的图、视频一键入库，对话里直接引用
-- **浏览器自动化**：Chrome 扩展在真实网页上点、读、截图，跟着提示就能用
-- **技能能批量跑**：同一套流程一次跑一批；权限、成本、重试看得见
-- **智能体可自进化**：工作区指向本产品源码时，Agent 能改产品本身（备份 → 验证 → 失败回滚）
+| | **技能（Skill）** | **智能体（Agent）** |
+|---|---|---|
+| 是什么 | 可声明、可版本化的**能力契约**（输入 / 输出 / 工具 / 权限） | **调度与执行主体**：理解意图、选工具、跑多步、处理失败 |
+| 你怎么用 | 安装、组合、批量跑同一套流程 | 对话驱动，也可指向工作区做复杂任务 |
+| 产品重点 | **看得见、管得住、能批量**——像生产线 | **可自定义、可自进化**——像你可塑造的助手 |
+
+一句话：**技能定义「能做什么」；智能体负责「怎么把它跑完」。**
+
+## 和编程助手有什么不同
+
+| | 常见编程助手（Cursor / Codex 等） | WodeAppX |
+|---|---|---|
+| 主战场 | 改你仓库里的业务代码 | 内容 / 站点 / 媒体工作流 + 可改进**本产品** |
+| 复用方式 | 多为单次会话 | 技能可保存、批量、可视化编排（主线方向） |
+| 模型策略 | 常默认一个强文本模型 | **模型随便搭**：文字 / 图片 / 视频可以各用各的 |
+| 数据与部署 | 多依赖云端 | **本地优先**；sidecar / 自托管 / 云端三选一 |
+| 扩展面 | 插件 / MCP 因产品而异 | Skill、MCP、连接器、自进化门禁为一等公民 |
+
+## 你可以用它做什么
+
+- **Agent 能自定义**：技能、工具、MCP、连接器、皮肤按你的方式组装，不被固定模板绑死
+- **模型随便搭**：文字、图片、视频可以各用各的模型，想换就换，不锁一家
+- **技能看得见、管得住、能批量**：同一套流程一次跑一批（图片、素材、站点步骤等）；权限、成本、重试可查看、可调整
+- **智能体可自进化**：工作区指向本应用源码时，Agent 能改进产品本身（备份 → 修改 → 验证 → 失败回滚）——不只是改业务仓库
+- **内置数字资产**：生成的图、视频一键入库，对话里直接引用，不用到处找文件
+- **内置批量生图、视频等项目**：图片、视频等工作台开箱即用，多模型已经适配，不必从零搭流程
+- **本地优先的内容与站点能力**：建站发布、图片/视频——可本机 / 自托管；云端是可选项
 - **在电脑上真正干活**：打开本地文件夹，读写文件、跑终端、控浏览器，不只是聊天
-- **建站与内容可本地完成**：站点发布、素材生产走本机或自托管；云端是可选项
 
-技能定义「能做什么」；智能体负责「怎么把它跑完」。想做什么，直接说。
+## 核心优势
 
-## 为什么是 WodeAppX
-
-Cursor / Claude Code / Codex 改你的仓库。WodeAppX 是桌面 Agent 工作台：自定义 Agent、模型随便搭、图/视频开箱即用，还能改产品本身。软件免费（Apache-2.0），模型费你自己控，不必先订它们的云。
-
-- **你塑造助手，不是被助手框住** — 技能、工具、皮肤都是一等公民
-- **各模态用对的模型** — 写字、出图、做视频不必挤在同一家
-- **开箱就是生产线** — 图片、视频工作台已经接好，不是空壳加 Prompt
-- **数据可以不外露** — 会话、文件、终端、浏览器在你的机器上；开源版无需登录即可开始
-- **Key 在你手里** — 本机 Key / 自托管优先，官方云是加分项不是门槛
-- **能改这个软件本身** — 自进化有快照和回滚，不是口号
-- **开源可审计** — Apache-2.0，可查、可改、可二次分发
-
-<table>
-  <tr>
-    <td width="50%">
-      <img src="https://x.wodeapp.ai/product-hunt/05-customize-skin.png" alt="自定义皮肤" />
-      <p><strong>Agent 能自定义</strong><br />技能、工具、皮肤自己组装。智能体还能改这个产品本身（备份 → 验证 → 回滚）。</p>
-    </td>
-    <td width="50%">
-      <img src="https://x.wodeapp.ai/product-hunt/03-digital-assets.png" alt="数字资产" />
-      <p><strong>数字资产</strong><br />生成的图、视频一键入库，对话里直接引用。</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="https://x.wodeapp.ai/product-hunt/04-image-workbench.png" alt="图片工作台" />
-      <p><strong>图片工作台</strong><br />批量出图已经接好，多模型换一家就能用。</p>
-    </td>
-    <td width="50%">
-      <img src="https://x.wodeapp.ai/product-hunt/06-video-workbench.png" alt="视频工作台" />
-      <p><strong>视频工作台</strong><br />分镜、图生视频、批量队列一套就能跑。</p>
-    </td>
-  </tr>
-</table>
-
-## 下载
-
-正式包：[v1.0.3](https://github.com/diankourenxia/wodeappx/releases/tag/v1.0.3)（Mac 已公证）。国内镜像：[x.wodeapp.cn](https://x.wodeapp.cn/) · 国际：[x.wodeapp.ai](https://x.wodeapp.ai/)
-
-| 平台 | 安装包 |
+| 优势 | 说明 |
 |---|---|
-| macOS Apple Silicon | [DMG](https://github.com/diankourenxia/wodeappx/releases/download/v1.0.3/wodeappx-mac-arm64-1.0.3.dmg) |
-| macOS Intel | [DMG](https://github.com/diankourenxia/wodeappx/releases/download/v1.0.3/wodeappx-mac-x64-1.0.3.dmg) |
-| Windows x64 | [EXE](https://github.com/diankourenxia/wodeappx/releases/download/v1.0.3/wodeappx-win-x64-1.0.3.exe) |
-| Linux x64 | [AppImage](https://github.com/diankourenxia/wodeappx/releases/download/v1.0.3/wodeappx-linux-x86_64-1.0.3.AppImage) |
+| **Agent 能自定义** | 技能、工具、MCP、连接器、皮肤按你的方式组装 |
+| **模型随便搭** | 文字、图片、视频各用各的模型，想换就换，不锁一家 |
+| **智能体可自进化** | Agent 能改进本软件（改产品代码，不是训练模型权重）；有备份与回滚门禁 |
+| **技能可运营** | 看得见、管得住、能批量——把「一次对话」变成「可复制的生产线」 |
+| **内置数字资产** | 生成结果一键保存，对话里直接引用 |
+| **内置批量生图、视频项目** | 图片、视频等工作台开箱即用，多模型已经适配，换一家就能用 |
+| **本地优先，数据不外露** | 工作区与基础能力可在本机完成；开源版无需登录即可开始 |
+| **自带 Key / 云端可选** | BYOK 与自托管开箱可用；云端协同是加分项不是门槛 |
+| **开源可审计** | Apache-2.0；大量自研集成与能力，可查源码、可改、可二次分发 |
 
-打开后：本机 Key，或云端登录。不必先注册才能聊。
+## 产品方向（我们坚持什么）
 
-## 打开后怎么用
+1. **流程优先于角色**——先定义步骤、工具与恢复策略，再决定要不要「人格化 Agent」。
+2. **一个调度模型，按需专业模型**——确定性步骤不滥用大模型；出图 / 出视频用对应最强模型。
+3. **Skill 是可执行契约**——不只是长 Prompt，要能声明输入输出、权限与可验证结果。
+4. **本地优先，Cloud 可选**——开源路径不藏登录墙；云能力是显式扩展。
+5. **如实标注状态**——演示、实验、已交付与路线图分开写，不夸大。
 
-1. **本机 Key（默认）**  
-   侧栏「本地」或「配置本机 Key」。DeepSeek、火山方舟、Kimi / Moonshot、通义、OpenRouter（一把 Key 出 GPT / Claude / Grok）、已接通的 OpenAI 都行。  
-   也可以加一行**自定义云厂商**：名称 + Base URL + Key，按 OpenAI 兼容 `/models` 探测。  
-   Key 存在本机 `~/.wodeapp/keys.json`，不会被上传到 WodeApp。
+更完整的定义、缺口与验收见 [开源计划](docs/OPEN_SOURCE_PLAN.md)。
 
-2. **Chrome（可选）**  
-   能力中心装浏览器扩展，Agent 才能在真实页面上点、读、截图。可以先忽略，稍后装。
+## 能力进度
 
-3. **云端（可选）**  
-   侧栏「云端」选站点：中国大陆 [wodeapp.cn](https://wodeapp.cn/)（支付宝 / 微信），International [wodeapp.ai](https://wodeapp.ai/)（Stripe）。用系统浏览器登录。WodeApp 只是供应商之一，有平台 Key 才启用，登录不会把默认模型抢回云端。
+| 能力 | 状态 |
+|---|---|
+| 自进化（备份 → 验证 → 回滚） | 已有，持续加强 |
+| 桌面工作区、文件 / 终端 / 浏览器、BYOK、Skill / MCP | 已有 |
+| 建站 / 资产 / 图片视频等（本机 sidecar 或自托管，可不走云） | 已有或可选 |
+| 技能运行可视化、可编辑流程图、节点级模型与批量编排 | 产品主线（下一阶段 / 规划中） |
+| 企业审批、审计、团队能力包 | 规划中 |
 
-4. **说话**  
-   空会话直接说需求，或进图片 / 视频 / 数字资产 / 能力中心。选模型只显示当前这批模型族，按你已接通的 Key 匹配真实线路。
+文档索引：[docs/README.md](docs/README.md)
 
-对话、生图、生视频走同一套 Key 和路由。没有对应 Key 时提示去配置，不要只写「请先登录」。
+## 快速开始
 
-## 从源码跑
-
-需要 Node.js 22、pnpm 9.15、Bun 1.3.9+、Go 1.23。不要用 Node 26。命令是 `pnpm run setup`，不是 `pnpm setup`。
+**环境**：Node.js 22、pnpm 9.15、Bun 1.3.9+、Go 1.23，以及桌面壳构建常用工具链。Node 26 当前会触发上游 `better-sqlite3` 原生构建问题。
 
 ```bash
 git clone https://github.com/diankourenxia/wodeappx.git
@@ -160,53 +109,90 @@ pnpm run setup
 pnpm dev
 ```
 
-`pnpm run setup` 会拉桌面壳、打补丁、装依赖。生成目录 `vendor/` 不要当源码改，下次 setup 会覆盖。第一次打开：建本地工作区，配本机 Key。
+`pnpm run setup` 会：
 
-贡献与门禁见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+1. 按版本锁拉取并校验桌面壳源码（SHA-256）；
+2. 应用 WodeAppX 集成补丁；
+3. 安装依赖。
 
-## 给 Agent / 贡献者
+首次启动后，创建本地工作区，并在 **设置 → 服务与模型** 配置模型 Key。OSS 默认**不要求** WodeApp 登录。
 
-克隆后先读 **[AGENTS.md](AGENTS.md)**（仓地图、改哪里、产品红线），再读 [docs/README.md](docs/README.md)。
+若本地引擎下载超时，可复用本机 CLI：
 
-| 要改什么 | 去哪 |
-|---|---|
-| 自有能力、本机 Key、浏览器扩展 | `integrations/`、`capture-engine/`、`scripts/` |
-| 桌面界面覆盖 | `integrations/openwork/fork/`，并在 apply 脚本里登记 |
-| 上游桌面壳版本 | `openwork.lock.json`（不要随手改） |
+```bash
+pnpm openwork:sidecar:local
+pnpm openwork:dev:local-sidecar
+```
 
-自进化是应用内、带快照的改本产品；在本仓库用编辑器改源码则直接改、热更新即可。
+## 平台能力的运行要求（重要）
 
-## 常见问题
+桌面工作区本身（会话、文件、终端、浏览器、Computer Use、BYOK 模型）**可完全离线使用**。
 
-**是 Cursor / Codex 的平替吗？**  
-是，而且不止。改仓库、自定义 Agent、出图出视频、建站，都在 WodeAppX 里做。还能拿它打造自己的工作台：技能、工具、皮肤、模型自己定。自己带 Key。
+建站发布、数字资产、图片/视频等工作流需要一层 **WodeApp 运行时**，但**不等于必须上云**：
 
-**一定要登录云端吗？**  
-不用。开源版自己带 Key、模型随便搭即可开始；云端是可选项。
+| 方式 | 适用 | 怎么做 | 数据 |
+|---|---|---|---|
+| 本机 sidecar | 开发者 / 单机本地优先 | 本机启动 mainserver（`:3000`）等，桌面端探活 | 默认留在本机 |
+| 自托管 | 团队 / 私有部署 | 设置 → 服务与模型 →「自定义」，填 Origin | 留在你的服务器 |
+| 官方云端 | 需要托管与协同时 | 设置 → 服务与模型 →「云端」，粘贴 `sk_live_…` | 走云端（可选） |
 
-**自进化是训练模型吗？**  
-不是。指 Agent 在门禁下改本产品源码（备份 → 验证 → 回滚），不是训练权重。
+配置入口：**设置 → 服务与模型**。无可用服务时，能力中心显示「未配置 / 未连接」——这是预期行为，不是安装失败。
 
-**数据会离开这台电脑吗？**  
-开源版本地优先：会话和文件可留在你的电脑。只有你自己接的模型 API 才会出网。云端登录不是门槛。
+## OSS 与 Cloud
 
-**技能可视化都做好了吗？**  
-Skill / MCP / 工具现已可跑；完整运行图编辑与节点级编排是产品主线，持续推进。
+| | OSS 默认 | 可选 WodeApp Cloud |
+|---|---|---|
+| 登录 | 不需要 | WodeApp 账号 |
+| 模型 | BYOK / 自托管 | 可增加平台模型与积分 |
+| MCP / Skill / 本地能力 | 保留 | 保留 |
+| 启动方式 | `pnpm dev` | `pnpm dev:cloud` |
+| 对外品牌 | **WodeAppX** | **WodeAppX** |
 
-**Windows 提示未签名？**  
-当前 Windows 安装包尚未 Authenticode。Mac 已公证。可以从源码跑，或看 Releases 说明。
+Cloud 是显式可选集成，不应成为编译、启动或使用开源版本的前置条件。
 
-## 文档
+导出独立开源仓（无私有 monorepo 历史）：
 
-| 给谁 | 文档 |
-|---|---|
-| 用户 / 克隆后第一份 | 本页（顶栏换语言） · [官网](https://x.wodeapp.cn/) |
-| Agent / 贡献者 | [AGENTS.md](AGENTS.md) · [CONTRIBUTING.md](CONTRIBUTING.md) |
-| 能力与本机 Key | [docs/CAPABILITIES.md](docs/CAPABILITIES.md) · [docs/LOCAL_KEY_INVOKE.md](docs/LOCAL_KEY_INVOKE.md) |
-| 全部桌面文档 | [docs/README.md](docs/README.md) |
-| 开源计划 | [docs/OPEN_SOURCE_PLAN.md](docs/OPEN_SOURCE_PLAN.md) |
-| 安全 / 隐私 / 商标 | [SECURITY.md](SECURITY.md) · [PRIVACY.md](PRIVACY.md) · [TRADEMARK.md](TRADEMARK.md) |
+```bash
+node scripts/export-standalone-repo.mjs --out ~/Desktop/wodeappx --init-git
+```
+
+## 架构与源码边界
+
+WodeAppX **自有**的核心体验、能力包、自进化与大量桌面集成在 `integrations/`、`capture-engine/`、`scripts/` 等目录。构建时会拉取并打补丁部分上游组件（见 `openwork.lock.json`）；`vendor/` 为生成目录、不进仓库。
+
+主要文档：
+
+- [文档索引](docs/README.md)
+- [开源目标、架构与路线图](docs/OPEN_SOURCE_PLAN.md)
+- [桌面能力矩阵](docs/CAPABILITIES.md)
+- [Agent 最小上下文与媒体分轨](docs/AGENT_MINIMAL_CONTEXT.md)
+- [Agent 能力测试契约](docs/AGENT_CAPABILITY_TESTING.md)
+- [发布契约](docs/RELEASE.md)
+- [桌面里程碑](docs/DESKTOP.md)
+- [架构](docs/ARCHITECTURE.md)
+- [贡献指南](CONTRIBUTING.md)
+- [安全策略](SECURITY.md)
+- [名称与 Logo](TRADEMARK.md)
+
+## 开源检查
+
+```bash
+pnpm open-source:check
+pnpm open-source:verify:contract
+pnpm open-source:verify
+pnpm run openwork:bootstrap -- --force
+pnpm openwork:patch
+pnpm release:check
+pnpm test:agent-capabilities
+(cd capture-engine && go test ./...)
+```
+
+`open-source:verify` 在隔离 VPS 容器里跑陌生人 `pnpm run setup`，流程见 [docs/OSS_VERIFY.md](docs/OSS_VERIFY.md)。发布前还须完成各平台干净构建、安装启动、升级兼容、第三方许可证与安全扫描。
+
+## 致谢
+
+第三方许可证与署名见 [NOTICE](NOTICE) 和 [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES/)。构建会按版本锁拉取桌面壳并打上 WodeAppX 补丁；上游非开源部分不进本分发。
 
 ## License
 
-自有代码 [Apache License 2.0](LICENSE)。第三方见 [NOTICE](NOTICE) 与 [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES/)。
+WodeAppX 自有代码使用 [Apache License 2.0](LICENSE)。第三方代码保留各自许可证与署名。名称与 Logo 政策见 [TRADEMARK.md](TRADEMARK.md)。

@@ -801,6 +801,7 @@ async function applyWebCreditFetchPatch() {
     if (!content.includes(from)) throw new Error("opencode fetchImpl block missing");
     content = content.replace(from, to);
     const helperFn = `
+const WEB_OPENCODE_REQUEST_TIMEOUT_MS = 30_000;
 function createWebCreditFetch() {
   return async (input: RequestInfo | URL, init?: RequestInit) => {
     const headers = new Headers(input instanceof Request ? input.headers : init?.headers);
@@ -820,14 +821,30 @@ function createWebCreditFetch() {
       }
     }
     if (input instanceof Request) {
-      return fetchWithTimeout(globalThis.fetch, new Request(input, { headers }), undefined, DEFAULT_OPENCODE_REQUEST_TIMEOUT_MS);
+      return fetchWithTimeout(globalThis.fetch, new Request(input, { headers }), undefined, WEB_OPENCODE_REQUEST_TIMEOUT_MS);
     }
-    return fetchWithTimeout(globalThis.fetch, input, { ...init, headers }, DEFAULT_OPENCODE_REQUEST_TIMEOUT_MS);
+    return fetchWithTimeout(globalThis.fetch, input, { ...init, headers }, WEB_OPENCODE_REQUEST_TIMEOUT_MS);
   };
 }
 
 `;
     content = content.replace("export function createClient(", helperFn + "export function createClient(");
+    changed = true;
+  }
+
+  if (content.includes("function createWebCreditFetch()") && !content.includes("WEB_OPENCODE_REQUEST_TIMEOUT_MS")) {
+    content = content.replace(
+      "function createWebCreditFetch() {",
+      "const WEB_OPENCODE_REQUEST_TIMEOUT_MS = 30_000;\nfunction createWebCreditFetch() {",
+    );
+    content = content.replaceAll(
+      "fetchWithTimeout(globalThis.fetch, new Request(input, { headers }), undefined, DEFAULT_OPENCODE_REQUEST_TIMEOUT_MS)",
+      "fetchWithTimeout(globalThis.fetch, new Request(input, { headers }), undefined, WEB_OPENCODE_REQUEST_TIMEOUT_MS)",
+    );
+    content = content.replaceAll(
+      "fetchWithTimeout(globalThis.fetch, input, { ...init, headers }, DEFAULT_OPENCODE_REQUEST_TIMEOUT_MS)",
+      "fetchWithTimeout(globalThis.fetch, input, { ...init, headers }, WEB_OPENCODE_REQUEST_TIMEOUT_MS)",
+    );
     changed = true;
   }
 
@@ -839,6 +856,130 @@ function createWebCreditFetch() {
   }
 }
 
+
+async function applyWebForceOpenworkUrlPatch() {
+  const connectionFile = path.join(vendor, "apps/app/src/react-app/shell/openwork-connection.ts");
+  let connection = await readFile(connectionFile, "utf8");
+  let connectionChanged = false;
+  if (!connection.includes('import { isWebDeployment }')) {
+    const needle = 'import { isDesktopRuntime } from "../../app/utils";';
+    if (!connection.includes(needle)) throw new Error("openwork-connection desktop import missing");
+    connection = connection.replace(
+      needle,
+      'import { isWebDeployment } from "../../app/lib/openwork-deployment";\nimport { isDesktopRuntime } from "../../app/utils";',
+    );
+    connectionChanged = true;
+  }
+  const webGate = `  if (isWebDeployment()) {
+    const envUrl =
+      typeof import.meta.env?.VITE_OPENWORK_URL === "string"
+        ? import.meta.env.VITE_OPENWORK_URL.trim()
+        : "";
+    const envToken =
+      typeof import.meta.env?.VITE_OPENWORK_TOKEN === "string"
+        ? import.meta.env.VITE_OPENWORK_TOKEN.trim()
+        : "";
+    const settings = readOpenworkServerSettings();
+    const normalizedBaseUrl = normalizeOpenworkServerUrl(envUrl || settings.urlOverride || "") ?? "";
+    const resolvedToken = (envToken || settings.token || "").trim();
+    if (hasUsableConnection(normalizedBaseUrl, resolvedToken)) {
+      return {
+        normalizedBaseUrl,
+        resolvedToken,
+        resolvedHostToken: "",
+        hostInfo: null,
+        source: "stored-settings",
+      };
+    }
+  }
+
+`;
+  if (!connection.includes("if (isWebDeployment()) {")) {
+    const anchor = `  const settings = readOpenworkServerSettings();
+  const normalizedBaseUrl = normalizeOpenworkServerUrl(settings.urlOverride ?? "") ?? "";`;
+    if (!connection.includes(anchor)) throw new Error("openwork-connection stored-settings anchor missing");
+    connection = connection.replace(anchor, webGate + anchor);
+    connectionChanged = true;
+  }
+  if (connectionChanged) {
+    await writeFile(connectionFile, connection, "utf8");
+    console.log("patched web force openwork url (connection)");
+  } else {
+    console.log("skip (already patched): web force openwork url (connection)");
+  }
+
+  const settingsFile = path.join(vendor, "apps/app/src/app/lib/openwork-server.ts");
+  let settings = await readFile(settingsFile, "utf8");
+  let settingsChanged = false;
+  if (!settings.includes('import { isWebDeployment }')) {
+    const needle = 'import { isDesktopRuntime } from "./runtime-env";';
+    if (!settings.includes(needle)) throw new Error("openwork-server runtime-env import missing");
+    settings = settings.replace(
+      needle,
+      'import { isDesktopRuntime } from "./runtime-env";\nimport { isWebDeployment } from "./openwork-deployment";',
+    );
+    settingsChanged = true;
+  }
+  const hydrateFrom = `    if (!current.urlOverride && envUrl) {
+      next.urlOverride = normalizeOpenworkServerUrl(envUrl) ?? undefined;
+      changed = true;
+    }`;
+  const hydrateTo = `    if (envUrl && (!current.urlOverride || isWebDeployment())) {
+      next.urlOverride = normalizeOpenworkServerUrl(envUrl) ?? undefined;
+      changed = true;
+    }`;
+  if (settings.includes(hydrateFrom)) {
+    settings = settings.replace(hydrateFrom, hydrateTo);
+    settingsChanged = true;
+  }
+  const tokenFrom = `    if (!current.token && envToken) {
+      next.token = envToken;
+      changed = true;
+    }`;
+  const tokenTo = `    if (envToken && (!current.token || isWebDeployment())) {
+      next.token = envToken;
+      changed = true;
+    }`;
+  if (settings.includes(tokenFrom)) {
+    settings = settings.replace(tokenFrom, tokenTo);
+    settingsChanged = true;
+  }
+  if (settingsChanged) {
+    await writeFile(settingsFile, settings, "utf8");
+    console.log("patched web force openwork url (hydrate)");
+  } else {
+    console.log("skip (already patched): web force openwork url (hydrate)");
+  }
+}
+
+async function applyRelativeOpenworkUrlPatch() {
+  const file = path.join(vendor, "apps/app/src/react-app/kernel/server-provider.tsx");
+  let content = await readFile(file, "utf8");
+  const from = `export function normalizeServerUrl(input: string): string | undefined {
+  const trimmed = input.trim();
+  if (!trimmed) return;
+  const withProtocol = /^https?:\\/\\//.test(trimmed) ? trimmed : \`http://\${trimmed}\`;
+  return withProtocol.replace(/\\/+$/, "");
+}`;
+  const to = `export function normalizeServerUrl(input: string): string | undefined {
+  const trimmed = input.trim();
+  if (!trimmed) return;
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    const origin =
+      typeof window !== "undefined" && window.location?.origin ? window.location.origin : "";
+    return \`\${origin}\${trimmed}\`.replace(/\\/+$/, "") || trimmed.replace(/\\/+$/, "");
+  }
+  const withProtocol = /^https?:\\/\\//.test(trimmed) ? trimmed : \`http://\${trimmed}\`;
+  return withProtocol.replace(/\\/+$/, "");
+}`;
+  if (content.includes('trimmed.startsWith("/") && !trimmed.startsWith("//")')) {
+    console.log("skip (already patched): relative openwork url");
+    return;
+  }
+  if (!content.includes(from)) throw new Error("normalizeServerUrl block missing");
+  await writeFile(file, content.replace(from, to), "utf8");
+  console.log("patched relative openwork url");
+}
 
 async function applyWebAuthSetGuard() {
   const file = path.join(vendor, "apps/app/src/react-app/shell/session-route.tsx");
@@ -933,28 +1074,26 @@ async function applyWebDemoSessionPatches() {
   let changed = false;
 
   if (!content.includes('import { isWebDeployment } from "@/app/lib/openwork-deployment";')) {
-    const needle = 'import { t } from "@/i18n";\n';
-    if (!content.includes(needle)) throw new Error("session-route i18n import missing");
+    const needle = [
+      'import { t } from "@/i18n";\n',
+      'import { hideEngineBrand, t } from "@/i18n";\n',
+    ].find((line) => content.includes(line));
+    if (!needle) throw new Error("session-route i18n import missing");
     content = content.replace(needle, needle + 'import { isWebDeployment } from "@/app/lib/openwork-deployment";\n');
     changed = true;
   }
 
-  if (!content.includes("loadWodeAppAuthState,")) {
-    const from = `  loadCachedWodeAppAuthState,
-} from "@/app/lib/wodeapp-auth";`;
-    const to = `  loadCachedWodeAppAuthState,
-  loadWodeAppAuthState,
-} from "@/app/lib/wodeapp-auth";`;
-    if (!content.includes(from)) throw new Error("session-route auth import missing");
-    content = content.replace(from, to);
+  if (content.includes("  loadWodeAppAuthState,\n") && content.includes("wodeapp web: stay on workbench")) {
+    content = content.replace("  loadWodeAppAuthState,\n", "");
     changed = true;
   }
 
-  if (!content.includes("wodeapp web: open cloud login")) {
-    const from = `    if (providerListSettling) return;
-    if (!shouldAutoOpenFirstMile({`;
-    const to = `    if (providerListSettling) return;
-    if (isWebDeployment()) {
+  const firstMileStay = `    if (isWebDeployment()) {
+      // wodeapp web: stay on workbench; login is opt-in
+      firstMileAutoOpenedRef.current = true;
+      return;
+    }`;
+  const firstMileAutoLogin = `    if (isWebDeployment()) {
       // wodeapp web: open cloud login
       firstMileAutoOpenedRef.current = true;
       const timer = window.setTimeout(() => {
@@ -966,7 +1105,15 @@ async function applyWebDemoSessionPatches() {
         });
       }, 400);
       return () => window.clearTimeout(timer);
-    }
+    }`;
+  if (content.includes(firstMileAutoLogin)) {
+    content = content.replace(firstMileAutoLogin, firstMileStay);
+    changed = true;
+  } else if (!content.includes("wodeapp web: stay on workbench")) {
+    const from = `    if (providerListSettling) return;
+    if (!shouldAutoOpenFirstMile({`;
+    const to = `    if (providerListSettling) return;
+${firstMileStay}
     if (!shouldAutoOpenFirstMile({`;
     if (!content.includes(from)) throw new Error("session-route first-mile effect missing");
     content = content.replace(from, to);
@@ -1009,7 +1156,7 @@ async function applyWebDemoSessionPatches() {
 async function applyWebViteSplitPatch() {
   const file = path.join(vendor, "apps/app/vite.config.ts");
   let content = await readFile(file, "utf8");
-  if (content.includes("wodeapp web split chunks v4")) {
+  if (content.includes("wodeapp web split chunks v5")) {
     console.log("skip (already patched): web vite split");
     return;
   }
@@ -1035,7 +1182,7 @@ async function applyWebViteSplitPatch() {
       },
     },
     rollupOptions: {
-      // wodeapp web split chunks v4
+      // wodeapp web split chunks v5 — only core react in the react chunk
       input: process.env.VITE_OPENWORK_DEPLOYMENT === "web"
         ? { app: resolve(appRoot, "index.html") }
         : {
@@ -1046,7 +1193,7 @@ async function applyWebViteSplitPatch() {
         manualChunks(id) {
           if (id.includes("shiki") || id.includes("@shikijs")) return;
           if (id.includes("node_modules")) {
-            if (id.includes("/react-dom") || id.includes("/react/") || id.includes("/scheduler")) return "react";
+            if (/(?:^|[\\/])node_modules[\\/](?:react|react-dom|scheduler)(?:[\\/]|$)/.test(id)) return "react";
             if (id.includes("react-router")) return "router";
             if (id.includes("@tanstack")) return "query";
             if (id.includes("lucide-react")) return "icons";
@@ -1063,7 +1210,7 @@ async function applyWebViteSplitPatch() {
   },`;
   if (content.includes(from)) {
     content = content.replace(from, to);
-  } else if (content.includes(fromV1) || content.includes("wodeapp web split chunks v3")) {
+  } else if (content.includes(fromV1) || content.includes("wodeapp web split chunks v3") || content.includes("wodeapp web split chunks v4")) {
     // replace the whole build block from a previous v1/v3 patch
     const startAt = content.indexOf("  build: {");
     const resolveAt = content.indexOf("  resolve: {", startAt);
@@ -1074,6 +1221,47 @@ async function applyWebViteSplitPatch() {
   }
   await writeFile(file, content, "utf8");
   console.log("patched web vite split");
+}
+
+async function applyWebBootSplashPatch() {
+  const file = path.join(vendor, "apps/app/index.html");
+  let content = await readFile(file, "utf8");
+  if (content.includes("wodeapp-web-boot")) {
+    console.log("skip (already patched): web boot splash");
+    return;
+  }
+  const from = `    <div id="root"></div>`;
+  if (!content.includes(from)) throw new Error("app index.html root missing");
+  content = content.replace(
+    from,
+    `    <div id="root">
+      <div class="wodeapp-web-boot" role="status" aria-live="polite" aria-busy="true">
+        <div class="wodeapp-web-boot__spin" aria-hidden="true"></div>
+        <p class="wodeapp-web-boot__title">Opening chat</p>
+        <span class="wodeapp-web-boot__hint">First load may take a moment</span>
+      </div>
+    </div>
+    <style>
+      .wodeapp-web-boot{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;box-sizing:border-box;background:#f7f7f5;color:#1a1a18;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+      html[data-theme=dark] .wodeapp-web-boot{background:#161615;color:#f3f3f0}
+      .wodeapp-web-boot__spin{width:36px;height:36px;border:3px solid rgba(99,102,241,.18);border-top-color:#6366f1;border-radius:999px;animation:wodeapp-web-boot-spin .8s linear infinite}
+      .wodeapp-web-boot__title{margin:0;font-size:14px;font-weight:600}
+      .wodeapp-web-boot__hint{font-size:12px;color:#8a8680}
+      html[data-theme=dark] .wodeapp-web-boot__hint{color:#9a9690}
+      @keyframes wodeapp-web-boot-spin{to{transform:rotate(360deg)}}
+    </style>
+    <script>
+      (function () {
+        var zh = (location.hostname || "").indexOf(".cn") !== -1;
+        var title = document.querySelector(".wodeapp-web-boot__title");
+        var hint = document.querySelector(".wodeapp-web-boot__hint");
+        if (title) title.textContent = zh ? "正在打开对话" : "Opening chat";
+        if (hint) hint.textContent = zh ? "首次打开会稍慢，请稍候" : "First load may take a moment";
+      })();
+    </script>`,
+  );
+  await writeFile(file, content, "utf8");
+  console.log("patched web boot splash");
 }
 
 async function applyWebLazyRoutesPatch() {
@@ -1122,6 +1310,57 @@ import { OrgOnboardingPage } from "../domains/cloud/org-onboarding-page";
   console.log("patched web lazy routes");
 }
 
+async function applyWebViteBasePatch() {
+  const file = path.join(vendor, "apps/app/vite.config.ts");
+  let content = await readFile(file, "utf8");
+  const from = `  base: isElectronPackagedBuild ? "./" : "/",`;
+  const to = `  base: isElectronPackagedBuild || process.env.VITE_OPENWORK_DEPLOYMENT === "web" ? "./" : "/",`;
+  if (content.includes(to)) {
+    console.log("skip (already patched): web vite relative base");
+    return;
+  }
+  if (!content.includes(from)) {
+    console.log("skip vite base (already customized)");
+    return;
+  }
+  await writeFile(file, content.replace(from, to), "utf8");
+  console.log("patched web vite relative base");
+}
+
+async function applyWebSessionTitlePatch() {
+  const file = path.join(vendor, "apps/app/src/app/lib/session-title.ts");
+  let content = await readFile(file, "utf8");
+  if (content.includes("trimmed === DEFAULT_SESSION_TITLE")) {
+    console.log("skip session-title New session");
+    return;
+  }
+  const from = `export function isGeneratedSessionTitle(title: string | null | undefined) {
+  const trimmed = title?.trim() ?? "";
+  if (!trimmed.startsWith(GENERATED_SESSION_TITLE_PREFIX)) return false;
+  const suffix = trimmed.slice(GENERATED_SESSION_TITLE_PREFIX.length).trim();
+  return Boolean(suffix) && Number.isFinite(Date.parse(suffix));
+}`;
+  const to = `function looksLikeGeneratedTitle(trimmed: string, prefix: string) {
+  if (!trimmed.startsWith(prefix)) return false;
+  const suffix = trimmed.slice(prefix.length).trim();
+  return Boolean(suffix) && Number.isFinite(Date.parse(suffix));
+}
+
+export function isGeneratedSessionTitle(title: string | null | undefined) {
+  const trimmed = title?.trim() ?? "";
+  return (
+    looksLikeGeneratedTitle(trimmed, GENERATED_SESSION_TITLE_PREFIX)
+    || looksLikeGeneratedTitle(trimmed, "New session - ")
+  );
+}`;
+  if (!content.includes(from)) {
+    console.log("skip session-title (already customized)");
+    return;
+  }
+  await writeFile(file, content.replace(from, to), "utf8");
+  console.log("patched session-title New session");
+}
+
 async function main() {
   for (const spec of PATCHES) {
     await applyFilePatches(spec);
@@ -1139,11 +1378,16 @@ async function main() {
   );
   console.log("copied wodeapp-auth.ts (cloud)");
   await applyWebViteSplitPatch();
+  await applyWebBootSplashPatch();
   await applyWebLazyRoutesPatch();
   await applyWebNewTaskWhileLoadingPatch();
   await applyWebDemoSessionPatches();
   await applyWebCreditFetchPatch();
+  await applyRelativeOpenworkUrlPatch();
+  await applyWebForceOpenworkUrlPatch();
   await applyWebAuthSetGuard();
+  await applyWebSessionTitlePatch();
+  await applyWebViteBasePatch();
   console.log("\nWodeApp Cloud integration applied. OSS users: skip this script and use BYOK + MCP examples.");
 }
 

@@ -98,6 +98,9 @@ describe("account model surface source", () => {
     expect(panel).toContain("openFirstMileGuide");
     expect(panel).toContain("WODEAPP_OPEN_LOCAL_KEY_EVENT");
     expect(panel).toContain("embedded ? null");
+    expect(panel).toContain("自定义云厂商");
+    expect(panel).toContain("保存并探测");
+    expect(panel).toContain("saveWodeAppCustomVendor");
     const view = readFileSync(serviceViewPath, "utf8");
     expect(view).not.toContain("WodeAppServiceSettings");
     expect(view).not.toContain("WodeAppLocalByokImportSettings");

@@ -2,7 +2,7 @@
   "$schema": "../../../docs/schemas/builtin-agents.schema.json",
   "version": 1,
   "layer": "builtin",
-  "description": "Shipped Layer0 agents. Default enabled: image / video / short-drama / canvas / multi-model. Create, orchestrator, Feishu, and industry ids stay reserved but disabled for stability.",
+  "description": "Shipped Layer0 agents. Default enabled: image / video / multi-model. Canvas and short-drama stay reserved but hidden; users can add them back from the sidebar. Create, orchestrator, Feishu, and industry ids stay reserved but disabled.",
   "agents": [
     {
       "id": "content-orchestrator",
@@ -31,7 +31,13 @@
       "abilityKind": "image",
       "defaultUrl": "https://yougi.wodeapp.cn/",
       "entryPrompt": "为我的商品整理主图和场景图，确认后再生成；需要视频时另行安排。",
-      "samplePrompt": "能力：先用 wodeapp_batch_image_prepare 保存并打开图片草稿；只有我明确要求生成时才调用 product_visual_batch_image_run。",
+      "samplePrompt": "默认只整理方案，明确要求生成时再调用 product_visual_batch_image_run。",
+      "tools": [
+        "wodeapp_batch_image_prepare",
+        "product_visual_batch_image_run",
+        "wodeapp_product_save",
+        "wodeapp_image_asset_save"
+      ],
       "enabled": true
     },
     {
@@ -42,7 +48,14 @@
       "abilityKind": "video",
       "defaultUrl": "https://ai.wodeapp.cn/video",
       "entryPrompt": "根据脚本和素材整理视频方案，先由我确认后再生成。",
-      "samplePrompt": "视频能力：\n1. 复用 https:// 素材；本地/附件先一次 wodeapp_image_asset_save(requireHttps:true)。\n2. 勿传 model；平台默认 Seedance 2.0 Mini，单镜≤15s；更长拆条并重写 prompt 时间轴。\n3. 单条 wodeapp.video.generate；多条/分镜首包 wodeapp_video_storyboard_open（groups/groupId）；大批量追加 wodeapp_video_storyboard_update（同 shareDocId，delta≤25）。\n4. 真人参考图 ai_generate_image(model:seedream-5.0)；短剧剧本编辑台用 wodeapp.short_drama.open，出片仍走本视频分镜工作台（scriptFrameUrl/nineGridUrl/videoRefs 可切换预览）。\n默认只整理方案，不自动生成。详情：wodeapp_get_tool_docs('video_storyboard')。",
+      "samplePrompt": "默认只整理方案，不自动生成。",
+      "tools": [
+        "wodeapp.video.generate",
+        "wodeapp.video.status",
+        "video_storyboard",
+        "wodeapp.video_storyboard.update",
+        "wodeapp_image_asset_save"
+      ],
       "autoSend": false,
       "enabled": true
     },
@@ -51,11 +64,9 @@
       "name": "短剧智能体",
       "meta": "剧本 · 分镜 · 可拍摄脚本",
       "kind": "capability",
-      "abilityKind": "short-drama",
-      "defaultUrl": "https://script.wodeapp.cn",
       "entryPrompt": "写短剧分镜和素材方案，视频生成由我确认后开始。",
-      "samplePrompt": "剧本在对话交付；编辑台用 wodeapp.short_drama.open（打开 script.wodeapp.cn）。全季剧本写完或定稿前必须调用 wodeapp.short_drama.series_preflight（传 episodes/characters）；blocked 时先修 P0。出片/分镜工作台走 wodeapp_video_storyboard_open：单帧→scriptFrameUrl、九宫格→nineGridUrl、视频→videoRefs，用 previewMode 切换展示；subjects 可带 assetId（Visual Bible）。不要自动提交视频任务。",
-      "enabled": true
+      "samplePrompt": "短剧在当前对话完成，不打开专属云项目。用 wodeapp-short-drama-factory 技能做竖屏短剧包。全季剧本写完或定稿前必须调用 wodeapp.short_drama.series_preflight（传 episodes/characters）；blocked 时先修 P0。出片/分镜工作台走 wodeapp_video_storyboard_open：单帧→scriptFrameUrl、九宫格→nineGridUrl、视频→videoRefs，用 previewMode 切换展示；subjects 可带 assetId（Visual Bible）。不要自动提交视频任务。",
+      "enabled": false
     },
     {
       "id": "agent-infinite-canvas",
@@ -66,7 +77,7 @@
       "defaultUrl": "https://supor.wodeapp.cn/canvas",
       "entryPrompt": "打开无限画布，围绕商品或创意持续生成图片、脚本和视频节点。",
       "samplePrompt": "画布节点组织素材；出图/视频仍走 capability schema + MCP，结果挂到节点。",
-      "enabled": true
+      "enabled": false
     },
     {
       "id": "multi-agent-collab",
@@ -82,10 +93,10 @@
     {
       "id": "create-agent",
       "name": "创建智能体",
-      "meta": "Skill 物化 · 模板 · 设计稿生成",
+      "meta": "Skill 物化 · 模板 · AI 整页生成",
       "kind": "capability",
-      "entryPrompt": "我想创建一个智能体应用，用途是：",
-      "samplePrompt": "能力：通过 Platform MCP 创建可发布智能体应用。禁止聊天壳、假 toast、空手拼 Hero/Feature。\n\n优先路径 A — Skill 物化（海报 / 落地页 / 小红书文案 / 分镜等工具型需求）：\n1. list_skill_manifests（可用 query 过滤）匹配 skillId。\n2. materialize_skill_app(skillId, name?)：挂 SkillWorkbenchSection，默认直接发布；记下 projectId / url。\n3. 打开 url 验收主按钮与真实工作台，再返回给用户。\n\n路径 B — 现成工作台模板（出图 / 视频 / 分镜 / 画布 / 多模型文案等）：\n- list_templates → create_project 带匹配 templateId → 确认发布。\n- 人类可视化模板向导：https://wodeapp.cn/agent/create\n\n路径 C — 无匹配 Skill/模板时（自定义站 / 助手 / 表单站）—— 设计稿→生成：\n1. create_project，只传 name，不要带 templateId；记下 projectId 与默认 pageId。\n2. ai_generate_page：用用户需求写完整 prompt（定位、功能、页面结构、风格）。服务端先 designBrief 再骨架与内容。\n3. 若 URL 未可用再 publish_project；get_project 确认 publishedVersion ≥ 1。\n4. 多页：create_page + ai_generate_page；微调用 ai_modify_section / update_page。\n- 自定义站人类编辑：https://wodeapp.cn/json-builder/{projectId}\n\n禁止 build_app 除非用户明确要 APK/PWA/打包。\n验收：打开 projectUrl，确认是真实可用页面（不是空壳），返回 projectId、slug、已验证 URL。",
+      "entryPrompt": "我想创建一个智能体。\n\n名称：\n它要帮我做什么：\n如果需要对应站点，站点用来：",
+      "samplePrompt": "能力：通过 Platform MCP 创建可发布智能体应用。禁止聊天壳、假 toast、空手拼 Hero/Feature/SmartForm/SmartTable。\n\n优先路径 A — Skill 物化（海报 / 落地页 / 小红书文案 / 分镜等工具型需求）：\n1. list_skill_manifests（可用 query 过滤）匹配 skillId。\n2. materialize_skill_app(skillId, name?)：挂 SkillWorkbenchSection，默认直接发布；记下 projectId / url。\n3. 打开 url 验收主按钮与真实工作台，再返回给用户。\n\n路径 B — 现成工作台模板（出图 / 视频 / 分镜 / 画布 / 多模型文案等）：\n- list_templates → create_project 带匹配 templateId → 确认发布。\n- 人类可视化模板向导：https://wodeapp.cn/agent/create\n\n路径 C — 无匹配 Skill/模板时（自定义站 / 助手 / 表单 / 备忘录 / 清单）—— AI 一次写完整应用：\n1. create_project，只传 name，不要带 templateId；记下 projectId 与默认 pageId。\n2. ai_generate_page：把用户需求写成完整 prompt（定位、功能、交互、风格）。服务端生成一个整页编译组件（DynamicPlaceholder + saveData/loadData），不是 Hero/SmartForm/SmartTable 堆叠。\n3. 若 URL 未可用再 publish_project；get_project 确认 publishedVersion ≥ 1。\n4. 多页：create_page + ai_generate_page。禁止用 update_page 手拼 Hero/SmartForm/SmartTable。微调用只用于改标题或极短 JSON。\n- 自定义站人类编辑：https://wodeapp.cn/json-builder/{projectId}\n\n禁止 build_app 除非用户明确要 APK/PWA/打包。\n验收：打开 projectUrl，确认是真实可用整页应用（不是空壳、不是营销区块堆叠），返回 projectId、slug、已验证 URL。",
       "autoSend": false,
       "enabled": false
     },

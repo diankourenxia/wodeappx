@@ -849,6 +849,7 @@ async function syncWodeAppCloudElectronRuntime() {
     "wodeBrandedModels.js",
     "local-byok-import.mjs",
     "desktop-keys-store.mjs",
+    "desktop-custom-vendors.mjs",
     "wodeapp-provider-capability-detect.mjs",
   ];
   for (const fileName of requiredFiles) {
@@ -1264,6 +1265,12 @@ const WODEAPP_DOMAIN_TEMPLATES = [
   "wodeapp-brand-agent-config.ts",
   "wodeapp-builtin-agents-config.ts",
   "wodeapp-builtin-agents.default.json",
+  "wodeapp-sidebar-agents.ts",
+  "wodeapp-custom-agent-home.ts",
+  "wodeapp-add-agent-dialog.tsx",
+  "wodeapp-manage-agents-dialog.tsx",
+  "wodeapp-agent-knowledge.ts",
+  "wodeapp-agent-tools.ts",
   "wodeapp-external-directory-access.ts",
   "wodeapp-external-directory-access-select.tsx",
   "wodeapp-runtime-profile.ts",
@@ -1272,7 +1279,6 @@ const WODEAPP_DOMAIN_TEMPLATES = [
   "runtime-projects.ts",
   "wodeapp-session-starters.tsx",
   "wodeapp-sidebar-sections.tsx",
-  "wodeapp-sidebar-updater.tsx",
   "wodeapp-session-control-actions.tsx",
   "wodeapp-surface-frame.tsx",
   "wodeapp-surface-pages.tsx",
@@ -1378,6 +1384,7 @@ const FORK_OWNED_OPENWORK_TEMPLATES = [
   ["fork/apps/desktop/electron/wodeapp-self-evolve-workspaces.mjs", "apps/desktop/electron/wodeapp-self-evolve-workspaces.mjs"],
   ["fork/apps/desktop/electron/wodeapp-supor-workspaces.mjs", "apps/desktop/electron/wodeapp-supor-workspaces.mjs"],
   ["fork/apps/desktop/electron/wodeapp-self-evolve-source-bundle.mjs", "apps/desktop/electron/wodeapp-self-evolve-source-bundle.mjs"],
+  ["fork/apps/desktop/electron/wodeapp-self-evolve-packaged.mjs", "apps/desktop/electron/wodeapp-self-evolve-packaged.mjs"],
   ["fork/apps/desktop/electron/wodeapp-self-evolve-workspaces.test.mjs", "apps/desktop/electron/wodeapp-self-evolve-workspaces.test.mjs"],
   ["fork/apps/desktop/electron/wodeapp-supor-workspaces.test.mjs", "apps/desktop/electron/wodeapp-supor-workspaces.test.mjs"],
   ["fork/apps/desktop/electron/wodeapp-edition.mjs", "apps/desktop/electron/wodeapp-edition.mjs"],
@@ -1434,6 +1441,7 @@ const FORK_OWNED_OPENWORK_TEMPLATES = [
   ["fork/apps/app/src/react-app/domains/session/surface/session-surface.tsx", "apps/app/src/react-app/domains/session/surface/session-surface.tsx"],
   ["fork/apps/app/src/react-app/domains/session/surface/session-empty-chrome.ts", "apps/app/src/react-app/domains/session/surface/session-empty-chrome.ts"],
   ["fork/apps/app/src/react-app/domains/session/surface/scroll-controller.ts", "apps/app/src/react-app/domains/session/surface/scroll-controller.ts"],
+  ["fork/apps/app/src/react-app/domains/session/surface/scroll-on-send.ts", "apps/app/src/react-app/domains/session/surface/scroll-on-send.ts"],
   ["fork/apps/app/src/react-app/domains/session/surface/scroll-overlay.tsx", "apps/app/src/react-app/domains/session/surface/scroll-overlay.tsx"],
   ["fork/apps/app/src/react-app/domains/session/surface/session-silent-auto-continue.ts", "apps/app/src/react-app/domains/session/surface/session-silent-auto-continue.ts"],
   ["fork/apps/app/src/react-app/domains/session/surface/queued-draft-flush.ts", "apps/app/src/react-app/domains/session/surface/queued-draft-flush.ts"],
@@ -2954,15 +2962,19 @@ async function applyBrandingPatch() {
       [
         'const RELEASE_DOWNLOAD_BASE_URL = "https://github.com/different-ai/openwork/releases/latest/download"',
         'const RELEASE_DOWNLOAD_BASE_URL = "https://github.com/wodeapp/wodeappx/releases/latest/download"',
+        'const RELEASE_DOWNLOAD_BASE_URL = "https://gitea.com/diankourenxia/wodeappx/releases/latest/download"',
+        'const RELEASE_DOWNLOAD_BASE_URL = "https://wodeapp.cn/downloads/wodeappx"',
       ],
-      'const RELEASE_DOWNLOAD_BASE_URL = "https://gitea.com/diankourenxia/wodeappx/releases/latest/download"',
+      'const RELEASE_DOWNLOAD_BASE_URL = "https://wodeapp.cn/downloads/wodeappx"',
     ],
     [
       [
         'const RELEASE_PAGE_URL = "https://github.com/different-ai/openwork/releases/latest"',
         'const RELEASE_PAGE_URL = "https://github.com/wodeapp/wodeappx/releases/latest"',
+        'const RELEASE_PAGE_URL = "https://gitea.com/diankourenxia/wodeappx/releases/latest"',
+        'const RELEASE_PAGE_URL = "https://x.wodeapp.cn/"',
       ],
-      'const RELEASE_PAGE_URL = "https://gitea.com/diankourenxia/wodeappx/releases/latest"',
+      'const RELEASE_PAGE_URL = "https://x.wodeapp.cn/"',
     ],
     ['const DOCS_PAGE_URL = "https://openworklabs.com/docs"', 'const DOCS_PAGE_URL = "https://wodeapp.cn"'],
     [
@@ -4122,8 +4134,10 @@ const candidates = [
         variants: [
           '  stable: "https://github.com/different-ai/openwork/releases/latest/download",',
           '  stable: "https://github.com/wodeapp/wodeappx/releases/latest/download",',
+          '  stable: "https://gitea.com/diankourenxia/wodeappx/releases/latest/download",',
+          '  stable: "https://wodeapp.cn/downloads/wodeappx",',
         ],
-        to: '  stable: "https://gitea.com/diankourenxia/wodeappx/releases/latest/download",',
+        to: '  stable: "https://wodeapp.cn/downloads/wodeappx",',
       },
       {
         variants: [
@@ -14988,10 +15002,12 @@ function isFeishuWorkbenchCredentialError(message: string) {
       variants: [`          >
             WodeAppX
           </button>`, `          >
-            WodeAppX
+            wodeappx
+          </button>`, `          >
+            {isWebDeployment() ? "WodeAppX" : "wodeappx"}
           </button>`],
       to: `          >
-            wodeappx
+            {isWebDeployment() ? "WodeAppX" : "wodeappx"}
           </button>`,
     }, file);
     content = r.content;
@@ -18015,6 +18031,7 @@ function useSessionSnapshotQuery(
             </button>
           </div>
         </div>`,
+        already: ['t("wodeappx.hero.kicker")'],
       },
       {
         variants: ["          onUploadInboxFiles={props.onUploadInboxFiles ?? handleUploadInboxFiles}\n          compactTopSpacing={Boolean("],
@@ -23007,6 +23024,21 @@ async function applyOssLocaleOverridesPatch() {
   await patchOpenWorkFile("apps/app/src/i18n/locales/zh.ts", (content) =>
     upsertLocaleEntries(content, overrides.zh ?? {}),
   );
+  await patchOpenWorkFile("apps/app/src/react-app/domains/session/surface/session-surface.tsx", (content, file) =>
+    replaceAnyOrKeep(content, {
+      variants: [
+        `<div className="wapp-session-hero-kicker">你的 AI 工作台</div>
+              <h1>想做什么，直接说</h1>
+              <p>管理数字资产，生成图片与视频，或调用自定义智能体——直接说需求，我来继续完成。</p>`,
+        `<div className="wapp-session-hero-kicker">所有平台大模型已内置，只用各领域最好的</div>
+          <h1>想做什么，直接说</h1>`,
+      ],
+      to: `<div className="wapp-session-hero-kicker">{t("wodeappx.hero.kicker")}</div>
+              <h1>{t("wodeappx.hero.title")}</h1>
+              <p>{t("wodeappx.hero.body")}</p>`,
+      already: ['t("wodeappx.hero.kicker")'],
+    }, file),
+  );
 }
 
 async function applySettingsProductBrandLocalePatch() {
@@ -23020,6 +23052,13 @@ async function applySettingsProductBrandLocalePatch() {
 
   await patchFile("apps/app/src/react-app/domains/settings/pages/extensions-view.tsx", [
     ["<span>OpenCode 插件</span>", "<span>本地引擎插件</span>"],
+  ]);
+
+  await patchFile("apps/app/src/react-app/domains/settings/pages/updates-view.tsx", [
+    [
+      `{t("settings.update_check_button")}`,
+      `{updateState === "error" ? t("settings.update_retry_button") : t("settings.update_check_button")}`,
+    ],
   ]);
 
   await patchFile("apps/app/src/react-app/shell/settings-route.tsx", [

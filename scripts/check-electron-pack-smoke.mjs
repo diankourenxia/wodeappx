@@ -107,6 +107,9 @@ function assertVendorGraph() {
   if (!main.includes("applySelfEvolveRendererOverlay") || !main.includes("self-evolve-overlay")) {
     fail("main.mjs is missing self-evolve overlay loader; packaged skin edits will not apply");
   }
+  if (!main.includes("resolveSelfEvolveRendererIndex") || !main.includes("writeSelfEvolveLaunchInfo")) {
+    fail("main.mjs is missing packaged A/B slot renderer + launch.json writer");
+  }
 
   const builderPath = path.join(root, "vendor/openwork/apps/desktop/electron-builder.yml");
   const builder = readFileSync(builderPath, "utf8");

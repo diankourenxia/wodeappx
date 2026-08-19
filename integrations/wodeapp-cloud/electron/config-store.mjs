@@ -287,6 +287,12 @@ export function normalizeWodeAppBrandAgentsFile(input) {
         : undefined,
       entryPrompt: typeof item.entryPrompt === "string" ? item.entryPrompt.trim().slice(0, 500) : undefined,
       samplePrompt: typeof item.samplePrompt === "string" ? item.samplePrompt.trim().slice(0, 4000) : undefined,
+      projectId: typeof item.projectId === "string" && item.projectId.trim()
+        ? item.projectId.trim().slice(0, 80)
+        : undefined,
+      launchUrl: typeof item.launchUrl === "string" && item.launchUrl.trim()
+        ? item.launchUrl.trim().slice(0, 500)
+        : undefined,
       workbench,
       enabled: item.enabled === false ? false : true,
     });

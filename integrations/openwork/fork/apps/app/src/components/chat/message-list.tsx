@@ -1434,8 +1434,28 @@ interface ErrorMessageProps {
   error: string | null
 }
 
+function formatSessionErrorText(raw: string): string {
+  const text = String(raw || "").trim()
+  if (!text) return "Session failed"
+  if (/AUTH_REQUIRED|credit_error|请先登录/i.test(text)) {
+    const lang = typeof document !== "undefined" ? document.documentElement.getAttribute("lang") || "" : ""
+    return lang === "zh" ? "请先登录后再发送" : "Sign in to continue."
+  }
+  const jsonStart = text.indexOf("{")
+  if (jsonStart >= 0) {
+    try {
+      const parsed = JSON.parse(text.slice(jsonStart)) as { error?: { message?: string }; message?: string }
+      const message = parsed?.error?.message || parsed?.message
+      if (typeof message === "string" && message.trim()) return message.trim()
+    } catch {
+      /* keep original */
+    }
+  }
+  return text
+}
+
 function ErrorMessage({ error }: ErrorMessageProps) {
-  const text = String(error || "").trim() || "Session failed"
+  const text = formatSessionErrorText(String(error || "").trim() || "Session failed")
   // Manual stop / cancel is not a hard failure — keep a quiet chip, not a full-width banner.
   const abortNoise = isAbortNoiseMessage(text)
 
@@ -1849,6 +1869,10 @@ interface MessageListProps {
 }
 
 import {
+  lastUserMessageId,
+  shouldClearHistoryWindowAnchorOnAppend,
+} from "@/react-app/domains/session/surface/scroll-on-send"
+import {
   HISTORY_LOAD_ROOT_MARGIN,
   INITIAL_HISTORY_WINDOW,
   adjustLoadedHistoryCountOnMessageGrowth,
@@ -1918,6 +1942,7 @@ export function MessageList({
   const listRootRef = React.useRef<HTMLDivElement | null>(null)
   const topSentinelRef = React.useRef<HTMLDivElement | null>(null)
   const prevMessageCountRef = React.useRef(messages.length)
+  const prevLastUserMessageIdRef = React.useRef(lastUserMessageId(messages))
   const pendingDistanceFromBottomRef = React.useRef<number | null>(null)
   const loadLockRef = React.useRef(false)
   const loadedCountRef = React.useRef(loadedCount)
@@ -1938,6 +1963,7 @@ export function MessageList({
     loadLockRef.current = false
     pendingDistanceFromBottomRef.current = null
     prevMessageCountRef.current = messages.length
+    prevLastUserMessageIdRef.current = lastUserMessageId(messages)
   }, [historyIdentity])
 
   React.useEffect(() => {
@@ -1945,10 +1971,21 @@ export function MessageList({
     const next = messages.length
     prevMessageCountRef.current = next
     if (next > prev) {
-      // Default trailing window drops the oldest visible row on append.
-      // Without a bottom-distance anchor (and with overflow-anchor:none while
-      // sticky), that removal shifts the viewport upward after send.
-      if (
+      // Follow-up send must land on the new bubble. Restoring the previous
+      // mid-list distanceFromBottom after the trailing window slides would
+      // keep the viewport in the middle of the old turn — including when an
+      // assistant placeholder arrives in the same update as the user row.
+      const nextUserId = lastUserMessageId(messages)
+      if (shouldClearHistoryWindowAnchorOnAppend({
+        prevLastUserMessageId: prevLastUserMessageIdRef.current,
+        nextLastUserMessageId: nextUserId,
+        messages,
+      })) {
+        pendingDistanceFromBottomRef.current = null
+      } else if (
+        // Default trailing window drops the oldest visible row on append.
+        // Without a bottom-distance anchor (and with overflow-anchor:none while
+        // sticky), that removal shifts the viewport upward after send.
         loadedCountRef.current <= INITIAL_HISTORY_WINDOW
         && prev >= INITIAL_HISTORY_WINDOW
       ) {
@@ -1961,11 +1998,13 @@ export function MessageList({
           nextTotal: next,
         }),
       )
+      prevLastUserMessageIdRef.current = nextUserId
       return
     }
     if (next < prev) {
       setLoadedCount((current) => Math.min(Math.max(current, INITIAL_HISTORY_WINDOW), next))
     }
+    prevLastUserMessageIdRef.current = lastUserMessageId(messages)
   }, [captureScrollAnchor, messages.length])
 
   const effectiveLoaded = Math.min(Math.max(loadedCount, 0), messages.length)

@@ -119,4 +119,17 @@ describe("managed OpenCode compaction policy", () => {
     assert.deepEqual(signedIn.enabled_providers, ["volcano", "wodeapp"]);
     assert.ok(signedIn.provider.wodeapp);
   });
+
+  it("wires custom OpenAI-compatible env pairs as providers", () => {
+    const config = managedWodeAppProviderConfig({
+      MY_PROXY_API_KEY: "sk-my-proxy-test",
+      MY_PROXY_BASE_URL: "https://proxy.example/v1",
+      MY_PROXY_LABEL: "我的代理",
+    });
+    assert.deepEqual(config.enabled_providers, ["custom-my-proxy"]);
+    assert.equal(config.provider["custom-my-proxy"].options.baseURL, "https://proxy.example/v1");
+    assert.equal(config.provider["custom-my-proxy"].options.apiKey, "sk-my-proxy-test");
+    assert.equal(config.provider["custom-my-proxy"].name, "我的代理");
+    assert.equal(config.model, "custom-my-proxy/default");
+  });
 });

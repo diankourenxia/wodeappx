@@ -1,4 +1,9 @@
-import type { WodeAppBuiltinAgent } from "./runtime-projects";
+import {
+  readWodeAppAbilityProjects,
+  type WodeAppAbilityProject,
+  type WodeAppBuiltinAgent,
+} from "./runtime-projects";
+import { buildAgentProfilePrompt } from "./wodeapp-agent-knowledge";
 import type { WodeAppTaskPromptInput } from "./wodeapp-composer-handoff";
 
 /**
@@ -15,25 +20,27 @@ export const AUTO_ORCHESTRATION_INSTRUCTION = `【WodeApp — 编排】
 
 export function buildBuiltinAgentTask(
   agent: WodeAppBuiltinAgent,
-  options?: { displayText?: string; autoSend?: boolean },
+  options?: {
+    displayText?: string;
+    autoSend?: boolean;
+    projects?: readonly WodeAppAbilityProject[];
+  },
 ): WodeAppTaskPromptInput {
   const displayText =
     options?.displayText?.trim() ||
     agent.entryPrompt?.trim() ||
     `请按「${agent.name}」能力契约自动执行，缺的资料你再问我。`;
 
-  // Industry / brand with Runtime Profile still need orchestration + samplePrompt on first turn;
-  // profile system context carries identity/policy/playbook across turns.
-  const agentMessage =
-    agent.kind === "integration"
-      ? agent.samplePrompt
-      : [AUTO_ORCHESTRATION_INSTRUCTION, "", agent.samplePrompt].join("\n");
+  const agentMessage = buildAgentProfilePrompt(
+    agent,
+    options?.projects ?? readWodeAppAbilityProjects(),
+  );
 
   return {
     displayText,
     agentMessage,
     autoSend: options?.autoSend ?? agent.autoSend ?? true,
-    runtimeProfileId: agent.runtimeProfileId,
+    runtimeProfileId: agent.runtimeProfileId || agent.id,
   };
 }
 

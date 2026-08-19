@@ -12,13 +12,11 @@ import {
 } from "../wodeapp/runtime-projects";
 
 describe("builtin-agents default config (Layer 0)", () => {
-  test("defaults to image / video / short-drama / canvas / multi-model", () => {
+  test("defaults to image / video / multi-model", () => {
     expect(WODEAPP_SHIPPED_BUILTIN_AGENTS_FILE.version).toBe(1);
     const agents = listEnabledWodeAppBuiltinAgentConfigs();
     expect(agents.map((agent) => agent.id).sort()).toEqual([
-      "agent-infinite-canvas",
       "multi-agent-collab",
-      "script-storyboard",
       "video-generation",
       "visual-generation",
     ]);
@@ -42,7 +40,8 @@ describe("builtin-agents default config (Layer 0)", () => {
     const video = WODEAPP_BUILTIN_AGENTS.find((agent) => agent.id === "video-generation");
     expect(video?.name).toBe("视频智能体");
     expect(video?.defaultUrl).toBe("https://ai.wodeapp.cn/video");
-    expect(video?.samplePrompt).toContain("wodeapp.video.generate");
+    expect(video?.tools).toContain("wodeapp.video.generate");
+    expect(video?.samplePrompt).toBe("默认只整理方案，不自动生成。");
   });
 
   test("drops invalid or duplicate entries", () => {

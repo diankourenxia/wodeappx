@@ -6,10 +6,12 @@ import {
   WODEAPP_FEISHU_SETUP_SKILL_NAME,
   WODEAPP_WYNNE_AGENT_ID,
   findWodeAppBuiltinAgent,
+  formatWodeAppAgentDisplayName,
   getVisibleWodeAppBuiltinAgents,
   hasWodeAppFeishuSetupSkill,
   resolveAvailableWodeAppBuiltinAgents,
-} from "../../../vendor/openwork/apps/app/src/react-app/domains/wodeapp/runtime-projects";
+  resolveWodeAppBuiltinAgentId,
+} from "../wodeapp/runtime-projects";
 import { coalesceStoryboardBeatsIntoClips } from "../../../vendor/openwork/apps/app/src/react-app/domains/wodeapp/wodeapp-storyboard-clips";
 import { mergePvsStoryboardRunPayload } from "../../../vendor/openwork/apps/app/src/react-app/domains/wodeapp/wodeapp-pvs-storyboard-url";
 
@@ -19,23 +21,21 @@ describe("WodeAppX built-in workbench resolution", () => {
 
     expect(agent).toBeDefined();
     expect(agent?.demoUrl).toBeUndefined();
-    expect(agent?.samplePrompt).toContain("视频能力");
-    expect(agent?.samplePrompt).toContain("https://");
-    expect(agent?.samplePrompt).toContain("wodeapp.video.generate");
-    expect(agent?.samplePrompt).toContain("wodeapp_video_storyboard_open");
-    expect(agent?.samplePrompt).toContain("wodeapp_video_storyboard_update");
-    expect(agent?.samplePrompt).toContain("勿传 model");
-    expect(agent?.samplePrompt).toContain("seedream-5.0");
-    expect(agent?.samplePrompt).not.toContain("【硬规则");
-    expect(agent?.samplePrompt).not.toContain("视频能力决策树");
-    expect(agent?.samplePrompt).not.toContain("须显式传 Seedance 2.5");
+    expect(agent?.tools).toEqual([
+      "wodeapp.video.generate",
+      "wodeapp.video.status",
+      "video_storyboard",
+      "wodeapp.video_storyboard.update",
+      "wodeapp_image_asset_save",
+    ]);
+    expect(agent?.samplePrompt).toBe("默认只整理方案，不自动生成。");
   });
 
   test("Feishu quick access stays hidden until it is marked ready and setup skill is discovered", () => {
     // Feishu is reserved but disabled in the stable default set — not in the sidebar.
     const agent = findWodeAppBuiltinAgent(WODEAPP_FEISHU_AGENT_ID, []);
 
-    expect(agent).toBeUndefined();
+    expect(agent?.id).toBe(WODEAPP_FEISHU_AGENT_ID);
     expect(getVisibleWodeAppBuiltinAgents().some((item) => item.id === WODEAPP_FEISHU_AGENT_ID)).toBe(false);
     expect(getVisibleWodeAppBuiltinAgents({ feishuSetupSkillReady: true })
       .some((item) => item.id === WODEAPP_FEISHU_AGENT_ID)).toBe(false);
@@ -49,19 +49,21 @@ describe("WodeAppX built-in workbench resolution", () => {
 
     expect(agent).toBeDefined();
     expect(availableIds).toEqual([
-      "agent-infinite-canvas",
       "multi-agent-collab",
-      "script-storyboard",
       "video-generation",
       "visual-generation",
     ]);
-    expect(getVisibleWodeAppBuiltinAgents().some((item) => item.id === WODEAPP_CANVAS_AGENT_ID)).toBe(true);
-    expect(getVisibleWodeAppBuiltinAgents({ canvasAgentReady: false })
-      .some((item) => item.id === WODEAPP_CANVAS_AGENT_ID)).toBe(false);
+    expect(getVisibleWodeAppBuiltinAgents().some((item) => item.id === WODEAPP_CANVAS_AGENT_ID)).toBe(false);
+    expect(getVisibleWodeAppBuiltinAgents({
+      override: { version: 1, extraEnabledIds: [WODEAPP_CANVAS_AGENT_ID], hiddenIds: [], order: [] },
+    }).some((item) => item.id === WODEAPP_CANVAS_AGENT_ID)).toBe(true);
+    expect(getVisibleWodeAppBuiltinAgents({
+      override: { version: 1, extraEnabledIds: [WODEAPP_CANVAS_AGENT_ID], hiddenIds: [], order: [] },
+      canvasAgentReady: false,
+    }).some((item) => item.id === WODEAPP_CANVAS_AGENT_ID)).toBe(false);
     expect(getVisibleWodeAppBuiltinAgents().some((item) => item.id === "create-agent")).toBe(false);
-    expect(getVisibleWodeAppBuiltinAgents().some((item) => item.id === "script-storyboard")).toBe(true);
-    expect(getVisibleWodeAppBuiltinAgents({ shortDramaAgentReady: false })
-      .some((item) => item.id === "script-storyboard")).toBe(false);
+    expect(getVisibleWodeAppBuiltinAgents().some((item) => item.id === "script-storyboard")).toBe(false);
+    expect(findWodeAppBuiltinAgent("script-storyboard", [])).toBeDefined();
   });
 
   test("brand agents come from config, not built-in product agents", () => {
@@ -82,19 +84,63 @@ describe("WodeAppX built-in workbench resolution", () => {
         enabled: true,
       }],
     });
-    const agent = configured.find((item) => item.id === WODEAPP_WYNNE_AGENT_ID);
-    expect(agent).toBeDefined();
-    expect(agent?.kind).toBe("brand");
-    expect(agent?.runtimeProfileId).toBe(WODEAPP_WYNNE_AGENT_ID);
-    expect(agent?.samplePrompt).toContain("按需发现工具与知识");
-    expect(agent?.samplePrompt).not.toContain("库存");
+    expect(configured.some((item) => item.id === WODEAPP_WYNNE_AGENT_ID)).toBe(false);
+    expect(configured.some((item) => /苏泊尔|supor|wynne/i.test(item.name))).toBe(false);
+  });
+
+  test("supor brand agents stay out of the default sidebar", () => {
+    const visible = getVisibleWodeAppBuiltinAgents({
+      brandAgents: [{
+        id: "supor-brand-agent",
+        name: "苏泊尔智能体",
+        brandId: "supor",
+        meta: "详情页结构 · 卖点文案 · 出图指引",
+        enabled: true,
+      }],
+    });
+    expect(visible.some((item) => item.id === "supor-brand-agent")).toBe(false);
+    expect(visible.some((item) => item.name.includes("苏泊尔"))).toBe(false);
+  });
+
+  test("short-drama factory skill pin becomes the official sidebar agent", () => {
+    const visible = getVisibleWodeAppBuiltinAgents({
+      brandAgents: [{
+        id: "skill-wodeapp-short-drama-factory",
+        name: "wodeapp-short-drama-factory",
+        brandId: "skill",
+        meta: "End-to-end WodeApp short-drama (竖屏短剧) production pipeline. Use ONLY when the use",
+        enabled: true,
+      }],
+    });
+    expect(visible.some((item) => item.id === "script-storyboard")).toBe(true);
+    expect(visible.some((item) => item.id === "skill-wodeapp-short-drama-factory")).toBe(false);
+    const agent = visible.find((item) => item.id === "script-storyboard");
+    expect(agent?.name).toBe("短剧智能体");
+    expect(agent?.meta).toBe("剧本 · 分镜 · 可拍摄脚本");
+  });
+
+  test("custom brand agents appear in the sidebar", () => {
+    const visible = getVisibleWodeAppBuiltinAgents({
+      brandAgents: [{
+        id: "custom-memo-helper",
+        name: "备忘录助手",
+        brandId: "custom",
+        meta: "记下待办，打开就能查",
+        enabled: true,
+      }],
+    });
+    expect(visible.some((item) => item.id === "custom-memo-helper")).toBe(true);
+    expect(visible.find((item) => item.id === "custom-memo-helper")?.name).toBe("备忘录助手");
   });
 
   test("create agent stays shipped but disabled in the stable default set", () => {
     const agent = findWodeAppBuiltinAgent("create-agent", []);
 
-    expect(agent).toBeUndefined();
+    expect(agent?.id).toBe("create-agent");
     expect(getVisibleWodeAppBuiltinAgents().some((item) => item.id === "create-agent")).toBe(false);
+    expect(resolveWodeAppBuiltinAgentId("创建智能体")).toBe("create-agent");
+    expect(resolveWodeAppBuiltinAgentId("create-agent")).toBe("create-agent");
+    expect(formatWodeAppAgentDisplayName("创建智能体")).toBe("创建智能体");
   });
 
   test("Feishu skill discovery fails closed and accepts only the exact skill name", () => {

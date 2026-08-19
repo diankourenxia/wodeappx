@@ -125,9 +125,10 @@ export function collapseRoutesToPickerFamilies(
   for (const entry of catalogEntriesFor(modality)) {
     const matched = pooled.filter((route) => routeMatchesCatalog(route, entry));
     if (matched.length === 0) continue;
+    const catalogIsWode = String(entry.apiId || "").startsWith("wode/");
     const best = pickBestRoute(matched, {
-      providerID: "wodeapp",
-      modelID: entry.apiId,
+      providerID: catalogIsWode ? "wodeapp" : (matched[0]?.providerID || ""),
+      modelID: entry.upstreamId || entry.apiId,
     }, modality);
     if (!best) continue;
     push({

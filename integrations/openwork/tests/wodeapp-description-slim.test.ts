@@ -46,17 +46,17 @@ describe("description slim + corrective", () => {
     expect(image).toContain("wodeapp_product_save");
   });
 
-  test("video agent samplePrompt stays compact", () => {
+  test("video agent keeps policy short and lists tools separately", () => {
     const source = readFileSync(resolve(WODEAPP_DIR, "wodeapp-builtin-agents.default.json"), "utf8");
     const parsed = JSON.parse(source) as {
-      agents: Array<{ id: string; samplePrompt: string }>;
+      agents: Array<{ id: string; samplePrompt: string; tools?: string[] }>;
     };
-    const samplePrompt = parsed.agents.find((agent) => agent.id === "video-generation")?.samplePrompt || "";
-    expect(samplePrompt).toContain("wodeapp_video_storyboard_open");
-    expect(samplePrompt).toContain("勿传 model");
-    expect(samplePrompt).toContain("seedream-5.0");
-    expect(samplePrompt).not.toContain("【硬规则");
-    expect(samplePrompt.length).toBeLessThan(500);
+    const video = parsed.agents.find((agent) => agent.id === "video-generation");
+    expect(video?.samplePrompt).toBe("默认只整理方案，不自动生成。");
+    expect(video?.samplePrompt.length).toBeLessThan(80);
+    expect(video?.tools).toContain("wodeapp.video.generate");
+    expect(video?.tools).toContain("video_storyboard");
+    expect(video?.samplePrompt).not.toContain("【硬规则");
   });
 
   test("buildVideoReferenceCorrective suggests image_asset_save for local paths", () => {

@@ -37,6 +37,7 @@ const TOOL_NAME_LABELS: Record<string, string> = {
   wodeapp_brand_save: "保存品牌",
   wodeapp_assets_list: "查询数字资产",
   wodeapp_auth_status: "查询账号状态",
+  wodeapp_sidebar_agent_save: "保存侧栏智能体",
   wodeapp_video_storyboard_open: "打开多条/分镜视频",
   bash: "运行命令",
   read: "读取文件",

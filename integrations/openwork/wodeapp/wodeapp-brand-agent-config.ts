@@ -43,6 +43,9 @@ export type WodeAppBrandAgentConfig = {
   policy?: string[];
   entryPrompt?: string;
   samplePrompt?: string;
+  /** Published project this custom agent already is. Later turns work from here. */
+  projectId?: string;
+  launchUrl?: string;
   /** Specialized workbench surface; default generic chat + runtime profile. */
   workbench?: WodeAppBrandAgentWorkbench;
   /** When false, config stays on disk but is not listed. Default true. */
@@ -188,6 +191,12 @@ export function normalizeWodeAppBrandAgentConfig(
   const samplePrompt = typeof record.samplePrompt === "string" && record.samplePrompt.trim()
     ? clip(record.samplePrompt.trim(), 4000)
     : undefined;
+  const projectId = typeof record.projectId === "string" && record.projectId.trim()
+    ? clip(record.projectId.trim(), 80)
+    : undefined;
+  const launchUrl = typeof record.launchUrl === "string" && record.launchUrl.trim()
+    ? clip(record.launchUrl.trim(), 500)
+    : undefined;
 
   let workbench: WodeAppBrandAgentWorkbench = record.workbench === "wynne" ? "wynne" : "generic";
   if (workbench === "wynne" && id !== "wynne-brand-agent" && brandId !== "wynne") {
@@ -210,6 +219,8 @@ export function normalizeWodeAppBrandAgentConfig(
     policy,
     entryPrompt,
     samplePrompt,
+    projectId,
+    launchUrl,
     workbench,
     enabled: record.enabled === false ? false : true,
   };
@@ -304,6 +315,7 @@ export function brandAgentConfigToBuiltinAgent(agent: WodeAppBrandAgentConfig): 
   entryPrompt: string;
   samplePrompt: string;
   runtimeProfileId: string;
+  demoUrl?: string;
   autoSend: false;
 } {
   const scopes = [
@@ -320,6 +332,7 @@ export function brandAgentConfigToBuiltinAgent(agent: WodeAppBrandAgentConfig): 
     samplePrompt: agent.samplePrompt?.trim()
       || `使用 Runtime Profile「${agent.id}」；按需发现工具与知识，不预载品牌事实。禁止编造店铺/订单/政策数据。`,
     runtimeProfileId: agent.id,
+    demoUrl: agent.launchUrl?.trim() || undefined,
     autoSend: false,
   };
 }

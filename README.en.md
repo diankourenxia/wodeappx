@@ -1,157 +1,106 @@
-<p align="center">
-  <img src="branding/wodeappx-logo-180.png" alt="WodeAppX" width="128" />
-</p>
-
-<h1 align="center">WodeAppX</h1>
+# WodeAppX
 
 <p align="center">
-  <strong>Customize the agent. Mix and match models.</strong><br />
-  Open-source AI desktop. Skills, tools, and skins you define. Mix models for writing, images, and video.<br />
-  Image and video workbenches ship ready. Local-first. Your keys. No login wall.
+  <img src="branding/wodeappx-logo-180.png" alt="WodeAppX" width="160" />
 </p>
 
-<p align="center">
-  <a href="README.md">中文</a> · <a href="README.en.md">English</a> · <a href="README.ja.md">日本語</a> · <a href="README.vi.md">Tiếng Việt</a> · <a href="README.pt-BR.md">Português</a> · <a href="README.th.md">ไทย</a> · <a href="README.fr.md">Français</a> · <a href="README.ca.md">Català</a> · <a href="README.es.md">Español</a> · <a href="README.ru.md">Русский</a>
-</p>
+<p align="center"><strong>Languages:</strong> <a href="README.md">中文</a> · <a href="README.en.md">English</a></p>
 
-<p align="center">
-  <a href="https://github.com/diankourenxia/wodeappx/releases/tag/v1.0.3"><img src="https://img.shields.io/github/v/release/diankourenxia/wodeappx?color=111111&label=release" alt="release" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-111111" alt="Apache-2.0" /></a>
-  <a href="https://github.com/diankourenxia/wodeappx/stargazers"><img src="https://img.shields.io/github/stars/diankourenxia/wodeappx?style=flat&color=111111" alt="stars" /></a>
-</p>
+> Open-source desktop AI workbench.  
+> **Customize the agent. Mix and match models.**
+> Shape the agent your way. Mix models for writing, images, and video. Image and video workbenches are ready — multiple models already wired. Local-first; data can stay on your machine.
 
-<p align="center">
-  <a href="https://x.wodeapp.ai/">Website</a>
-  ·
-  <a href="https://wodeapp.ai/chat">Try in the browser</a>
-  ·
-  <a href="https://github.com/diankourenxia/wodeappx/releases/tag/v1.0.3">Download v1.0.3</a>
-  ·
-  <a href="https://youtu.be/gULs1_u1JYE">Trailer</a>
-  ·
-  <a href="AGENTS.md">For agents</a>
-  ·
-  <a href="https://x.com/wodeappai">X</a>
-</p>
+**This open-source product is WodeAppX** (`wodeappx`). Commercial distributions may use another brand; OSS repos and builds ship as WodeAppX.
 
-<p align="center">
-  <a href="https://youtu.be/gULs1_u1JYE">
-    <img src="https://img.youtube.com/vi/gULs1_u1JYE/hqdefault.jpg" alt="Watch the WodeAppX trailer" width="720" />
-  </a>
-</p>
+## At a glance
 
-<p align="center">
-  <img src="https://x.wodeapp.ai/product-hunt/en/01-workbench-en.jpg" alt="WodeAppX workbench" width="920" />
-</p>
+WodeAppX is a **local-first AI workflow desktop**: combine skills, models, MCP/tools, local files, and optional platform services into **repeatable** flows — not one-off chat.
 
----
+It targets **content production, site publishing, and local automation**, and helps developers use AI safely in a real workspace (files, terminal, browser). Compared with coding assistants like Cursor / Codex (great at editing *your* repo), WodeAppX also emphasizes an agent you **customize**, **models you mix and match**, and an agent that can **improve the product itself**, with visual workflows as a product pillar.
 
-## Contents
+OSS defaults to **BYOK / self-hosted** with no sign-in required. Official cloud is an explicit option, not a hard dependency.
 
-- [Start here](#start-here)
-- [What you can do](#what-you-can-do)
-- [Why WodeAppX](#why-wodeappx)
-- [Download](#download)
-- [After you open it](#after-you-open-it)
-- [Run from source](#run-from-source)
-- [For agents / contributors](#for-agents--contributors)
-- [FAQ](#faq)
-- [Docs](#docs)
-- [License](#license)
+## Who it's for
 
-## Start here
-
-| Path | For | What happens |
+| Audience | Primary need | Example flow |
 |---|---|---|
-| [Download the desktop app](#download) | Daily use | Install → add a local key (or cloud sign-in) → talk |
-| [Try in the browser](https://wodeapp.ai/chat) | A quick look | Official chat in the site sidebar. China: [wodeapp.cn/chat](https://wodeapp.cn/chat) |
-| [Run from source](#run-from-source) | Change the product / contribute | `pnpm run setup && pnpm dev` |
+| Creators / operators | Cut repetitive content cost | Assets → copy / image / video → review → publish pack |
+| Developers | Safe AI in a local workspace | Understand task → edit files / terminal / browser → verify |
+| Content / brand teams | Scale images, video, and sites | Save assets → batch generate → publish |
+| Automation teams | Integrate existing systems | Trigger → approve → execute → audit / notify |
 
-Sites: [x.wodeapp.ai](https://x.wodeapp.ai/) · China [x.wodeapp.cn](https://x.wodeapp.cn/). Compare: [vs Cursor](https://x.wodeapp.ai/vs-cursor/) · [vs Claude Code](https://x.wodeapp.ai/vs-claude-code/) · [vs Codex](https://x.wodeapp.ai/vs-codex/).
+## Skills vs agents
+
+We use these terms differently throughout the docs:
+
+| | **Skill** | **Agent** |
+|---|---|---|
+| What it is | A versioned **capability contract** (inputs, outputs, tools, permissions) | The **orchestrator** that understands intent, picks tools, runs multi-step work, handles failures |
+| How you use it | Install, compose, **batch** the same flow | Conversational driver; can target a workspace for complex tasks |
+| Product focus | **See, control, batch** — production line | **Customize, self-evolve** — assistant you shape |
+
+**Skills define what can run; agents run it end to end.**
+
+## vs coding assistants
+
+| | Typical coding assistant (Cursor / Codex, etc.) | WodeAppX |
+|---|---|---|
+| Main job | Edit business code in your repo | Content / site / media workflows + can improve **this app** |
+| Reuse | Mostly per-session | Skills saved, batched, visual orchestration (roadmap) |
+| Models | Often one strong text model | **Mix and match** — text / image / video each on its own |
+| Deployment | Often cloud-centric | **Local-first**; sidecar / self-hosted / cloud |
+| Extension | Varies | Skills, MCP, connectors, self-evolution gates as first-class |
 
 ## What you can do
 
-- **Customize the agent** — skills, tools, MCP, connectors, skins; assemble your way
-- **Mix and match models** — writing, images, and video each on their own model; no lock-in
-- **Image and video ready** — batch images, storyboards, image-to-video already wired; sidebar agents for image / video / short drama / canvas / multi-model
-- **Digital assets** — save generated images and video in one tap; reuse them in chat
-- **Browser automation** — Chrome extension clicks, reads, and screenshots real pages
-- **Skills you can batch** — run the same flow across a set; see permissions, cost, retries
-- **Self-evolve** — point the workspace at this product's source; the agent can change the app (snapshot → verify → roll back)
-- **Real work on your computer** — local folders, files, terminal, browser — not chat-only
-- **Sites and media can stay local** — publish and produce on your machine or self-hosted infra; cloud is optional
-
-Skills define what can run; the agent runs it. Say what you want to do.
+- **Customize the agent** — skills, tools, MCP, connectors, skins; assemble your way, no fixed template
+- **Mix and match models** — writing, images, and video can each use a different model; swap anytime, no lock-in
+- **Operate skills** — visible, controllable, batchable (images, assets, site steps); inspect permissions, cost, retries
+- **Self-evolve the product** — point the workspace at this app's source; backup → edit → verify → roll back (not just your business repo)
+- **Built-in digital assets** — save generated images and video in one tap; reference them in chat
+- **Built-in batch image, video, and more** — ready-made workspaces with multiple models already wired, no flow to assemble first
+- **Local-first sites & media** — publishing, image/video on local / self-hosted infra; cloud optional
+- **Real work on your computer** — files, terminal, browser — not chat-only
 
 ## Why WodeAppX
 
-Cursor / Claude Code / Codex edit your repo. WodeAppX is a desktop agent workbench: customize the agent, mix models, ship image/video workbenches, and change the product itself. The software is free (Apache-2.0). You pay only the models you bring. No subscription wall.
-
-- **You shape the assistant** — skills, tools, and skins are first-class
-- **The right model for each job** — writing, images, and video do not share one vendor
-- **A production line, not an empty shell** — image and video workbenches ship ready
-- **Data can stay private** — sessions, files, terminal, and browser on your machine; OSS starts with no login
-- **Your keys** — local key or self-host first; official cloud is extra, not a gate
-- **It can change this app** — self-evolve has snapshot and rollback, not a slogan
-- **Open and auditable** — Apache-2.0; inspect, fork, redistribute
-
-<table>
-  <tr>
-    <td width="50%">
-      <img src="https://x.wodeapp.ai/product-hunt/en/05-customize-en.jpg" alt="Customize the agent" />
-      <p><strong>Customize the agent</strong><br />Assemble skills, tools, and skins. The agent can also change this product (snapshot → verify → roll back).</p>
-    </td>
-    <td width="50%">
-      <img src="https://x.wodeapp.ai/product-hunt/en/03-assets-en.png" alt="Digital assets" />
-      <p><strong>Digital assets</strong><br />Save generated images and video in one tap. Reuse them in chat.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="https://x.wodeapp.ai/product-hunt/en/04-image-workbench-en.jpg" alt="Image workbench" />
-      <p><strong>Image workbench</strong><br />Batch-ready. Multiple models already wired.</p>
-    </td>
-    <td width="50%">
-      <img src="https://x.wodeapp.ai/product-hunt/en/06-video-workbench-en.jpg" alt="Video workbench" />
-      <p><strong>Video workbench</strong><br />Storyboards, image-to-video, and queues in one place.</p>
-    </td>
-  </tr>
-</table>
-
-## Download
-
-Official build: [v1.0.3](https://github.com/diankourenxia/wodeappx/releases/tag/v1.0.3) (macOS notarized). Site: [x.wodeapp.ai](https://x.wodeapp.ai/) · China: [x.wodeapp.cn](https://x.wodeapp.cn/)
-
-| Platform | Installer |
+| Advantage | What it means |
 |---|---|
-| macOS Apple Silicon | [DMG](https://github.com/diankourenxia/wodeappx/releases/download/v1.0.3/wodeappx-mac-arm64-1.0.3.dmg) |
-| macOS Intel | [DMG](https://github.com/diankourenxia/wodeappx/releases/download/v1.0.3/wodeappx-mac-x64-1.0.3.dmg) |
-| Windows x64 | [EXE](https://github.com/diankourenxia/wodeappx/releases/download/v1.0.3/wodeappx-win-x64-1.0.3.exe) |
-| Linux x64 | [AppImage](https://github.com/diankourenxia/wodeappx/releases/download/v1.0.3/wodeappx-linux-x86_64-1.0.3.AppImage) |
+| **Customize the agent** | Skills, tools, MCP, connectors, skins — assemble your way |
+| **Mix and match models** | Writing, image, video each on its own model; swap anytime — no lock-in |
+| **Self-evolving agent** | Improves *this product* (product code, not model weights); backup and rollback gates |
+| **Skills you can operate** | See, control, batch — turn one-off chats into a repeatable line |
+| **Built-in digital assets** | Save outputs fast; reuse them in chat |
+| **Built-in image & video projects** | Ready to go — multiple models already wired |
+| **Local-first** | Core work on your machine; OSS needs no login to start |
+| **BYOK / cloud optional** | Your keys first; cloud when you want it |
+| **Open and auditable** | Apache-2.0 — inspect, fork, redistribute |
 
-On first launch: local key, or cloud sign-in. No account required to start.
+## Product direction
 
-## After you open it
+1. **Workflows before personas** — define steps, tools, recovery; then add agent personality if needed.
+2. **One planner, specialist models on demand** — don't burn LLM tokens on deterministic steps; use the best image/video models where they matter.
+3. **Skills are contracts** — not just long prompts; declare I/O, permissions, verifiable results.
+4. **Local-first, cloud optional** — no hidden login wall on the OSS path.
+5. **Honest status labels** — demo vs shipped vs roadmap.
 
-1. **Local key (default)**  
-   Sidebar **Local** or **Configure local keys**. DeepSeek, Volcano Ark, Kimi / Moonshot, DashScope, OpenRouter (one key for GPT / Claude / Grok), and a connected OpenAI key all work.  
-   You can also add a **custom vendor**: name + Base URL + key; we probe OpenAI-compatible `/models`.  
-   Keys stay in `~/.wodeapp/keys.json` on your machine. They are not uploaded to WodeApp.
+Full definition, gaps, and acceptance criteria: [Open source plan](docs/OPEN_SOURCE_PLAN.md).
 
-2. **Chrome (optional)**  
-   Install the browser extension from Capabilities so the agent can click, read, and screenshot real pages. You can skip this and install later.
+## Capability status
 
-3. **Cloud (optional)**  
-   Sidebar **Cloud**, then pick a site: International [wodeapp.ai](https://wodeapp.ai/) (Stripe) or China [wodeapp.cn](https://wodeapp.cn/) (Alipay / WeChat). Sign-in opens the system browser. WodeApp is one provider among others. Login does not reset your default model to the cloud.
+| Area | Status |
+|---|---|
+| Self-evolution (backup → verify → rollback) | Shipped; improving |
+| Desktop workspace, files / terminal / browser, BYOK, skills / MCP | Shipped |
+| Sites / assets / image-video (sidecar or self-hosted, no cloud required) | Shipped or optional |
+| Visual skill runs, editable flow graph, per-node models & batch | Roadmap / next |
+| Enterprise approval, audit, team packs | Planned |
 
-4. **Talk**  
-   Say what you need in an empty chat, or open Image / Video / Digital assets / Capabilities. The model picker shows current families and matches them to keys you actually connected.
+Docs index: [docs/README.md](docs/README.md)
 
-Chat, image, and video share the same keys and routing. If a key is missing, the UI asks you to configure it — not only to sign in.
+## Quick start
 
-## Run from source
-
-Node.js 22, pnpm 9.15, Bun 1.3.9+, Go 1.23. Do not use Node 26. The command is `pnpm run setup`, not `pnpm setup`.
+**Requirements:** Node.js 22, pnpm 9.15, Bun 1.3.9+, Go 1.23, and the usual desktop shell build toolchain. Node 26 currently breaks the upstream `better-sqlite3` native build.
 
 ```bash
 git clone https://github.com/diankourenxia/wodeappx.git
@@ -160,53 +109,90 @@ pnpm run setup
 pnpm dev
 ```
 
-`pnpm run setup` fetches the desktop shell, applies patches, and installs dependencies. `vendor/` is generated — do not treat it as source. Then create a local workspace and add keys.
+`pnpm run setup` will:
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for gates.
+1. Fetch and verify the pinned desktop-shell sources (SHA-256);
+2. Apply WodeAppX integration patches;
+3. Install dependencies.
 
-## For agents / contributors
+On first launch, create a local workspace and configure model keys under **Settings → Service & models**. OSS does **not** require WodeApp sign-in.
 
-After clone, read **[AGENTS.md](AGENTS.md)** (repo map, where to edit, product rules), then [docs/README.md](docs/README.md).
+If the local engine download times out, reuse a local CLI:
 
-| Change | Where |
-|---|---|
-| First-party features, local keys, browser extension | `integrations/`, `capture-engine/`, `scripts/` |
-| Desktop UI overlays | `integrations/openwork/fork/`, registered in the apply script |
-| Upstream desktop shell pin | `openwork.lock.json` (do not bump casually) |
+```bash
+pnpm openwork:sidecar:local
+pnpm openwork:dev:local-sidecar
+```
 
-In-app self-evolve is gated (snapshot → verify → rollback). Editing this git clone in your editor is a normal source change.
+## Platform runtime (important)
 
-## FAQ
+The desktop workspace (sessions, files, terminal, browser, Computer Use, BYOK) works **fully offline**.
 
-**Is this a Cursor / Codex replacement?**  
-Yes — and more. Use WodeAppX for the repo, custom agents, image and video, and sites. Build your own workbench: skills, tools, skins, models. Bring your own key.
+Sites, assets, and image/video workflows need a **WodeApp runtime** — not necessarily the public cloud:
 
-**Do I need cloud sign-in?**  
-No. OSS works with keys you bring. Cloud is optional.
+| Mode | For | How | Data |
+|---|---|---|---|
+| Local sidecar | Dev / single machine | Run mainserver locally (`:3000`), desktop probes it | Stays local |
+| Self-hosted | Team / private deploy | Settings → Services → custom Origin | Your server |
+| Official cloud | Managed collab | Settings → Services → cloud `sk_live_…` | Cloud (optional) |
 
-**Is self-evolution model training?**  
-No. It means gated edits to this product's source (backup → verify → rollback), not training weights.
+Entry: **Settings → Services & models**. If no runtime is configured, capability connectors show **not configured / disconnected** — expected, not a broken install.
 
-**Does my data leave this computer?**  
-OSS is local-first. Sessions and files can stay on your machine. Only model APIs you configure go to the network. Cloud sign-in is not a gate.
+## OSS vs Cloud
 
-**Is visual skill editing done?**  
-Skills / MCP / tools run today. Full flow-graph editing is on the roadmap.
+| | OSS default | Optional WodeApp Cloud |
+|---|---|---|
+| Sign-in | Not required | WodeApp account |
+| Models | BYOK / self-hosted | Platform models + credits |
+| MCP / skills / local features | Kept | Kept |
+| Start | `pnpm dev` | `pnpm dev:cloud` |
+| Public brand | **WodeAppX** | Commercial builds may use another name |
 
-**Windows says the installer is unsigned?**  
-Windows is not Authenticode-signed yet. macOS is notarized. You can run from source or read the Releases notes.
+Cloud must not be required to build or run the open-source desktop.
 
-## Docs
+Export a standalone OSS tree (no private monorepo history):
 
-| Audience | Docs |
-|---|---|
-| First file after clone | This page (languages in the header) · [Website](https://x.wodeapp.ai/) |
-| Agents / contributors | [AGENTS.md](AGENTS.md) · [CONTRIBUTING.md](CONTRIBUTING.md) |
-| Capabilities and local keys | [docs/CAPABILITIES.md](docs/CAPABILITIES.md) · [docs/LOCAL_KEY_INVOKE.md](docs/LOCAL_KEY_INVOKE.md) |
-| Full desktop index | [docs/README.md](docs/README.md) |
-| Open-source plan | [docs/OPEN_SOURCE_PLAN.md](docs/OPEN_SOURCE_PLAN.md) |
-| Security / privacy / trademark | [SECURITY.md](SECURITY.md) · [PRIVACY.md](PRIVACY.md) · [TRADEMARK.md](TRADEMARK.md) |
+```bash
+node scripts/export-standalone-repo.mjs --out ~/Desktop/wodeappx --init-git
+```
+
+## Architecture & source layout
+
+WodeAppX-owned core experience, capability packs, self-evolution, and desktop integrations live under `integrations/`, `capture-engine/`, `scripts/`, etc. Build pulls and patches upstream components per `openwork.lock.json`; `vendor/` is generated and not committed.
+
+Key docs:
+
+- [Docs index](docs/README.md)
+- [Open source plan & roadmap](docs/OPEN_SOURCE_PLAN.md)
+- [Desktop capability matrix](docs/CAPABILITIES.md)
+- [Agent minimal context & media routing](docs/AGENT_MINIMAL_CONTEXT.md)
+- [Agent capability testing contract](docs/AGENT_CAPABILITY_TESTING.md)
+- [Release contract](docs/RELEASE.md)
+- [Desktop milestones](docs/DESKTOP.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security](SECURITY.md)
+- [Name and logo](TRADEMARK.md)
+
+## OSS checks
+
+```bash
+pnpm open-source:check
+pnpm open-source:verify:contract
+pnpm open-source:verify
+pnpm run openwork:bootstrap -- --force
+pnpm openwork:patch
+pnpm release:check
+pnpm test:agent-capabilities
+(cd capture-engine && go test ./...)
+```
+
+`open-source:verify` runs stranger `pnpm run setup` in an isolated VPS container. See [docs/OSS_VERIFY.md](docs/OSS_VERIFY.md). Before release: clean builds per platform, install/smoke test, upgrade compatibility, third-party license and security scans.
+
+## Acknowledgments
+
+Third-party licenses and notices: [NOTICE](NOTICE), [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES/). The build fetches a pinned desktop shell and applies WodeAppX patches. Non-open upstream parts are not in this distribution.
 
 ## License
 
-Original code is [Apache License 2.0](LICENSE). Third-party notices: [NOTICE](NOTICE) and [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES/).
+WodeAppX-owned code is under [Apache License 2.0](LICENSE). Third-party code keeps its own licenses and notices. Names and logos: [TRADEMARK.md](TRADEMARK.md).

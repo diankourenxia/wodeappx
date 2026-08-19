@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { currentLocale, t } from "@/i18n";
 import type { WodeAppSkinId } from "./wodeapp-skins";
 
 type AmbientSpec = {
@@ -9,7 +10,7 @@ type AmbientSpec = {
   video?: string;
   /** Ambient loop speed. Aurora stock clip is ~8s; keep well below 1 to avoid flicker. */
   playbackRate?: number;
-  brandLine?: string;
+  brandLineKey?: string;
   keepsakeClass: string;
 };
 
@@ -20,25 +21,25 @@ const SKIN_AMBIENT: Partial<Record<WodeAppSkinId, AmbientSpec>> = {
     video: "skin-aurora-night.mp4",
     // 8s clip → ~20s perceived loop; stock 1x reads as flicker behind chat.
     playbackRate: 0.4,
-    brandLine: "极光之下，心事可航行",
+    brandLineKey: "wodeappx.skin.aurora-night.line",
     keepsakeClass: "wapp-batch-keepsakes is-aurora",
   },
   "forest-mist": {
     className: "wapp-forest-ambient-backdrop",
     poster: "skin-forest-mist-poster.jpg",
-    brandLine: "雾起林间，慢一点也好",
+    brandLineKey: "wodeappx.skin.forest-mist.line",
     keepsakeClass: "wapp-batch-keepsakes is-forest",
   },
   "coffee-loft": {
     className: "wapp-coffee-ambient-backdrop",
     poster: "skin-coffee-loft-poster.jpg",
-    brandLine: "热饮在手，灵感慢炖",
+    brandLineKey: "wodeappx.skin.coffee-loft.line",
     keepsakeClass: "wapp-batch-keepsakes is-coffee",
   },
   "noir-jazz": {
     className: "wapp-noir-ambient-backdrop",
     poster: "skin-noir-jazz-poster.jpg",
-    brandLine: "低音铺底，金边留白",
+    brandLineKey: "wodeappx.skin.noir-jazz.line",
     keepsakeClass: "wapp-batch-keepsakes is-noir",
   },
 };
@@ -131,7 +132,14 @@ export function WodeAppSkinAmbientBackdrop({
   useLayoutEffect(() => {
     if (!enabled || !spec) return;
     const brand = document.querySelector(".wapp-brand-spacer");
-    if (spec.brandLine) brand?.setAttribute("data-season", spec.brandLine);
+    if (brand instanceof HTMLElement) {
+      const line = spec.brandLineKey ? t(spec.brandLineKey) : "";
+      const titleKey = `wodeappx.skin.${skin}.label`;
+      const title = currentLocale() === "zh" ? t(titleKey) : "";
+      if (line && line !== spec.brandLineKey) brand.setAttribute("data-season", line);
+      if (title && title !== titleKey) brand.setAttribute("data-skin-title", title);
+      else brand.removeAttribute("data-skin-title");
+    }
     syncBatchKeepsakes(spec.keepsakeClass);
     const scroll = document.querySelector(".wapp-sidebar-scroll");
     const observer = new MutationObserver(() => syncBatchKeepsakes(spec.keepsakeClass));
@@ -140,7 +148,7 @@ export function WodeAppSkinAmbientBackdrop({
       observer.disconnect();
       document.querySelector(".wapp-batch-keepsakes")?.remove();
     };
-  }, [enabled, spec, sessionKey]);
+  }, [enabled, spec, sessionKey, skin]);
 
   useLayoutEffect(() => {
     const video = videoRef.current;

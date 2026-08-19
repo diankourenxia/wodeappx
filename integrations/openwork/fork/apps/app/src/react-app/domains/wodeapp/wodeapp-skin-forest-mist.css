@@ -82,7 +82,10 @@
 .wapp-skin-forest-mist .wapp-nav-item:hover,
 .wapp-skin-forest-mist .wapp-nav-subitem:hover { background: color-mix(in srgb, var(--wapp-forest-accent-deep) 14%, var(--wapp-forest-sidebar)); color: var(--wapp-forest-sidebar-text); }
 .wapp-skin-forest-mist .wapp-nav-item.is-active,
-.wapp-skin-forest-mist .wapp-nav-subitem.is-active { background: color-mix(in srgb, var(--wapp-forest-accent-deep) 22%, var(--wapp-forest-sidebar)); box-shadow: none; }
+.wapp-skin-forest-mist .wapp-nav-subitem.is-active,
+.wapp-skin-forest-mist .wapp-nav-subitem-row.is-active { background: color-mix(in srgb, var(--wapp-forest-accent-deep) 22%, var(--wapp-forest-sidebar)); box-shadow: none; }
+.wapp-skin-forest-mist .wapp-nav-subitem-row { border-radius: 999px; }
+.wapp-skin-forest-mist .wapp-nav-subitem-row:hover { background: transparent; }
 .wapp-skin-forest-mist .wapp-nav-icon,
 .wapp-skin-forest-mist .wapp-sidebar-label,
 .wapp-skin-forest-mist .wapp-sidebar-label-row .wapp-sidebar-label { color: var(--wapp-forest-sidebar-icon); }
@@ -137,7 +140,7 @@
   letter-spacing: .18em;
 }
 .wapp-skin-forest-mist .wapp-brand-spacer::after {
-  content: "林间晨雾";
+  content: attr(data-skin-title);
   display: block;
   padding: 2px 6px 12px;
   color: var(--wapp-forest-sidebar-icon);

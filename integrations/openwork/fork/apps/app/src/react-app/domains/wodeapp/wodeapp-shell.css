@@ -1182,23 +1182,33 @@ html[data-theme="dark"] .wapp-workspace-shell .wapp-topbar-session-rail-inner .w
 
 .wapp-nav-subitem {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
   width: 100%;
   min-width: 0;
-  padding: 6px 10px;
+  padding: 7px 10px;
   border: 0;
   border-radius: 8px;
   background: transparent;
   text-align: left;
 }
 
-.wapp-nav-subitem:hover,
+.wapp-nav-subitem:hover {
+  background: transparent;
+}
+
 .wapp-nav-subitem.is-active {
-  background: #f3f6fb;
+  background: #e8f5f2;
 }
 
 .wapp-nav-subitem-meta {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: keep-all;
   font-size: 11px;
   color: #8d95a3;
 }
@@ -3093,4 +3103,70 @@ html[data-theme="dark"] .wapp-workspace-shell .wapp-topbar-session-rail-inner .w
 .wapp-perf-hud-close:focus-visible {
   color: #fff;
   border-color: rgba(255, 255, 255, 0.28);
+}
+
+.wapp-nav-subitem-add .wapp-nav-subitem-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.wapp-nav-subitem-add .wapp-nav-subitem-title svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.wapp-nav-subitem-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  align-items: center;
+  min-width: 0;
+  border-radius: 8px;
+}
+
+.wapp-nav-subitem-row:hover {
+  background: transparent;
+}
+
+.wapp-nav-subitem-row.is-active {
+  background: #e8f5f2;
+}
+
+.wapp-nav-subitem-row .wapp-nav-subitem,
+.wapp-nav-subitem-row .wapp-nav-subitem:hover,
+.wapp-nav-subitem-row .wapp-nav-subitem.is-active {
+  background: transparent;
+}
+
+.wapp-nav-subitem-more {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-right: 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #667085;
+  opacity: 0;
+}
+
+.wapp-nav-subitem-row:hover .wapp-nav-subitem-more,
+.wapp-nav-subitem-row.is-active .wapp-nav-subitem-more,
+.wapp-nav-subitem-more:focus-visible {
+  opacity: 1;
+}
+
+.wapp-nav-subitem-more svg {
+  width: 14px;
+  height: 14px;
+}
+
+.wapp-nav-subitem-more:hover,
+.wapp-nav-subitem-more:focus-visible {
+  background: #e8eef6;
+  color: #1d2939;
 }

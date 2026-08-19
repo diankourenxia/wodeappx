@@ -3,6 +3,7 @@ import * as React from "react";
 import { Check, ChevronDown, Hand, ShieldAlert } from "lucide-react";
 
 import { t } from "@/i18n";
+import { isWebDeployment } from "@/app/lib/openwork-deployment";
 import { useLocal } from "@/react-app/kernel/local-provider";
 import {
   DEFAULT_EXTERNAL_DIRECTORY_ACCESS,
@@ -35,6 +36,7 @@ const MODE_OPTIONS: Array<{
 
 /** Compact Codex-style control for the composer toolbar under the chat input. */
 export function WodeAppExternalDirectoryAccessSelect() {
+  if (isWebDeployment()) return null;
   const local = useLocal();
   const mode = normalizeExternalDirectoryAccessMode(
     local.prefs.externalDirectoryAccess ?? DEFAULT_EXTERNAL_DIRECTORY_ACCESS,

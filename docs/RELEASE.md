@@ -1,8 +1,35 @@
 # WodeAppX Release Contract
 
-> Last updated: 2026-08-17
+> Last updated: 2026-08-18
 
 ## 1. Version Rule
+
+Follow OpenWork: **SemVer** (`MAJOR.MINOR.PATCH`). A git commit is not a user-facing version.
+
+| Track | What it is | When users see it |
+|-------|------------|-------------------|
+| Source | Small commits on monorepo `main` | Developers / HMR only |
+| Installer | `wodeappx/package.json` version + tag + updater feed | Packaged apps, Settings → Updates |
+| Self-evolve | Local `version commit` | The running packaged tree only |
+
+Bump the installer version the same way OpenWork does, then merge, then tag:
+
+```bash
+cd wodeappx
+pnpm bump:patch          # 1.0.3 → 1.0.4
+# pnpm bump:minor        # 1.0.3 → 1.1.0
+# pnpm bump:major        # 1.0.3 → 2.0.0
+# pnpm bump:set -- 1.0.4
+```
+
+Only `wodeappx/package.json` is edited. `openwork:patch` copies that version onto the desktop/app packages. Do not overwrite an already-published number.
+
+### Source commit / push
+
+- One concern per commit (this feature, not the dirty tree).
+- Do not commit probe scripts, keys, `vendor/`, DMGs, or sidecar binaries.
+- Push `main` after rebase; do not force-push `main`.
+- Pushing source does **not** notify installed apps. Ship a new installer version for that.
 
 The WodeAppX root package version and the Electron desktop package version must match. The desktop package version is what users see in the app and what Electron Builder writes into release artifacts.
 
@@ -45,13 +72,26 @@ This means a user can replace the Intel build with the ARM build, or upgrade bet
 
 ## 4. Update Source
 
-WodeAppX builds must use the public Gitea release feed (mirrored from monorepo CI):
+New builds check this generic Electron feed (nginx static files):
 
 ```text
-https://gitea.com/diankourenxia/wodeappx/releases/latest/download
+https://wodeapp.cn/downloads/wodeappx
 ```
 
-Monorepo CI publishes installers to `diankourenxia/wodeapp` GitHub Releases under tag `wodeappx-v<version>`, then optionally mirrors the same assets to Gitea for public download and Electron updater.
+That directory must keep `latest.yml` / `latest-mac.yml` / `latest-linux.yml` plus the installer binaries. 1.0.0 still looks at Gitea `.../releases/latest/download`; refresh that feed with `pnpm release:updater-feed` when `GITEA_TOKEN` works, so old installs can move off the 404.
+
+Publish / refresh the feed after a GitHub release (CI does this, or run locally):
+
+```bash
+cd wodeappx
+pnpm release:updater-feed -- --from-github --tag v1.0.1 --sync-cn
+```
+
+The dedicated Gitea tag is `updater-feed` so a Mac-only GitHub release cannot hide Windows `latest.yml`.
+
+Auto-update UX: check, download, and install live in **Settings → Updates**. The sidebar does not show update buttons. The packaged updater does not toast a new version onto the workbench shell.
+
+Monorepo CI publishes installers to `diankourenxia/wodeapp` GitHub Releases under tag `wodeappx-v<version>`. The public repo `diankourenxia/wodeappx` uses tag `v<version>`. Do not upload `.exe` / `.dmg` to gitea.com.
 
 ### Public download page
 
@@ -59,8 +99,9 @@ Monorepo CI publishes installers to `diankourenxia/wodeapp` GitHub Releases unde
 |-------|-----|
 | Product landing | `https://x.wodeapp.ai/`（英文默认）· `https://x.wodeapp.cn/`（中文默认）；`/wodeappx/` 301 到对应 x 站 |
 | Latest metadata API | `GET /mainserver/api/downloads/wodeappx-desktop` |
-| Public mirror | `https://gitea.com/diankourenxia/wodeappx/releases` |
-| CI / GitHub release | `https://github.com/diankourenxia/wodeapp/releases`（tag `wodeappx-v*`） |
+| Public mirror | `https://wodeapp.cn/downloads/wodeappx/<file>` |
+| Public GitHub listing | `https://github.com/diankourenxia/wodeappx/releases` |
+| CI / private GitHub | `https://github.com/diankourenxia/wodeapp/releases`（tag `wodeappx-v*`） |
 
 The landing page reads the metadata API (Gitea first, then GitHub), then links users to installers. It does **not** host installer binaries. After each tagged release and successful Gitea mirror, the page updates automatically.
 
@@ -188,7 +229,7 @@ pnpm release:mirror-gitea
 pnpm release:mirror-gitea -- --from-github --tag wodeappx-v0.17.4
 ```
 
-4. Put the Gitea release link on the public download page (`/xiaolingtong`) as "国内镜像".
+4. Public downloads go to `https://wodeapp.cn/downloads/wodeappx/<file>`. Do not put gitea.com on the landing page.
 
 The mirror step replaces existing assets with the same filename, so rerunning a failed release job keeps the Gitea release tidy. GitHub Actions marks the Gitea step `continue-on-error: true` so a mirror failure never blocks the GitHub release.
 

@@ -5,6 +5,7 @@ import {
   ChevronRight,
   CircleUserRound,
   Coins,
+  Download,
   KeyRound,
   LogOut,
   PawPrint,
@@ -20,12 +21,15 @@ import {
   saveWodeAppServiceConfig,
   signInWithWodeApp,
   signOutWodeApp,
+  installWebAuthPresenceSync,
   type WodeAppAuthConfig,
 } from "@/app/lib/wodeapp-auth";
 import { toast } from "@/components/ui/sonner";
 import { openDesktopUrl } from "@/app/lib/desktop";
 import { useLocal } from "@/react-app/kernel/local-provider";
+import { isWebDeployment } from "@/app/lib/openwork-deployment";
 
+import { t } from "@/i18n";
 import { resolveAccountMenuAuthActions } from "./wodeapp-account-menu";
 import {
   readCachedProviderCapabilitySnapshot,
@@ -60,14 +64,15 @@ import { readStoredWodeAppSkin } from "./wodeapp-skins";
 import { WodeAppLocalKeyDialog } from "./wodeapp-local-key-dialog";
 import { WodeAppCloudLoginWaitingDialog, WodeAppCloudRegionDialog } from "./wodeapp-cloud-region-dialog";
 import {
+  cloudRegionFromOrigin,
   originForCloudRegion,
+  suggestCloudRegion,
   wodeAppCloudPricingUrl,
   writeStoredCloudRegion,
   type WodeAppCloudRegion,
 } from "./wodeapp-cloud-region";
 import { WodeAppByokGuideDialog, useFirstMileEntryCue } from "./wodeapp-byok-guide-dialog";
 import { WodeAppMediaByokSettings } from "./wodeapp-media-byok-settings";
-import { WodeAppSidebarUpdater } from "./wodeapp-sidebar-updater";
 import {
   WODEAPP_OPEN_MEDIA_BYOK_EVENT,
   type MediaByokProviderId,
@@ -90,6 +95,39 @@ function subscribeCompanionPrefs(onStoreChange: () => void) {
     window.removeEventListener(WODEAPP_COMPANION_PREFS_EVENT, onStoreChange);
     window.removeEventListener("storage", onStorage);
   };
+}
+
+
+function localizeAccountDisplayName(name: string) {
+  const match = /^用户(\d+)$/.exec(name);
+  if (match) return t("wodeappx.account.user_id", { id: match[1] });
+  if (!name || name === "WodeApp 账户" || name === "WodeApp 账号") {
+    return t("wodeappx.account.wodeapp_account");
+  }
+  return name;
+}
+
+function WebDesktopDownloadLink() {
+  if (!isWebDeployment()) return null;
+  return (
+    <div className="wx-runtime-card">
+      <a
+        className="wx-account-trigger wx-web-download"
+        href="/desktop"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <span className="wx-account-avatar" aria-hidden>
+          <Download />
+        </span>
+        <span className="wx-account-trigger-copy">
+          <strong>下载桌面端</strong>
+          <span>本机运行，自定义智能体更完整</span>
+        </span>
+        <ChevronRight aria-hidden />
+      </a>
+    </div>
+  );
 }
 
 export function WodeAppAccountFooter({
@@ -193,6 +231,11 @@ export function WodeAppAccountFooter({
     return () => window.removeEventListener("wodeapp:auth-changed", handleAuthChanged);
   }, [refreshAuth]);
 
+  React.useEffect(() => {
+    if (!isWebDeployment()) return;
+    return installWebAuthPresenceSync();
+  }, []);
+
   const applySignedIn = React.useCallback((config: WodeAppAuthConfig) => {
     applyWodeAppDefaultModelToPrefs(config, setPrefs, prefs.defaultModel, {
       workbench: true,
@@ -246,6 +289,7 @@ export function WodeAppAccountFooter({
       const result = await signInWithWodeApp(origin);
       if (!result.ok) {
         const error = "error" in result ? result.error : "";
+        if (error === "REDIRECTING") return;
         if (error && error !== "已取消绑定") {
           toast.error(error);
         }
@@ -299,8 +343,13 @@ export function WodeAppAccountFooter({
       navigate("/signin");
       return;
     }
+    if (isWebDeployment()) {
+      const region = cloudRegionFromOrigin(window.location.origin) || suggestCloudRegion();
+      void startWebLogin(region);
+      return;
+    }
     setRegionDialogOpen(true);
-  }, [loginLoading, navigate]);
+  }, [loginLoading, navigate, startWebLogin]);
 
   React.useEffect(() => {
     const onOpenLogin = () => {
@@ -335,6 +384,7 @@ export function WodeAppAccountFooter({
 
   React.useEffect(() => {
     const openLocalKeyFromPicker = () => {
+      if (isWebDeployment()) return;
       setAccountOpen(false);
       setLocalKeyDialogOpen(true);
     };
@@ -344,6 +394,7 @@ export function WodeAppAccountFooter({
 
   React.useEffect(() => {
     const openFirstMile = () => {
+      if (isWebDeployment()) return;
       setAccountOpen(false);
       setByokGuideOpen(true);
     };
@@ -382,21 +433,21 @@ export function WodeAppAccountFooter({
     embedded: isEmbedded,
   });
   const cloudSignedIn = menuAuth.showAccount;
-  const accountName = authConfig?.user?.name?.trim() || "WodeApp 账户";
+  const accountName = localizeAccountDisplayName(authConfig?.user?.name?.trim() || "");
   const creditsText =
     typeof authConfig?.credits === "number"
       ? authConfig.credits.toLocaleString()
       : authRefreshing
-        ? "刷新中"
+        ? t("wodeappx.account.refreshing")
         : authRefreshFailed
-          ? "点击重试"
-          : "加载中";
+          ? t("wodeappx.account.retry")
+          : t("wodeappx.account.loading");
   const accountMeta = cloudSignedIn
     ? typeof authConfig?.credits === "number"
-      ? `${authConfig.credits.toLocaleString()} 积分`
+      ? t("wodeappx.account.credits_value", { count: authConfig.credits.toLocaleString() })
       : authRefreshing
-        ? "正在同步积分"
-        : "积分待刷新"
+        ? t("wodeappx.account.syncing_credits")
+        : t("wodeappx.account.credits_pending")
     : localModeHint;
 
   const handleSignOut = async () => {
@@ -488,6 +539,7 @@ export function WodeAppAccountFooter({
         {regionDialog}
         {loginWaitingDialog}
         <div className="wx-account-dock">
+          <WebDesktopDownloadLink />
           <footer className="wx-runtime-card">
             <p className="wapp-sidebar-muted">账号加载中...</p>
           </footer>
@@ -512,21 +564,33 @@ export function WodeAppAccountFooter({
       />
 
       <div ref={accountDockRef} className="wx-account-dock">
+        <WebDesktopDownloadLink />
         {accountOpen ? (
-          <section className="wx-account-menu" aria-label="账号菜单">
+          <section className="wx-account-menu" aria-label={t("wodeappx.account.menu")}>
             {cloudSignedIn ? (
               <>
                 <div className="wx-account-menu-identity">
                   <CircleUserRound aria-hidden />
                   <span>{accountName}</span>
                 </div>
+                {isWebDeployment() ? (
+                  <a
+                    className="wx-account-menu-row"
+                    href="/desktop"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Download aria-hidden />
+                    <span>下载桌面端</span>
+                  </a>
+                ) : null}
                 {menuAuth.showAccount ? (
                   <button type="button" className="wx-account-menu-row" onClick={openAccount}>
                     <CircleUserRound aria-hidden />
-                    <span>账户</span>
+                    <span>{t("wodeappx.account.account")}</span>
                   </button>
                 ) : null}
-                <button
+                {isWebDeployment() ? null : <button
                   type="button"
                   className="wx-account-menu-row"
                   aria-haspopup="dialog"
@@ -537,13 +601,13 @@ export function WodeAppAccountFooter({
                   <strong className="wx-account-menu-value">
                     {localModeHint.endsWith("已配置") ? "已配置" : "去配置"}
                   </strong>
-                </button>
+                </button>}
                 <button type="button" className="wx-account-menu-row" onClick={openCredits}>
                   <Coins aria-hidden />
-                  <span>积分</span>
+                  <span>{t("wodeappx.account.credits")}</span>
                   <strong className="wx-account-menu-value">{creditsText}</strong>
                 </button>
-                <button
+                {isWebDeployment() ? null : <button
                   type="button"
                   className="wx-account-menu-row"
                   aria-haspopup="dialog"
@@ -560,7 +624,7 @@ export function WodeAppAccountFooter({
                       ? "开"
                       : "关"}
                   </strong>
-                </button>
+                </button>}
                 <button
                   type="button"
                   className="wx-account-menu-row"
@@ -570,7 +634,7 @@ export function WodeAppAccountFooter({
                   }}
                 >
                   <Settings aria-hidden />
-                  <span>设置</span>
+                  <span>{t("wodeappx.chrome.settings")}</span>
                 </button>
                 {menuAuth.showLogout ? (
                   <>
@@ -589,14 +653,14 @@ export function WodeAppAccountFooter({
               </>
             ) : (
               <div className="wx-account-menu-modes" role="group" aria-label="运行方式">
-                <button
+                {isWebDeployment() ? null : <button
                   type="button"
                   className="wx-account-menu-mode"
                   onClick={switchToLocal}
                 >
                   <span className="wx-account-menu-mode-label">本地</span>
                   <span className="wx-account-menu-mode-hint">{localModeHint}</span>
-                </button>
+                </button>}
                 <button
                   type="button"
                   className="wx-account-menu-mode"
@@ -625,7 +689,7 @@ export function WodeAppAccountFooter({
                 className={`wx-account-trigger${firstMileCue ? " is-first-mile-cue" : ""}`}
                 onClick={() => setAccountOpen((open) => !open)}
                 aria-expanded={accountOpen}
-                title={firstMileCue ? "开始使用" : undefined}
+                title={firstMileCue && !isWebDeployment() ? "开始使用" : undefined}
               >
                 <span className="wx-account-avatar" aria-hidden>
                   WA
@@ -640,21 +704,26 @@ export function WodeAppAccountFooter({
               <button
                 type="button"
                 className={`wx-account-trigger${firstMileCue ? " is-first-mile-cue" : ""}`}
-                onClick={() => setAccountOpen((open) => !open)}
+                onClick={() => {
+                  if (isWebDeployment()) {
+                    openLogin();
+                    return;
+                  }
+                  setAccountOpen((open) => !open);
+                }}
                 aria-expanded={accountOpen}
-                title={firstMileCue ? "开始使用" : undefined}
+                title={firstMileCue && !isWebDeployment() ? "开始使用" : undefined}
               >
                 <span className="wx-account-avatar" aria-hidden>
-                  BY
+                  {isWebDeployment() ? "登" : "BY"}
                 </span>
                 <span className="wx-account-trigger-copy">
-                  <strong>本地</strong>
-                  <span>{localModeHint}</span>
+                  <strong>{isWebDeployment() ? "登录" : "本地"}</strong>
+                  <span>{isWebDeployment() ? "登录后使用积分" : localModeHint}</span>
                 </span>
                 <ChevronRight aria-hidden />
               </button>
             )}
-            <WodeAppSidebarUpdater />
           </div>
         </footer>
       </div>

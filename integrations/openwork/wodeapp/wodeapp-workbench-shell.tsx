@@ -9,9 +9,10 @@ import {
   takePendingDeepLinks,
   type DeepLinkBridgeDetail,
 } from "@/app/lib/deep-link-bridge";
+import { t } from "@/i18n";
 import { workspaceSettingsRoute } from "@/react-app/shell/workspace-routes";
 import { getElectronBrowser } from "../session/panel/utils";
-import { openBuiltinAgentWithFeedback } from "./wodeapp-agent-open";
+import { openBuiltinAgentWithFeedback, shouldOpenBuiltinAgentWorkbench } from "./wodeapp-agent-open";
 import { buildBuiltinAgentTask } from "./wodeapp-auto-orchestration";
 import {
   isWodeAppFeishuAuthorizeDeepLink,
@@ -31,6 +32,7 @@ import {
   WODEAPP_FEISHU_MCP_SERVER,
   WODEAPP_OPEN_AGENT_VIEW_EVENT,
   WODEAPP_WYNNE_AGENT_ID,
+  findWodeAppBuiltinAgent,
   pickAbilityProjects,
   resolveAvailableWodeAppBuiltinAgents,
   type WodeAppBuiltinAgent,
@@ -48,7 +50,12 @@ import {
   readWodeAppRuntimeProfileForSession,
   setWodeAppRuntimeProfilesFromBrandAgents,
 } from "./wodeapp-runtime-profile";
-import { listWodeAppBrandAgents } from "@/app/lib/wodeapp-auth";
+import { listWodeAppBrandAgents, saveWodeAppBrandAgents } from "@/app/lib/wodeapp-auth";
+import {
+  buildAddAgentGuideText,
+  mergeDiskBrandAgentsWithLocalPins,
+  WODEAPP_AGENTS_OVERRIDE_CHANGED_EVENT,
+} from "./wodeapp-sidebar-agents";
 import {
   SCRIPT_STORYBOARD_AGENT_ID,
   WODEAPP_OPEN_SCRIPT_WORKBENCH_EVENT,
@@ -128,6 +135,17 @@ function useWodeAppSkinStyles(skin: WodeAppSkinId) {
     const load = SKIN_STYLE_LOADERS[skin];
     if (load) void load();
   }, [skin]);
+}
+
+function localizeRuntimeProfileName(profile: { id?: string; agentId?: string; name: string }) {
+  for (const id of [profile.id, profile.agentId]) {
+    if (!id) continue;
+    for (const key of [`wodeappx.agent.${id}.name`, `wodeappx.profile.${id}.name`]) {
+      const value = t(key);
+      if (value && value !== key) return value;
+    }
+  }
+  return profile.name;
 }
 
 type RetainedFeishuAuthorizationPrompt = NonNullable<
@@ -281,6 +299,7 @@ export function WodeAppWorkbenchShell({
   const [brandAgents, setBrandAgents] = React.useState<WodeAppBrandAgentConfig[]>(
     () => readStoredWodeAppBrandAgents(),
   );
+  const [agentsOverrideStamp, setAgentsOverrideStamp] = React.useState(0);
   const abilityProjects = React.useMemo(
     () => pickAbilityProjects(authConfig?.abilityProjects, userId),
     [userId, authConfig?.abilityProjects],
@@ -293,7 +312,7 @@ export function WodeAppWorkbenchShell({
       profile: authConfig?.profile,
       ossEdition: isOssEdition(),
     }),
-    [abilityProjects, authConfig?.origin, authConfig?.profile, brandAgents, feishuSetupSkillReady],
+    [abilityProjects, authConfig?.origin, authConfig?.profile, agentsOverrideStamp, brandAgents, feishuSetupSkillReady],
   );
 
   React.useEffect(() => {
@@ -302,21 +321,48 @@ export function WodeAppWorkbenchShell({
 
   React.useEffect(() => {
     let cancelled = false;
-    void (async () => {
+    const hydrate = async (persistMerge: boolean) => {
       const result = await listWodeAppBrandAgents();
       if (cancelled || !result.ok) return;
-      const normalized = normalizeWodeAppBrandAgentsFile(result);
-      writeStoredWodeAppBrandAgents(normalized);
-      setBrandAgents(listEnabledWodeAppBrandAgents(normalized));
-    })();
+      const disk = normalizeWodeAppBrandAgentsFile(result);
+      const merged = normalizeWodeAppBrandAgentsFile({
+        version: 1,
+        agents: mergeDiskBrandAgentsWithLocalPins(
+          disk.agents,
+          readStoredWodeAppBrandAgents(),
+        ),
+      });
+      const diskIds = new Set(disk.agents.map((agent) => agent.id).filter(Boolean));
+      const mergedIds = new Set(merged.agents.map((agent) => agent.id).filter(Boolean));
+      const droppedDiskAgent = [...diskIds].some((id) => !mergedIds.has(id));
+      if (
+        persistMerge
+        && !droppedDiskAgent
+        && JSON.stringify(merged.agents) !== JSON.stringify(disk.agents)
+      ) {
+        await saveWodeAppBrandAgents(merged);
+      }
+      writeStoredWodeAppBrandAgents(merged);
+      const next = listEnabledWodeAppBrandAgents(merged);
+      setBrandAgents((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+    };
+    void hydrate(true);
     const onChanged = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       setBrandAgents(listEnabledWodeAppBrandAgents(normalizeWodeAppBrandAgentsFile(detail)));
     };
+    const onFocus = () => { void hydrate(false); };
+    const timer = window.setInterval(() => { void hydrate(false); }, 2000);
     window.addEventListener(WODEAPP_BRAND_AGENTS_CHANGED_EVENT, onChanged);
+    const onOverride = () => setAgentsOverrideStamp((value) => value + 1);
+    window.addEventListener(WODEAPP_AGENTS_OVERRIDE_CHANGED_EVENT, onOverride);
+    window.addEventListener("focus", onFocus);
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
       window.removeEventListener(WODEAPP_BRAND_AGENTS_CHANGED_EVENT, onChanged);
+      window.removeEventListener(WODEAPP_AGENTS_OVERRIDE_CHANGED_EVENT, onOverride);
+      window.removeEventListener("focus", onFocus);
     };
   }, []);
 
@@ -456,7 +502,7 @@ export function WodeAppWorkbenchShell({
     async (agent: WodeAppBuiltinAgent, sessionId?: string) => {
       selectSurface("agents");
       setSelectedRuntimeProjectId(agent.id);
-      await openBuiltinAgentWithFeedback({
+      return openBuiltinAgentWithFeedback({
         agent,
         signedIn: Boolean(authConfig),
         userId,
@@ -586,12 +632,19 @@ export function WodeAppWorkbenchShell({
       const detail = (event as CustomEvent<WodeAppOpenScriptWorkbenchDetail>).detail;
       const agent = builtinAgents.find((item) => item.id === SCRIPT_STORYBOARD_AGENT_ID);
       if (!agent) return;
-      const sessionId = typeof detail?.sessionId === "string" ? detail.sessionId.trim() : "";
-      void openBuiltinAbilityPage(agent, sessionId || undefined);
+      selectSurface("agents");
+      setSelectedRuntimeProjectId(agent.id);
+      const topic = typeof detail?.topic === "string" && detail.topic.trim()
+        ? detail.topic.trim()
+        : agent.entryPrompt || agent.name;
+      handleCreateTaskWithPrompt(sidebar.selectedWorkspaceId, buildBuiltinAgentTask(agent, {
+        displayText: topic,
+        autoSend: false,
+      }));
     };
     window.addEventListener(WODEAPP_OPEN_SCRIPT_WORKBENCH_EVENT, onOpenScriptWorkbench);
     return () => window.removeEventListener(WODEAPP_OPEN_SCRIPT_WORKBENCH_EVENT, onOpenScriptWorkbench);
-  }, [builtinAgents, openBuiltinAbilityPage]);
+  }, [builtinAgents, handleCreateTaskWithPrompt, selectSurface, sidebar.selectedWorkspaceId]);
 
   const scopedFeishuAuthorizationPrompt = React.useMemo(
     () => selectFeishuAuthorizationPromptForSession(
@@ -663,7 +716,8 @@ export function WodeAppWorkbenchShell({
   const handleSelectRuntimeProject = React.useCallback(
     (projectId: string) => {
       void (async () => {
-        const agent = builtinAgents.find((item) => item.id === projectId);
+        const agent = builtinAgents.find((item) => item.id === projectId)
+          || findWodeAppBuiltinAgent(projectId);
         if (!agent) return;
         if (agent.id === WODEAPP_FEISHU_AGENT_ID) {
           selectSurface("agents");
@@ -681,11 +735,14 @@ export function WodeAppWorkbenchShell({
           void setDigitalAssetScope("supor");
           selectSkin("supor");
         }
-        // 创建智能体：只开新对话并预填需求，由用户补全后发送；不打开网页向导。
-        if (agent.id === WODEAPP_CREATE_AGENT_ID) {
+        // 创建智能体 / 技能钉：只开新对话并预填需求，不打开网页向导。
+        if (agent.id === WODEAPP_CREATE_AGENT_ID || !shouldOpenBuiltinAgentWorkbench(agent)) {
           selectSurface("agents");
-          setSelectedRuntimeProjectId(agent.id);
-          handleCreateTaskWithPrompt(sidebar.selectedWorkspaceId, buildBuiltinAgentTask(agent));
+          setSelectedRuntimeProjectId(agent.id === WODEAPP_CREATE_AGENT_ID ? null : agent.id);
+          handleCreateTaskWithPrompt(sidebar.selectedWorkspaceId, buildBuiltinAgentTask(agent, {
+            displayText: agent.id === WODEAPP_CREATE_AGENT_ID ? buildAddAgentGuideText() : undefined,
+            autoSend: false,
+          }));
           return;
         }
         // 图片/视频：先建对话拿到 sessionId，再打开能力页，避免右栏挂在旧会话上被切会话关掉。
@@ -705,7 +762,12 @@ export function WodeAppWorkbenchShell({
           await openBuiltinAbilityPage(agent, sessionId);
           return;
         }
-        void openBuiltinAbilityPage(agent);
+        selectSurface("agents");
+        setSelectedRuntimeProjectId(agent.id);
+        const opened = await openBuiltinAbilityPage(agent);
+        if (!opened) {
+          handleCreateTaskWithPrompt(sidebar.selectedWorkspaceId, buildBuiltinAgentTask(agent, { autoSend: false }));
+        }
       })();
     },
     [
@@ -759,11 +821,11 @@ export function WodeAppWorkbenchShell({
     sidebar.selectedSessionId ?? "",
   );
   const activeSurfaceLabel = wynneBrandWorkbenchOpen
-    ? "Wynne 品牌智能体"
+    ? t("wodeappx.profile.wynne-brand-agent.name")
     : feishuCommerceWorkbenchOpen
-    ? "飞书"
+    ? t("wodeappx.agent.feishu-agent-mcp.name")
     : activeSurface === "agents" && selectedRuntimeProfile
-    ? selectedRuntimeProfile.name
+    ? localizeRuntimeProfileName(selectedRuntimeProfile)
     : wodeappSurfaceLabel(activeSurface);
 
   const toggleSidebarCollapsed = React.useCallback(() => {

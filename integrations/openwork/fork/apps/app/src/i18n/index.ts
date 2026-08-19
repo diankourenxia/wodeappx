@@ -76,7 +76,64 @@ export const isLanguage = (value: unknown): value is Language => {
   return typeof value === "string" && LANGUAGES.includes(value as Language);
 };
 
-/** Module default stays English for SSR/tests; `initLocale()` follows user choice, then OS locale, then English. */
+const OFFICIAL_SETTINGS_KEY = "app-settings";
+
+function officialLangTag(lang: Language): "zh-CN" | "en-US" | null {
+  if (lang === "zh") return "zh-CN";
+  if (lang === "en") return "en-US";
+  return null;
+}
+
+function syncOfficialSiteLanguage(lang: Language): void {
+  if (typeof window === "undefined") return;
+  const official = officialLangTag(lang);
+  if (!official) return;
+  try {
+    window.localStorage.setItem("i18nextLng", official);
+  } catch {
+    /* ignore */
+  }
+  try {
+    const raw = window.localStorage.getItem(OFFICIAL_SETTINGS_KEY);
+    const parsed = raw ? JSON.parse(raw) as { state?: Record<string, unknown> } : { state: {} };
+    parsed.state = { ...(parsed.state || {}), language: official };
+    window.localStorage.setItem(OFFICIAL_SETTINGS_KEY, JSON.stringify(parsed));
+  } catch {
+    /* ignore */
+  }
+}
+
+function resolveWebHostLanguage(): Language | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(OFFICIAL_SETTINGS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as { state?: { language?: string } };
+      if (parsed?.state?.language) return resolveNavigatorLanguage(parsed.state.language);
+    }
+  } catch {
+    /* ignore */
+  }
+  const host = window.location.hostname.toLowerCase();
+  if (host === "wodeapp.cn" || host.endsWith(".wodeapp.cn")) return "zh";
+  if (host === "wodeapp.ai" || host.endsWith(".wodeapp.ai")) return "en";
+  try {
+    const parentLng = window.localStorage.getItem("i18nextLng");
+    if (parentLng) return resolveNavigatorLanguage(parentLng);
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function isWebDeploymentEnv(): boolean {
+  const env = (typeof import.meta !== "undefined"
+    && (import.meta as { env?: { VITE_OPENWORK_DEPLOYMENT?: string } }).env?.VITE_OPENWORK_DEPLOYMENT)
+    || "";
+  return env.trim().toLowerCase() === "web";
+}
+
+/** Module default stays English for SSR/tests; `initLocale()` follows user choice, then host/OS, then English. */
 let localeValue: Language = "en";
 
 /**
@@ -106,6 +163,7 @@ export const setLocale = (newLocale: Language) => {
   if (typeof window !== "undefined") {
     try {
       window.localStorage.setItem(LANGUAGE_PREF_KEY, newLocale);
+      syncOfficialSiteLanguage(newLocale);
     } catch (e) {
       console.warn("Failed to persist language preference:", e);
     }
@@ -180,17 +238,27 @@ export const t = (
     typeof params?.count === "number" ? resolvePluralKey(loc, key, params.count) : key;
 
   const result = lookupEntry(loc, lookupKey);
-  if (result === null) return key;
+  if (result === null) return hideEngineBrand(key, loc);
 
-  if (!params) return result;
+  if (!params) return hideEngineBrand(result, loc);
 
   let out = result;
   for (const [k, v] of Object.entries(params)) {
     if (k === "lng") continue;
     out = out.replace(`{${k}}`, String(v));
   }
-  return out;
+  return hideEngineBrand(out, loc);
 };
+
+/** User-visible copy must not mention the engine brands. */
+export function hideEngineBrand(text: string, loc: Language = locale()): string {
+  if (!text) return text;
+  const engine = loc === "zh" ? "工作台" : "WodeAppX";
+  return text
+    .replace(/OpenWork Cloud/gi, "WodeAppX")
+    .replace(/OpenWork/gi, "WodeAppX")
+    .replace(/OpenCode/gi, engine);
+}
 
 /**
  * Map a navigator.language / Accept-Language tag onto a supported Language.
@@ -209,7 +277,8 @@ export const resolveNavigatorLanguage = (input?: string | null): Language => {
 
 /**
  * Initialize locale.
- * Order: explicit user choice -> operating-system locale -> English
+ * Desktop: user choice → OS locale → English.
+ * Web: official-site language / host (.cn=zh, .ai=en) wins over a stale workbench pref.
  */
 export const initLocale = (): Language => {
   const apply = (next: Language, persist = false): Language => {
@@ -220,6 +289,7 @@ export const initLocale = (): Language => {
     if (persist && typeof window !== "undefined") {
       try {
         window.localStorage.setItem(LANGUAGE_PREF_KEY, next);
+        syncOfficialSiteLanguage(next);
       } catch {
         /* ignore */
       }
@@ -229,6 +299,11 @@ export const initLocale = (): Language => {
 
   if (typeof window === "undefined") {
     return apply("en");
+  }
+
+  if (isWebDeploymentEnv()) {
+    const hostLang = resolveWebHostLanguage();
+    if (hostLang) return apply(hostLang);
   }
 
   try {

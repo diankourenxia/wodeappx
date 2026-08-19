@@ -10,6 +10,7 @@ import {
   listWodeAppRuntimeProfiles,
   readWodeAppRuntimeProfileForSession,
   setWodeAppRuntimeProfilesFromBrandAgents,
+  resolveOpenCodePromptAgent,
   wodeAppRuntimeProfileAgentId,
   __testing,
 } from "../wodeapp/wodeapp-runtime-profile";
@@ -30,7 +31,7 @@ describe("WodeApp runtime profiles", () => {
 
     const profile = readWodeAppRuntimeProfileForSession("workspace-1", "session-1");
     expect(profile?.id).toBe(WODEAPP_WYNNE_RUNTIME_PROFILE_ID);
-    expect(wodeAppRuntimeProfileAgentId(profile)).toBe(WODEAPP_WYNNE_RUNTIME_PROFILE_ID);
+    expect(wodeAppRuntimeProfileAgentId(profile)).toBeUndefined();
 
     const context = buildWodeAppRuntimeProfileSystemContext(profile);
     expect(context).toContain('profile="wynne-brand-agent"');
@@ -44,6 +45,73 @@ describe("WodeApp runtime profiles", () => {
     expect(wodeAppRuntimeProfileAgentId(null)).toBeUndefined();
   });
 
+  test("custom sidebar agents stay in system context and never become OpenCode agent ids", () => {
+    setWodeAppRuntimeProfilesFromBrandAgents([
+      {
+        id: "custom-memo-helper",
+        name: "备忘录助手",
+        brandId: "custom",
+        samplePrompt: "记下待办，打开就能查。",
+        enabled: true,
+      },
+    ]);
+    expect(bindWodeAppRuntimeProfileToSession(
+      "workspace-1",
+      "session-memo",
+      "custom-memo-helper",
+    )).toBe(true);
+    const profile = readWodeAppRuntimeProfileForSession("workspace-1", "session-memo");
+    expect(profile?.name).toBe("备忘录助手");
+    expect(wodeAppRuntimeProfileAgentId(profile)).toBeUndefined();
+    expect(resolveOpenCodePromptAgent(profile, "custom-memo-helper")).toBeUndefined();
+    expect(resolveOpenCodePromptAgent(profile, "build")).toBe("build");
+    const context = buildWodeAppRuntimeProfileSystemContext(profile);
+    expect(context).toContain('<product_agent id="custom-memo-helper">');
+    expect(context).toContain("记下待办，打开就能查。");
+  });
+
+  test("selected custom agent uses its published project as the identity base", () => {
+    setWodeAppRuntimeProfilesFromBrandAgents([
+      {
+        id: "custom-memo-helper",
+        name: "备忘录助手",
+        brandId: "custom",
+        samplePrompt: "记下待办，打开就能查。",
+        projectId: "97c47826-2361-41f3-becd-c0a626042b3b",
+        launchUrl: "https://xn--7frz1mmxf7oa71h.wodeapp.cn",
+        enabled: true,
+      },
+    ]);
+    bindWodeAppRuntimeProfileToSession("workspace-1", "session-memo", "custom-memo-helper");
+    const context = buildWodeAppRuntimeProfileSystemContext(
+      readWodeAppRuntimeProfileForSession("workspace-1", "session-memo"),
+    );
+    expect(context).toContain('<product_agent id="custom-memo-helper">');
+    expect(context).toContain("备忘录助手");
+    expect(context).toContain("记下待办，打开就能查。");
+    expect(context).toContain("这个智能体的项目：https://xn--7frz1mmxf7oa71h.wodeapp.cn");
+    expect(context).toContain("projectId：97c47826-2361-41f3-becd-c0a626042b3b");
+    expect(context).not.toContain("添加 xxx");
+    expect(context).not.toContain("禁止再建");
+    expect(context).not.toContain("禁止 create_project");
+  });
+
+  test("binds product agents for later turns without passing them as OpenCode agent ids", () => {
+    setWodeAppRuntimeProfilesFromBrandAgents([]);
+    expect(bindWodeAppRuntimeProfileToSession(
+      "workspace-1",
+      "session-image",
+      "visual-generation",
+    )).toBe(true);
+    const profile = readWodeAppRuntimeProfileForSession("workspace-1", "session-image");
+    expect(profile?.name).toBe("图片智能体");
+    expect(wodeAppRuntimeProfileAgentId(profile)).toBeUndefined();
+    const context = buildWodeAppRuntimeProfileSystemContext(profile);
+    expect(context).toContain('<product_agent id="visual-generation">');
+    expect(context).toContain("wodeapp_batch_image_prepare");
+    expect(context).not.toContain("knowledge_search");
+  });
+
   test("fails closed for unknown profiles", () => {
     expect(findWodeAppRuntimeProfile("unknown-profile")).toBeNull();
     expect(bindWodeAppRuntimeProfileToSession("workspace-1", "session-1", "unknown-profile")).toBe(false);
@@ -53,6 +121,8 @@ describe("WodeApp runtime profiles", () => {
     setWodeAppRuntimeProfilesFromBrandAgents([]);
     const shippedIds = listWodeAppRuntimeProfiles().map((profile) => profile.id);
     expect(shippedIds).toContain("beauty-industry-agent");
+    expect(shippedIds).toContain("visual-generation");
+    expect(shippedIds).toContain("video-generation");
     expect(shippedIds).not.toContain("home-textile-industry-agent");
     expect(shippedIds).not.toContain(WODEAPP_WYNNE_RUNTIME_PROFILE_ID);
 

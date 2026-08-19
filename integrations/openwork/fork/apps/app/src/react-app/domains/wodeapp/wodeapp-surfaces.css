@@ -7519,6 +7519,129 @@ button.wx-feishu-commerce-source.wx-wynne-brand-connector:hover {
   }
 }
 
+.wx-plaza {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.wx-plaza-filters {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid #e4e8f0;
+  border-radius: 10px;
+  background: #f6f7fb;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.wx-plaza-publish {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #e4e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.wx-plaza-publish-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 140px) minmax(0, 1fr);
+  gap: 10px 12px;
+  min-width: 0;
+}
+
+.wx-plaza-publish-grid label,
+.wx-plaza-colors label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.wx-plaza-publish-grid span,
+.wx-plaza-colors span,
+.wx-plaza-local > span {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.wx-plaza-publish-grid input,
+.wx-plaza-publish-grid select,
+.wx-plaza-publish-grid textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid #e4e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2633;
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+.wx-plaza-span {
+  grid-column: 1 / -1;
+}
+
+.wx-plaza-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.wx-plaza-colors input[type="color"] {
+  width: 48px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #e4e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.wx-plaza-local {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.wx-plaza-local-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.wx-plaza-publish-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  position: sticky;
+  bottom: 8px;
+  z-index: 2;
+  padding-top: 4px;
+}
+
+.wx-plaza-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #9aa3b2;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 900px) {
+  .wx-plaza-publish-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Codex-style activity title: soft light band sweeps across muted text.
    Only background-position animates — cheap, one live row at a time. */
 @keyframes wapp-tool-activity-shimmer {
@@ -7554,4 +7677,192 @@ button.wx-feishu-commerce-source.wx-wynne-brand-connector:hover {
     background: none;
     -webkit-text-fill-color: currentColor;
   }
+}
+
+.wx-add-agent-dialog {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: calc(100dvh - 48px);
+}
+
+.wx-add-agent-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow: auto;
+  padding: 4px 0 8px;
+}
+
+.wx-add-agent-status,
+.wx-add-agent-notice {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.wx-add-agent-status {
+  color: #b42318;
+}
+
+.wx-add-agent-notice {
+  color: #027a48;
+}
+
+.wx-add-agent-list,
+.wx-add-agent-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.wx-add-agent-list h3,
+.wx-add-agent-form span {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #667085;
+}
+
+.wx-add-agent-list p,
+.wx-add-agent-form > p {
+  margin: 0;
+  font-size: 13px;
+  color: #667085;
+}
+
+.wx-add-agent-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 8px 0;
+}
+
+.wx-add-agent-row > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wx-add-agent-row strong {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.wx-add-agent-row span {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 400;
+  color: #8d95a3;
+}
+
+.wx-add-agent-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.wx-add-agent-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #e4e8f0;
+  border-radius: 8px;
+  resize: vertical;
+  font: inherit;
+}
+
+.wx-manage-agent-dialog {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: min(880px, calc(100vw - 32px));
+  max-width: min(880px, calc(100vw - 32px));
+  height: min(760px, calc(100dvh - 48px));
+  max-height: calc(100dvh - 48px);
+}
+
+.wx-manage-agent-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  flex: 1 1 auto;
+}
+
+.wx-manage-agent-detail {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 16px;
+}
+
+.wx-manage-agent-detail p,
+.wx-manage-agent-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #667085;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.wx-manage-agent-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.wx-manage-agent-field:has(textarea) {
+  flex: 1 1 auto;
+}
+
+.wx-manage-agent-field span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #667085;
+}
+
+.wx-manage-agent-title,
+.wx-manage-agent-desc {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  color: #1d2939;
+  font: inherit;
+}
+
+.wx-manage-agent-title {
+  min-height: 38px;
+  padding: 8px 10px;
+}
+
+.wx-manage-agent-field .wx-manage-agent-desc {
+  flex: 1 1 auto;
+  min-height: 280px;
+  padding: 10px 12px;
+  resize: none;
 }

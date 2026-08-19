@@ -34,6 +34,7 @@ import {
 import { filterDigitalAssetsForMention } from "@/react-app/domains/wodeapp/wodeapp-assets-surface";
 import { findDigitalAssetByMentionValue } from "@/react-app/domains/wodeapp/digital-assets-store";
 import { rememberAssetMention, resolveAssetMentionById } from "@/react-app/domains/wodeapp/wodeapp-workbench-context";
+import { formatWodeAppAgentDisplayName, resolveWodeAppBuiltinAgentId } from "@/react-app/domains/wodeapp/runtime-projects";
 import "@/react-app/domains/wodeapp/wodeapp-surfaces.css";
 
 type MentionItem = {
@@ -222,14 +223,18 @@ function isNonDefaultAgent(agent: Agent) {
 const BUILTIN_AGENT_LABELS: Record<string, string> = {
   build: "执行智能体",
   plan: "计划智能体",
-  "wynne-brand-agent": "Wynne 品牌智能体",
 };
 
 export function formatAgentDisplayName(name: string): string {
-  return (
-    BUILTIN_AGENT_LABELS[name] ??
-    name.charAt(0).toUpperCase() + name.slice(1)
-  );
+  const builtinId = resolveWodeAppBuiltinAgentId(name) || (BUILTIN_AGENT_LABELS[name] ? name : null);
+  if (builtinId) {
+    const key = `wodeappx.agent.${builtinId}.name`;
+    const localized = t(key);
+    if (localized && localized !== key) return localized;
+  }
+  return formatWodeAppAgentDisplayName(name)
+    ?? BUILTIN_AGENT_LABELS[name]
+    ?? name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 /**
@@ -2112,8 +2117,8 @@ export function ReactSessionComposer(props: ComposerProps) {
               placeholder={
                 shellConfig.wodeappWorkbench
                   ? props.busy
-                    ? "运行中可继续追加，完成后自动发送…"
-                    : "随心输入，/ 唤起命令，@ 引用技能与素材…"
+                    ? t("composer.workbench_busy")
+                    : t("composer.workbench_placeholder")
                   : t("composer.placeholder")
               }
               onChange={props.onDraftChange}

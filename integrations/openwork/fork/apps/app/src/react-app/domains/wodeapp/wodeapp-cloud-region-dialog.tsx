@@ -128,7 +128,6 @@ export function WodeAppCloudLoginWaitingDialog({
         <p className="wx-cloud-region-copy">
           {initializing ? "初始化中" : "登录完成后会自动回到这里。"}
         </p>
-        {origin && !initializing ? <p className="wx-cloud-login-waiting-origin">{origin}</p> : null}
         <button
           type="button"
           className="wx-login-dialog-primary wx-cloud-login-waiting-cancel"

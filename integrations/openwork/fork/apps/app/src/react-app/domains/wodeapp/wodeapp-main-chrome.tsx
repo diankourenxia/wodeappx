@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Copy, Flag, Palette, Settings, Smartphone } from "lucide-react";
 
 import { LANGUAGE_OPTIONS, currentLocale, isLanguage, setLocale, t } from "@/i18n";
+import { isWebDeployment } from "@/app/lib/openwork-deployment";
 import type { WodeAppSurface } from "./wodeapp-types";
 import { WODEAPP_NAV_ITEMS } from "./wodeapp-types";
 import type { WodeAppSkinId } from "./wodeapp-skins";
@@ -14,14 +15,14 @@ import { WodeAppSkinPickerDialog } from "./wodeapp-skin-picker-dialog";
 import { WodeAppPerfHud } from "./wodeapp-perf-hud";
 import { WODEAPP_MOBILE_REMOTE_ENABLED } from "./wodeapp-mobile-remote-feature";
 
-const SURFACE_LABELS: Record<WodeAppSurface, string> = {
-  agents: "默认智能体",
-  assets: "数字资产",
-  schedule: "自动任务",
-  capabilities: "能力中心",
-  plugins: "插件",
-  capture: "内容抓取",
-  account: "账号",
+const SURFACE_LABEL_KEYS: Record<WodeAppSurface, string> = {
+  agents: "wodeappx.nav.agents",
+  assets: "wodeappx.nav.assets",
+  schedule: "wodeappx.nav.schedule",
+  capabilities: "wodeappx.nav.capabilities",
+  plugins: "wodeappx.nav.plugins",
+  capture: "wodeappx.nav.capture",
+  account: "wodeappx.nav.account",
 };
 
 /** Topbar 「上报」— cloud ingest still WIP; flip when ready to ship. */
@@ -51,14 +52,14 @@ export function WodeAppMainChrome({
   skin,
 }: WodeAppMainChromeProps) {
   const navigate = useNavigate();
-  const deskAgentsLabel = productDesk === "supor" ? "苏泊尔智能体" : "默认智能体";
+  const deskAgentsLabel = productDesk === "supor" ? t("wodeappx.nav.agents_supor") : t("wodeappx.nav.agents");
   const surfaceLabel =
     activeSurfaceLabel
-    || (activeSurface === "agents" ? deskAgentsLabel : SURFACE_LABELS[activeSurface]);
+    || (activeSurface === "agents" ? deskAgentsLabel : t(SURFACE_LABEL_KEYS[activeSurface]));
   const [copyBusy, setCopyBusy] = useState(false);
   const [reportBusy, setReportBusy] = useState(false);
   const [skinPickerOpen, setSkinPickerOpen] = useState(false);
-  const visibleSessionId = activeSurface === "agents" ? (sessionId?.trim() || "") : "";
+  const visibleSessionId = !isWebDeployment() && activeSurface === "agents" ? (sessionId?.trim() || "") : "";
 
   useEffect(() => {
     const openSkinPicker = () => setSkinPickerOpen(true);
@@ -110,7 +111,7 @@ export function WodeAppMainChrome({
             className="wapp-breadcrumb-link"
             onClick={() => window.dispatchEvent(new Event("wodeapp:focus-agents"))}
           >
-            wodeappx
+            {isWebDeployment() ? "WodeAppX" : "wodeappx"}
           </button>
           <span>/</span>
           <strong>{surfaceLabel}</strong>
@@ -121,10 +122,10 @@ export function WodeAppMainChrome({
                 className="wapp-session-id"
                 onClick={() => void handleCopySessionId()}
                 disabled={copyBusy}
-                title={`点击复制对话 ID：${visibleSessionId}`}
-                aria-label={`复制对话 ID ${visibleSessionId}`}
+                title={t("wodeappx.chrome.copy_session", { id: visibleSessionId })}
+                aria-label={t("wodeappx.chrome.copy_session_aria", { id: visibleSessionId })}
               >
-                <span className="wapp-session-id-kicker">对话</span>
+                <span className="wapp-session-id-kicker">{t("wodeappx.chrome.session")}</span>
                 <code className="wapp-session-id-value">{visibleSessionId}</code>
                 <Copy aria-hidden className="wapp-session-id-icon" />
               </button>
@@ -182,7 +183,7 @@ export function WodeAppMainChrome({
             type="button"
             className="wapp-icon-button"
             aria-label={t("wodeappx.chrome.settings")}
-            onClick={() => navigate("/settings/service")}
+            onClick={() => navigate(isWebDeployment() ? "/settings/appearance" : "/settings/service")}
           >
             <Settings aria-hidden />
           </button>
@@ -216,5 +217,6 @@ export function WodeAppMainChrome({
 }
 
 export function wodeappSurfaceLabel(surface: WodeAppSurface): string {
-  return WODEAPP_NAV_ITEMS.find((item) => item.id === surface)?.label ?? SURFACE_LABELS[surface];
+  const item = WODEAPP_NAV_ITEMS.find((entry) => entry.id === surface);
+  return t(item?.labelKey ?? SURFACE_LABEL_KEYS[surface]);
 }

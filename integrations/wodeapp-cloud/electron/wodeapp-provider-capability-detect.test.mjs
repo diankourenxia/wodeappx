@@ -119,6 +119,40 @@ test("collects volcano/deepseek/dashscope from project env without UI paste", as
   assert.equal(leaked.includes("ark-fixture-bbbbbbbbbbbb"), false);
 });
 
+test("custom OpenAI-compatible pair is collected and probed via /models", async () => {
+  const secrets = await collectProviderSecrets({
+    envMap: new Map([
+      ["MY_PROXY_API_KEY", "sk-my-proxy-fixture"],
+      ["MY_PROXY_BASE_URL", "https://proxy.example/v1"],
+      ["MY_PROXY_LABEL", "我的代理"],
+    ]),
+    envOrigins: new Map([["MY_PROXY_API_KEY", "desktop-env"]]),
+    authMap: new Map(),
+    mediaFile: { version: 1, providers: {} },
+    processEnv: {},
+    customVendors: [],
+  });
+  const custom = secrets.find((item) => item.id === "custom-my-proxy");
+  assert.ok(custom);
+  assert.equal(custom.label, "我的代理");
+  assert.equal(custom.modelsUrl, "https://proxy.example/v1/models");
+  assert.equal(custom.custom, true);
+
+  const probed = await probeProviderSecret(custom, {
+    fetchImpl: async (url) => {
+      assert.equal(url, "https://proxy.example/v1/models");
+      return {
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ data: [{ id: "openai/gpt-5.6-sol" }] }),
+      };
+    },
+  });
+  assert.equal(probed.probeStatus, "ok");
+  assert.equal(probed.models[0].id, "openai/gpt-5.6-sol");
+  assert.equal(JSON.stringify(probed).includes("sk-my-proxy-fixture"), false);
+});
+
 test("kling needs both access and secret from project env", async () => {
   const incomplete = await collectProviderSecrets({
     envMap: new Map([["KLING_ACCESS_KEY", "kling-ak-fixture"]]),

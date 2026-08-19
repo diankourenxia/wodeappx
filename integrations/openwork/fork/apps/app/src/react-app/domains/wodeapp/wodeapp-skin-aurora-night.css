@@ -137,7 +137,7 @@
   letter-spacing: .18em;
 }
 .wapp-skin-aurora-night .wapp-brand-spacer::after {
-  content: "极光夜航";
+  content: attr(data-skin-title);
   display: block;
   padding: 2px 6px 12px;
   color: var(--wapp-aurora-sidebar-icon);

@@ -55,6 +55,16 @@ describe("session scroll clip recovery", () => {
     expect(source).toContain("Default trailing window drops the oldest visible row on append");
     expect(source).toContain("prev >= INITIAL_HISTORY_WINDOW");
     expect(source).toContain("captureScrollAnchor()");
+    expect(source).toContain("shouldClearHistoryWindowAnchorOnAppend");
+    expect(source).toContain("pendingDistanceFromBottomRef.current = null");
+  });
+
+  test("follow-up send forces sticky tail instead of a mid-list offset", () => {
+    const source = read("fork/apps/app/src/react-app/domains/session/surface/scroll-controller.ts");
+    expect(source).toContain("shouldStickToBottomOnNewUserMessage");
+    expect(source).toContain("Follow-up send: always chase the tail");
+    expect(source).toContain("lastGestureAtRef.current = 0");
+    expect(source).toContain("useLayoutEffect");
   });
 });
 

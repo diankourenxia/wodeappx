@@ -1,7 +1,7 @@
 # WodeAppX — Product Hunt Launch Kit
 
 > PH 主文案用英文。素材在 `docs/promo/product-hunt/`。  
-> 仓：https://github.com/diankourenxia/wodeappx（**已 public**；正式包 `v1.0.0`）  
+> 仓：https://github.com/diankourenxia/wodeappx（**已 public**；正式包 `v1.0.3`）  
 > 站点：https://x.wodeapp.ai/  
 > 品牌：开源对外 **WodeAppX**。主句与官网一致：**Customize the agent. Mix and match models.**
 
@@ -11,12 +11,12 @@
 
 | 闸门 | 2026-08-17 晚实证 | 还差 |
 |---|---|---|
-| macOS `.app` 公证 | arm64 + Intel x64 均 Notarized Developer ID，挂在 `v1.0.0` | DMG 文件本身未签名（打开后跑里面的 app 即可） |
+| macOS `.app` 公证 | arm64 + Intel x64 均 Notarized Developer ID，挂在 `v1.0.3` | DMG 文件本身未签名（打开后跑里面的 app 即可） |
 | `pnpm open-source:check` | PASS（1 warning：OpenWork 版本号与包版本不一致） | — |
 | First Mile / 能力表 | 单测过；公证 arm64 包活测「你好」过 | Intel / Windows 真机 First Mile 未跑 |
 | i18n 门禁 | `check-i18n-readiness` PASS | — |
-| 独立仓 | public；orphan `0c69a92` = `v1.0.0` | 日常仍改 monorepo 再 export |
-| 正式 `v*` Release | https://github.com/diankourenxia/wodeappx/releases/tag/v1.0.0 四平台 | 不要下旧预发布 CI Mac 包 |
+| 独立仓 | public | 日常仍改 monorepo 再 export |
+| 正式 `v*` Release | https://github.com/diankourenxia/wodeappx/releases/tag/v1.0.3 | 官网直链 `wodeapp.cn/downloads/wodeappx/`；不要下旧预发布 CI Mac 包 |
 | Product Hunt Publish | 物料齐 | 未点 Publish |
 
 ---

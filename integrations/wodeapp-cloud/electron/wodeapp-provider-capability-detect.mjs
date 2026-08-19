@@ -16,6 +16,7 @@ import {
   loadDesktopKeysStore,
   pinOpenworkEnvStore,
 } from "./desktop-keys-store.mjs";
+import { listCustomVendorPairsFromEnv } from "./desktop-custom-vendors.mjs";
 
 /** Same merge order as sync-byok-from-wodeapp-server.mjs: later files win. */
 export const MONOREPO_ENV_RELATIVE_PATHS = [".env", "server/.env", "runtime-server/.env"];
@@ -464,6 +465,14 @@ export async function collectProviderSecrets(input = {}) {
   const authMap = input.authMap || await loadAuthSecrets(input.userDataDir, input.accountId || "anonymous");
   const mediaFile = input.mediaFile || await loadMediaByokFile();
   const collected = [];
+  let customVendors = Array.isArray(input.customVendors) ? input.customVendors : null;
+  if (!customVendors) {
+    customVendors = [];
+    if (!input.envMap || input.homeDir) {
+      const { store } = await loadDesktopKeysStore(input.homeDir);
+      customVendors = store.customVendors || [];
+    }
+  }
 
   for (const spec of PROVIDER_PROBE_SPECS) {
     const picked = pickSecret(spec, envMap, authMap, mediaFile, processEnv, origins);
@@ -491,6 +500,23 @@ export async function collectProviderSecrets(input = {}) {
       apiKey: picked.apiKey,
       assumed: spec.assumed,
       keyOrigin: picked.keyOrigin || (ready ? "media-byok" : ""),
+    });
+  }
+
+  for (const pair of listCustomVendorPairsFromEnv({
+    envMap,
+    processEnv,
+    customVendors,
+    origins,
+  })) {
+    if (collected.some((item) => item.id === pair.id)) continue;
+    collected.push({
+      id: pair.id,
+      label: pair.name,
+      apiKey: pair.apiKey,
+      modelsUrl: pair.modelsUrl,
+      keyOrigin: pair.keyOrigin || "desktop-env",
+      custom: true,
     });
   }
 

@@ -13,7 +13,7 @@ export const BROWSER_TOOL_DESCRIPTIONS = {
   status: "Check the WodeAppX Chrome extension connection, active local transport (Native Messaging or localhost compatibility fallback), and current browser capabilities/workflow. Call this first for every explicit Chrome task before claiming Chrome is unavailable or trying shell/CDP ports.",
   tabs: "List tabs from one connected Chrome client. Bind the returned clientId and exact tabId once and reuse them for the task; never guess either id.",
   openUrl: "Open a URL in Chrome or navigate one exact tab. After navigation, read the page before interacting.",
-  readPage: "Observe one Chrome tab and return title, URL, visible text, headings, plus a bounded structured interactiveElements snapshot with exact nodeIds. Use before every action and again afterward to verify.",
+  readPage: "Observe one Chrome tab and return title, URL, full page text, headings, plus a complete interactiveElements snapshot with exact nodeIds, selectors, and rects. Defaults are 12000 characters and 240 controls; do not ask for a compressed snapshot. Use before every action and again afterward to verify.",
   click: "Click exactly one current element in an exact Chrome tab. Prefer nodeId from the latest read_page snapshot. CSS and exact text fallbacks must resolve to one visible element or the tool fails closed. Click once, then verify.",
   type: "Enter text into exactly one current editable element. Prefer nodeId from the latest read_page snapshot; selectors must be unique. Avoid Enter unless submission is intended, then verify.",
   key: "Send a real keyboard event when possible. Because Enter or shortcuts may submit or mutate state, use them only when the requested action authorizes that consequence.",

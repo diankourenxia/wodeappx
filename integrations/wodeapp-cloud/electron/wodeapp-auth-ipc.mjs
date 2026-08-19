@@ -1,4 +1,6 @@
 import { app, ipcMain, BrowserWindow } from "electron";
+import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   aiProxyBaseUrl,
   clearWodeAppConfig,
@@ -49,12 +51,60 @@ import {
   bootstrapDesktopKeysFromDisk,
   clearProviderCapabilityProbeCache,
   detectConfiguredProviderCapabilities,
+  probeProviderSecret,
   warmupConfiguredProviderCapabilities,
 } from "./wodeapp-provider-capability-detect.mjs";
 import { hasDesktopLocalVendorKeys, pinOpenworkEnvStore } from "./desktop-keys-store.mjs";
+import {
+  removeCustomVendor,
+  upsertCustomVendor,
+} from "./desktop-custom-vendors.mjs";
 
 pinOpenworkEnvStore();
 await bootstrapDesktopKeysFromDisk({ skipMonorepo: app.isPackaged });
+
+async function refreshManagedProvidersAfterKeyChange() {
+  try {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const modelCandidates = [
+      path.join(here, "../wodeapp-managed-models.mjs"),
+      path.join(here, "../../openwork/fork/apps/desktop/electron/wodeapp-managed-models.mjs"),
+      path.join(here, "../../../integrations/openwork/fork/apps/desktop/electron/wodeapp-managed-models.mjs"),
+    ];
+    const pathCandidates = [
+      path.join(here, "../wodeapp-runtime-account-paths.mjs"),
+      path.join(here, "../../openwork/fork/apps/desktop/electron/wodeapp-runtime-account-paths.mjs"),
+      path.join(here, "../../../integrations/openwork/fork/apps/desktop/electron/wodeapp-runtime-account-paths.mjs"),
+    ];
+    let models = null;
+    let accountPaths = null;
+    for (const filePath of modelCandidates) {
+      try {
+        models = await import(pathToFileURL(filePath).href);
+        break;
+      } catch {
+        // try next
+      }
+    }
+    for (const filePath of pathCandidates) {
+      try {
+        accountPaths = await import(pathToFileURL(filePath).href);
+        break;
+      } catch {
+        // try next
+      }
+    }
+    if (!models?.ensureManagedWodeAppOpencodeConfig || !accountPaths?.managedRuntimeDataPaths) return;
+    const config = await loadWodeAppConfig();
+    const accountId = typeof config?.user?.id === "string" && config.user.id.trim()
+      ? config.user.id.trim()
+      : "anonymous";
+    const dirs = accountPaths.managedRuntimeDataPaths(app.getPath("userData"), accountId);
+    await models.ensureManagedWodeAppOpencodeConfig([dirs.opencodeConfigDir], process.env);
+  } catch {
+    // Probe still works; engine picks the vendor up on next start.
+  }
+}
 
 const IPC_CHANNEL = "wodeapp:auth";
 export const WODEAPP_BROWSER_SESSION_PARTITION = "persist:openwork-browser";
@@ -617,6 +667,48 @@ export function registerWodeAppAuthIpc(deps) {
             providers: {},
             error: error instanceof Error ? error.message : String(error),
           };
+        }
+      }
+
+      case "saveCustomVendor": {
+        try {
+          const saved = await upsertCustomVendor(payload);
+          if (!saved.ok) return saved;
+          clearProviderCapabilityProbeCache();
+          await refreshManagedProvidersAfterKeyChange();
+          const probe = await probeProviderSecret({
+            id: saved.vendor.id,
+            label: saved.vendor.name,
+            apiKey: String(payload?.apiKey || "").trim(),
+            modelsUrl: saved.vendor.modelsUrl,
+          });
+          return {
+            ok: true,
+            vendor: {
+              id: saved.vendor.id,
+              name: saved.vendor.name,
+              keyPreview: probe.keyPreview || "",
+            },
+            probe: {
+              probeStatus: probe.probeStatus,
+              modelCount: Array.isArray(probe.models) ? probe.models.length : 0,
+              error: probe.error || "",
+            },
+          };
+        } catch (error) {
+          return { ok: false, error: error instanceof Error ? error.message : String(error) };
+        }
+      }
+
+      case "removeCustomVendor": {
+        try {
+          const removed = await removeCustomVendor(payload?.id);
+          if (!removed.ok) return removed;
+          clearProviderCapabilityProbeCache();
+          await refreshManagedProvidersAfterKeyChange();
+          return { ok: true, vendor: removed.vendor };
+        } catch (error) {
+          return { ok: false, error: error instanceof Error ? error.message : String(error) };
         }
       }
 

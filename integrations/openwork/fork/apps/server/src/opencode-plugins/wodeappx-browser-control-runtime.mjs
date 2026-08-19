@@ -7,7 +7,7 @@ import path from "node:path";
 
 const GLOBAL_KEY = "__wodeappxBrowserControlRuntime";
 const SERVER_NAME = "wodeappx-browser-control";
-const SERVER_VERSION = "0.7.0";
+const SERVER_VERSION = "0.7.2";
 const COMMAND_WAIT_MS_MAX = Number(process.env.WODEAPPX_BROWSER_COMMAND_WAIT_MS_MAX || 25000);
 const EXPECTED_EXTENSION_NAME = "WodeAppX Browser Control";
 const OFFICIAL_CHROME_WEB_STORE_EXTENSION_ID = "mfnpfomihliahiheofiijbmmhfeanhpb";
@@ -17,7 +17,7 @@ const BRIDGE_TOKEN = process.env.WODEAPPX_BROWSER_TOKEN || "";
 const NATIVE_SOCKET_PATH = process.env.WODEAPPX_BROWSER_NATIVE_SOCKET
   || path.join(os.homedir(), ".wodeappx", "browser-control.sock");
 const DEFAULT_TIMEOUT_MS = Number(process.env.WODEAPPX_BROWSER_COMMAND_TIMEOUT_MS || 30000);
-const MAX_RESULT_CHARS = Number(process.env.WODEAPPX_BROWSER_MAX_RESULT_CHARS || 12000);
+const MAX_RESULT_CHARS = Number(process.env.WODEAPPX_BROWSER_MAX_RESULT_CHARS || 200000);
 const CLIENT_STALE_MS = Number(process.env.WODEAPPX_BROWSER_CLIENT_STALE_MS || 45000);
 const CHROME_WEB_STORE_URL = process.env.WODEAPPX_BROWSER_STORE_URL
   || `https://chromewebstore.google.com/detail/wodeappx-browser-control/${OFFICIAL_CHROME_WEB_STORE_EXTENSION_ID}`;
@@ -59,6 +59,79 @@ function isLikelyGenerationAssetUrl(input) {
   } catch {
     return false;
   }
+}
+
+function prettyJson(value) {
+  return JSON.stringify(value, null, 2);
+}
+
+function fitResultToCharLimit(value, maxChars) {
+  if (prettyJson(value).length <= maxChars) return value;
+  const fitted = structuredClone(value);
+  const page = fitted?.page;
+  if (!page || typeof page !== "object") {
+    return {
+      clientId: fitted?.clientId || null,
+      truncated: true,
+      reason: "result_over_limit",
+    };
+  }
+  const elements = Array.isArray(page.interactiveElements) ? page.interactiveElements : [];
+  const originalText = String(page.text || "");
+  const budgets = [
+    [originalText.length, elements.length],
+    [Math.min(originalText.length, 12000), Math.min(elements.length, 240)],
+    [Math.min(originalText.length, 8000), Math.min(elements.length, 160)],
+    [Math.min(originalText.length, 4000), Math.min(elements.length, 80)],
+  ];
+  for (const [textLen, elCount] of budgets) {
+    page.text = originalText.slice(0, textLen);
+    page.textLength = page.text.length;
+    page.textTruncated = originalText.length > textLen || Boolean(page.textTruncated);
+    page.interactiveElements = elements.slice(0, elCount);
+    page.interactiveElementCount = page.interactiveElements.length;
+    page.interactiveElementsTruncated = elements.length > elCount || Boolean(page.interactiveElementsTruncated);
+    page.resultTruncated = true;
+    if (prettyJson(fitted).length <= maxChars) return fitted;
+  }
+  return {
+    clientId: fitted.clientId || null,
+    truncated: true,
+    reason: "result_over_limit",
+    page: {
+      ...page,
+      text: originalText.slice(0, 800),
+      textLength: Math.min(originalText.length, 800),
+      textTruncated: true,
+      interactiveElements: elements.slice(0, 16),
+      interactiveElementCount: Math.min(elements.length, 16),
+      interactiveElementsTruncated: true,
+      resultTruncated: true,
+    },
+  };
+}
+
+export function stringifyBrowserResult(value, maxChars = MAX_RESULT_CHARS) {
+  if (typeof value === "string") {
+    if (value.length <= maxChars) return value;
+    try {
+      return stringifyBrowserResult(JSON.parse(value), maxChars);
+    } catch {
+      return prettyJson({
+        truncated: true,
+        reason: "result_over_limit",
+        preview: value.slice(0, Math.max(0, maxChars - 120)),
+      });
+    }
+  }
+  const fitted = fitResultToCharLimit(value, maxChars);
+  const text = prettyJson(fitted);
+  if (text.length <= maxChars) return text;
+  return prettyJson({
+    clientId: fitted?.clientId || value?.clientId || null,
+    truncated: true,
+    reason: "result_over_limit",
+  });
 }
 
 function createRuntime() {
@@ -812,15 +885,13 @@ function createRuntime() {
   function waitForCommand(clientId, waitMs, req) {
     const immediate = takeQueuedCommand(clientId);
     if (immediate || waitMs <= 0) return Promise.resolve(immediate);
+    if (commandWaiters.has(clientId)) {
+      return Promise.resolve(takeQueuedCommand(clientId));
+    }
     return new Promise((resolve) => {
-      const existing = commandWaiters.get(clientId);
-      if (existing) {
-        clearTimeout(existing.timer);
-        existing.resolve(null);
-      }
       const timer = setTimeout(() => {
         if (commandWaiters.get(clientId)?.timer === timer) commandWaiters.delete(clientId);
-        resolve(null);
+        resolve(takeQueuedCommand(clientId));
       }, waitMs);
       const waiter = {
         timer,
@@ -831,11 +902,11 @@ function createRuntime() {
         },
       };
       commandWaiters.set(clientId, waiter);
-      req?.once?.("close", () => {
+      req?.once?.("aborted", () => {
         if (commandWaiters.get(clientId)?.timer !== timer) return;
         clearTimeout(timer);
         commandWaiters.delete(clientId);
-        resolve(null);
+        resolve(takeQueuedCommand(clientId));
       });
     });
   }
@@ -1114,8 +1185,7 @@ function createRuntime() {
   }
 
   function stringify(value) {
-    const text = typeof value === "string" ? value : JSON.stringify(value, null, 2);
-    return text.length > MAX_RESULT_CHARS ? `${text.slice(0, MAX_RESULT_CHARS)}\n...` : text;
+    return stringifyBrowserResult(value);
   }
 
   async function call(action, args = {}) {
@@ -1149,8 +1219,8 @@ function createRuntime() {
       case "read_page": {
         const out = await sendBrowserCommand("page.read", {
           tabId: args.tabId,
-          maxChars: Number(args.maxChars || 8000),
-          maxElements: Number(args.maxElements || 160),
+          maxChars: Number(args.maxChars || 12000),
+          maxElements: Number(args.maxElements || 240),
         }, args);
         return stringify({ clientId: out.clientId, ...out.result });
       }

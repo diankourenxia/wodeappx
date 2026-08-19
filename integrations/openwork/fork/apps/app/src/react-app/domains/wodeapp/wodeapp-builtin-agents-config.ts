@@ -26,6 +26,7 @@ export type WodeAppBuiltinAgentConfig = {
   defaultUrl?: string;
   entryPrompt?: string;
   samplePrompt: string;
+  tools?: string[];
   runtimeProfileId?: string;
   demoUrl?: string;
   autoSend?: boolean;
@@ -66,6 +67,11 @@ export function normalizeWodeAppBuiltinAgentConfig(input: unknown): WodeAppBuilt
   if (!id || !name || !KINDS.has(kind) || !samplePrompt.trim() || !ID_RE.test(id)) return null;
   const abilityKind = typeof record.abilityKind === "string" ? record.abilityKind.trim() : undefined;
   if (abilityKind && !ABILITY_KINDS.has(abilityKind)) return null;
+  const tools = Array.isArray(record.tools)
+    ? record.tools
+      .filter((item): item is string => typeof item === "string" && Boolean(item.trim()))
+      .map((item) => item.trim())
+    : undefined;
   return {
     id,
     name,
@@ -75,6 +81,7 @@ export function normalizeWodeAppBuiltinAgentConfig(input: unknown): WodeAppBuilt
     defaultUrl: typeof record.defaultUrl === "string" ? record.defaultUrl.trim() : undefined,
     entryPrompt: typeof record.entryPrompt === "string" ? record.entryPrompt.trim() : undefined,
     samplePrompt,
+    tools: tools?.length ? tools : undefined,
     runtimeProfileId: typeof record.runtimeProfileId === "string"
       ? record.runtimeProfileId.trim()
       : undefined,

@@ -35,6 +35,7 @@ test("stores known vendors, groq/custom suffixes, and still drops payment/jwt/db
   assert.equal(isVendorEnvKey("GROQ_API_KEY"), true);
   assert.equal(isVendorEnvKey("MY_PROXY_API_KEY"), true);
   assert.equal(isVendorEnvKey("MY_PROXY_BASE_URL"), true);
+  assert.equal(isVendorEnvKey("MY_PROXY_LABEL"), true);
   assert.equal(isVendorEnvKey("ANTHROPIC_AUTH_TOKEN"), true);
   assert.equal(isVendorEnvKey("WODEAPP_API_KEY"), false);
   assert.equal(isVendorEnvKey("JWT_SECRET"), false);
