@@ -1,10 +1,14 @@
 # 本机 Key 调用规范（能力工作台 = 对话同一条路）
 
-> **Last updated:** 2026-08-13
+> **Last updated:** 2026-08-19
 > 图片智能体 / 视频智能体 / 多模型智能体 **不得**另开一套模型表或直连厂商 HTTP。
 > 列表和调用已经规范化；本文件只补「未登录时用本机 Key」这一条泳道。
 > 对话引擎里 **WodeApp 只是供应商之一**：有平台 Key 才启用 `wodeapp`，本机 `keys.json` 里的火山 / DeepSeek / OpenRouter 等同样写入 OpenCode。
 > 选择器按**模型族**展示；发送前匹配探测到的真实线路（原厂直连优先，其次 OpenRouter，再次 WodeApp）。没出现在该 Key 的 `/models` 里就不猜。
+> 
+> **2026-08-19 更新**：桌面模型列表收成**一条 OpenAI 兼容行**。BYOK keys 和本机/兼容端点共用同一条 UI 行，不再有两套并列选择器（厂商目录 vs 自定义 OpenAI 兼容）。
+> 探测 GET {baseURL}/models（超时 3s，缓存 60s）。探测失败不出现在选择器里。仅成功通过。
+> apiKey **不写**入 models.json providers，pack JSON，或任何提交文件。secrets 只存 keys.json。
 
 ## 1. 一条路
 

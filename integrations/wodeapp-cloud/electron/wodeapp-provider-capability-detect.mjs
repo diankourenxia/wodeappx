@@ -21,7 +21,9 @@ import {
 export const MONOREPO_ENV_RELATIVE_PATHS = [".env", "server/.env", "runtime-server/.env"];
 
 const PROBE_TIMEOUT_MS = 8000;
+const UNIFIED_PROBE_TIMEOUT_MS = 3000;
 const CACHE_TTL_MS = 15 * 60 * 1000;
+const UNIFIED_PROBE_CACHE_TTL_MS = 60 * 1000;
 
 export const PROVIDER_PROBE_SPECS = [
   {
@@ -115,6 +117,9 @@ export const MEDIA_ONLY_SPECS = [
 
 /** @type {{ fingerprint: string, expiresAt: number, probes: object[] } | null} */
 let probeCache = null;
+
+/** @type {{ fingerprint: string, expiresAt: number, probe: object | null } | null} */
+let unifiedProbeCache = null;
 
 export function maskKeyPreview(value) {
   const raw = String(value ?? "").trim();
@@ -625,6 +630,126 @@ export async function detectConfiguredProviderCapabilities(input = {}) {
 
 export function clearProviderCapabilityProbeCache() {
   probeCache = null;
+  unifiedProbeCache = null;
+}
+
+/**
+ * Probe a unified OpenAI-compatible endpoint by trying all configured keys.
+ * Returns the first successful probe with merged models from all working keys,
+ * or null if no keys work.
+ */
+export async function probeUnifiedOpenAiCompatible(input = {}) {
+  const secrets = [...await collectProviderSecrets(input)];
+  if (secrets.length === 0) return null;
+
+  const fingerprint = credentialFingerprint(secrets);
+  const now = Date.now();
+  
+  if (!input.force && unifiedProbeCache && unifiedProbeCache.fingerprint === fingerprint && unifiedProbeCache.expiresAt > now) {
+    return unifiedProbeCache.probe;
+  }
+
+  const validProbes = [];
+  const keyOrigins = new Set();
+  const allModels = new Map();
+
+  for (const secret of secrets) {
+    if (!secret.modelsUrl || !secret.apiKey) {
+      if (secret.assumed) {
+        keyOrigins.add(secret.keyOrigin || "desktop-env");
+      }
+      continue;
+    }
+
+    try {
+      const result = await probeModelsUrl(secret.modelsUrl, secret.apiKey, {
+        ...input,
+        timeoutMs: UNIFIED_PROBE_TIMEOUT_MS,
+      });
+
+      if (result.ok) {
+        keyOrigins.add(secret.keyOrigin || "desktop-env");
+        const models = secret.id === "wodeapp"
+          ? extractCloudRegistryRecords(result.json)
+          : extractModelRecords(result.json);
+        
+        for (const model of models) {
+          if (!allModels.has(model.id)) {
+            allModels.set(model.id, model);
+          }
+        }
+        
+        validProbes.push({ 
+          vendorId: secret.id, 
+          label: secret.label, 
+          modelCount: models.length,
+          keyOrigin: secret.keyOrigin || "desktop-env",
+        });
+      }
+    } catch {
+      // Probe timeout or network failure — skip this key
+    }
+  }
+
+  const probe = validProbes.length > 0 ? {
+    id: "openai-compatible",
+    label: "OpenAI 兼容",
+    keyPreview: validProbes.map((p) => p.label).slice(0, 2).join(" + "),
+    keyOrigin: [...keyOrigins][0] || "desktop-env",
+    probeStatus: "ok",
+    models: [...allModels.values()],
+    _vendors: validProbes,
+  } : null;
+
+  unifiedProbeCache = {
+    fingerprint,
+    expiresAt: now + UNIFIED_PROBE_CACHE_TTL_MS,
+    probe,
+  };
+
+  return probe;
+}
+
+/**
+ * Detect capabilities with unified OpenAI-compatible row.
+ * Mode: "unified" (default) returns one OpenAI-compatible row.
+ * Mode: "legacy" returns separate vendor rows (for backward compat tests).
+ */
+export async function detectConfiguredProviderCapabilitiesUnified(input = {}) {
+  const mode = input.mode === "legacy" ? "legacy" : "unified";
+
+  if (mode === "legacy") {
+    return detectConfiguredProviderCapabilities(input);
+  }
+
+  const unifiedProbe = await probeUnifiedOpenAiCompatible(input);
+  const cloud = await collectCloudSecret(input);
+  
+  const probes = [];
+  
+  if (unifiedProbe) {
+    probes.push(unifiedProbe);
+  }
+  
+  if (cloud) {
+    const cloudProbe = await probeProviderSecret(cloud, input);
+    probes.push(cloudProbe);
+  }
+
+  // Add media-only providers that have no /models endpoint
+  const mediaSecrets = await collectProviderSecrets(input);
+  for (const secret of mediaSecrets) {
+    if (secret.assumed && !secret.modelsUrl) {
+      probes.push({
+        ...publicProbeBase(secret),
+        probeStatus: "configured",
+        assumed: secret.assumed,
+        models: [],
+      });
+    }
+  }
+
+  return { ok: true, cached: false, probes };
 }
 
 export async function warmupConfiguredProviderCapabilities(input = {}) {

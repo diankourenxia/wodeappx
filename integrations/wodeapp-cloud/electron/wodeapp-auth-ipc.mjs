@@ -49,6 +49,7 @@ import {
   bootstrapDesktopKeysFromDisk,
   clearProviderCapabilityProbeCache,
   detectConfiguredProviderCapabilities,
+  detectConfiguredProviderCapabilitiesUnified,
   warmupConfiguredProviderCapabilities,
 } from "./wodeapp-provider-capability-detect.mjs";
 import { hasDesktopLocalVendorKeys, pinOpenworkEnvStore } from "./desktop-keys-store.mjs";
@@ -626,11 +627,12 @@ export function registerWodeAppAuthIpc(deps) {
           const accountId = typeof config?.user?.id === "string" && config.user.id.trim()
             ? config.user.id.trim()
             : "anonymous";
-          const result = await detectConfiguredProviderCapabilities({
+          const result = await detectConfiguredProviderCapabilitiesUnified({
             userDataDir: app.getPath("userData"),
             accountId,
             config,
             force: payload?.force === true,
+            mode: payload?.mode || "unified",
           });
           return {
             ok: true,
