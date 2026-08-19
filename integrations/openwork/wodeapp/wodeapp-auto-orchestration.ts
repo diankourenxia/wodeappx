@@ -1,4 +1,5 @@
 import type { WodeAppBuiltinAgent } from "./runtime-projects";
+import { firstPromptForHandbook, resolveAgentHandbookRef } from "./wodeapp-builtin-agents-config";
 import type { WodeAppTaskPromptInput } from "./wodeapp-composer-handoff";
 
 /**
@@ -17,17 +18,18 @@ export function buildBuiltinAgentTask(
   agent: WodeAppBuiltinAgent,
   options?: { displayText?: string; autoSend?: boolean },
 ): WodeAppTaskPromptInput {
+  const handbook = resolveAgentHandbookRef({ id: agent.id, name: agent.name });
   const displayText =
     options?.displayText?.trim() ||
-    agent.entryPrompt?.trim() ||
-    `请按「${agent.name}」能力契约自动执行，缺的资料你再问我。`;
+    firstPromptForHandbook(handbook, agent.entryPrompt?.trim() || `请按「${agent.name}」能力契约自动执行，缺的资料你再问我。`);
 
   // Industry / brand with Runtime Profile still need orchestration + samplePrompt on first turn;
   // profile system context carries identity/policy/playbook across turns.
+  const handbookLine = handbook ? `手册：${handbook.path}。侧栏与首条提示指向同一份。` : "";
   const agentMessage =
     agent.kind === "integration"
       ? agent.samplePrompt
-      : [AUTO_ORCHESTRATION_INSTRUCTION, "", agent.samplePrompt].join("\n");
+      : [AUTO_ORCHESTRATION_INSTRUCTION, handbookLine, agent.samplePrompt].filter(Boolean).join("\n\n");
 
   return {
     displayText,

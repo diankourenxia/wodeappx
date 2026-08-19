@@ -120,3 +120,95 @@ export function listShippedBuiltinAgentIds(): string[] {
 }
 
 export const WODEAPP_SHIPPED_BUILTIN_AGENTS_FILE = normalizeWodeAppBuiltinAgentsFile(builtinAgentsFile);
+
+/** Official handbook files live in-repo. Do not compile markdown into types. */
+export const OFFICIAL_AGENT_HANDBOOK_IDS = ["visual-generation", "video-generation"] as const;
+
+export type AgentHandbookFrontmatter = {
+  id: string;
+  name: string;
+};
+
+export type AgentHandbookRef = {
+  path: string;
+  source: "official" | "user";
+  id: string;
+  name: string;
+};
+
+export function officialAgentHandbookRelPath(id: string): string {
+  return `docs/agents/${id}.md`;
+}
+
+export function userAgentHandbookRelPath(id: string): string {
+  return `~/.wodeapp/agents/${id}.md`;
+}
+
+export function parseAgentHandbookFrontmatter(text: string): AgentHandbookFrontmatter | null {
+  const match = String(text ?? "").match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) return null;
+  const block = match[1];
+  const id = block.match(/^id:\s*(.+)$/m)?.[1]?.trim() ?? "";
+  const name = block.match(/^name:\s*(.+)$/m)?.[1]?.trim() ?? "";
+  if (!id || !name) return null;
+  return { id, name };
+}
+
+/**
+ * Frontmatter must have both id and name. Missing either means the handbook
+ * is absent; the sidebar still opens from Layer JSON.
+ * Same id: later write (user) overrides earlier (official).
+ * Do not parse Skills / sites / tools sections.
+ */
+export function resolveAgentHandbookRef(input: {
+  id: string;
+  name?: string;
+  officialText?: string | null;
+  userText?: string | null;
+}): AgentHandbookRef | null {
+  const id = String(input.id ?? "").trim();
+  if (!id) return null;
+  if (input.userText) {
+    const fm = parseAgentHandbookFrontmatter(input.userText);
+    if (fm && fm.id === id) {
+      return { path: userAgentHandbookRelPath(id), source: "user", id: fm.id, name: fm.name };
+    }
+  }
+  if (input.officialText) {
+    const fm = parseAgentHandbookFrontmatter(input.officialText);
+    if (fm && fm.id === id) {
+      return { path: officialAgentHandbookRelPath(id), source: "official", id: fm.id, name: fm.name };
+    }
+  }
+  if ((OFFICIAL_AGENT_HANDBOOK_IDS as readonly string[]).includes(id)) {
+    return {
+      path: officialAgentHandbookRelPath(id),
+      source: "official",
+      id,
+      name: String(input.name ?? "").trim() || id,
+    };
+  }
+  return null;
+}
+
+/** Sidebar tile and first prompt share this exact string. */
+export function firstPromptForHandbook(ref: AgentHandbookRef | null, fallback = ""): string {
+  if (ref) return `阅读 ${ref.path}，按手册工作。`;
+  return String(fallback ?? "").trim();
+}
+
+export function listBuiltinAgentsWithWorkbench(
+  file: WodeAppBuiltinAgentsFile | null | undefined = WODEAPP_SHIPPED_BUILTIN_AGENTS_FILE,
+) {
+  return listEnabledWodeAppBuiltinAgentConfigs(file).map((agent) => {
+    const ref = resolveAgentHandbookRef({ id: agent.id, name: agent.name });
+    return {
+      id: agent.id,
+      name: agent.name,
+      abilityKind: agent.abilityKind,
+      defaultUrl: agent.defaultUrl,
+      canOpenWorkbench: Boolean(agent.defaultUrl || agent.abilityKind),
+      handbookPath: ref?.path ?? null,
+    };
+  });
+}

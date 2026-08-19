@@ -32,6 +32,15 @@ Layer 1  本机品牌     ~/.wodeapp/brand-agents.json           （用户/客�
 
 ---
 
+## 3. 智能体手册
+
+官方手册：仓库 `docs/agents/<id>.md`（进 git）。用户手册：本机 `~/.wodeapp/agents/<id>.md`（不进 git）。
+文头只要 `id` + `name`，与 Layer JSON 同一条。缺一个当手册不存在，侧栏仍靠旧 JSON 打开。
+三节固定顺序：目标和约束 / 仓库资源 / 使用示例。空节留空。不解析 Skills / 站点。
+侧栏点开与首轮提示引用**同一手册路径**。本机后写覆盖官方。启动只读 JSON；手册在选中时再读。
+
+本 hop 先落 `visual-generation`、`video-generation`。
+
 ## 3. 共同字段（两层都有）
 
 | 字段 | 含义 |
