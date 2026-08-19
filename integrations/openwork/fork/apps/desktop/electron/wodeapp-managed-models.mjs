@@ -306,7 +306,7 @@ function platformOrigin(env = {}) {
   return raw || "https://wodeapp.cn";
 }
 
-function normalizeUserProviders(override) {
+export function normalizeUserProviders(override) {
   const out = {};
   if (!override?.providers || typeof override.providers !== "object") return out;
   for (const [id, value] of Object.entries(override.providers)) {
@@ -319,10 +319,13 @@ function normalizeUserProviders(override) {
         if (mid) models[mid] = normalizeUserModelEntry(mid, modelValue);
       }
     }
+    // Strip apiKey — secrets stay only in keys.json
+    const options = value.options && typeof value.options === "object" ? { ...value.options } : {};
+    delete options.apiKey;
     out[key] = {
       npm: typeof value.npm === "string" && value.npm ? value.npm : "@ai-sdk/openai-compatible",
       name: typeof value.name === "string" && value.name ? value.name : key,
-      ...(value.options && typeof value.options === "object" ? { options: value.options } : {}),
+      ...(Object.keys(options).length ? { options } : {}),
       ...(Object.keys(models).length ? { models } : {}),
     };
   }
