@@ -178,6 +178,7 @@ describe("buildProviderCapabilitySnapshot", () => {
   });
 
   test("table labels ByteDance and Aliyun, pins DeepSeek and Kimi, and puts 通义百炼 in the list", () => {
+    expect(formatCapabilitySourceLabel("openai-compatible", "OpenAI Compatible")).toBe("OpenAI 兼容");
     expect(formatCapabilitySourceLabel("volcano", "火山方舟 ARK")).toBe("火山方舟（字节）");
     expect(formatCapabilitySourceLabel("dashscope", "通义百炼")).toBe("通义百炼（阿里）");
     const snapshot = buildProviderCapabilitySnapshot([
@@ -206,6 +207,7 @@ describe("buildProviderCapabilitySnapshot", () => {
     ]);
     const rows = mergeCapabilityTableRows(snapshot.sources);
     expect(rows.map((item) => item.id)).toEqual([
+      "openai-compatible",
       "deepseek",
       "moonshot",
       "volcano",
@@ -214,6 +216,7 @@ describe("buildProviderCapabilitySnapshot", () => {
       "replicate",
     ]);
     expect(rows.map((item) => item.label)).toEqual([
+      "OpenAI 兼容",
       "DeepSeek",
       "Kimi / Moonshot",
       "火山方舟（字节）",
@@ -241,12 +244,7 @@ describe("buildProviderCapabilitySnapshot", () => {
 
   test("unconfigured catalog rows still show known vendor capabilities", () => {
     const rows = mergeCapabilityTableRows([]);
-    expect(rows.find((item) => item.id === "deepseek")?.modalities).toEqual({
-      text: true,
-      image: false,
-      video: false,
-    });
-    expect(rows.find((item) => item.id === "moonshot")?.modalities).toEqual({
+    expect(rows.find((item) => item.id === "openai-compatible")?.modalities).toEqual({
       text: true,
       image: false,
       video: false,
@@ -261,8 +259,8 @@ describe("buildProviderCapabilitySnapshot", () => {
       image: false,
       video: true,
     });
-    expect(isCapabilitySourceConfigured(rows.find((item) => item.id === "deepseek")!)).toBe(false);
-    expect(capabilityConfigActionLabel(rows.find((item) => item.id === "deepseek")!)).toBe("去配置");
+    expect(isCapabilitySourceConfigured(rows.find((item) => item.id === "openai-compatible")!)).toBe(false);
+    expect(capabilityConfigActionLabel(rows.find((item) => item.id === "openai-compatible")!)).toBe("去配置");
   });
 
   test("logged-in WodeApp cloud marks 通义百炼 as 已配置, not 去配置", () => {
