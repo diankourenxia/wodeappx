@@ -202,6 +202,7 @@ export function listPromoWodeAppSkins(): readonly WodeAppSkinDefinition[] {
 }
 
 const WODEAPP_SKIN_STORAGE_KEY = "wodeappx.skin";
+export const WODEAPP_SKIN_CHANGED_EVENT = "wodeapp:skin-changed";
 
 /** Current product demo skin (workbench shell). Independent of WODEAPPX_EDITION. */
 export const WODEAPP_DEFAULT_SKIN_ID: WodeAppSkinId = "red-compact";
@@ -229,11 +230,34 @@ export function resolveSkinForBrandAgent(input: {
   return null;
 }
 
+export function parseWodeAppSkinFile(text: string | null | undefined): WodeAppSkinId | null {
+  try {
+    const parsed = JSON.parse(String(text ?? "")) as { id?: unknown };
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    const keys = Object.keys(parsed);
+    if (keys.length !== 1 || keys[0] !== "id") return null;
+    const id = typeof parsed.id === "string" ? parsed.id.trim() : "";
+    return isWodeAppSkinId(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+export function resolveWodeAppSkinId(input: {
+  fileId?: string | null;
+  cacheId?: string | null;
+}): WodeAppSkinId {
+  if (isWodeAppSkinId(input.fileId)) return input.fileId;
+  if (isWodeAppSkinId(input.cacheId)) return input.cacheId;
+  return WODEAPP_DEFAULT_SKIN_ID;
+}
+
 export function readStoredWodeAppSkin(): WodeAppSkinId {
   if (typeof window === "undefined") return WODEAPP_DEFAULT_SKIN_ID;
   try {
-    const stored = window.localStorage.getItem(WODEAPP_SKIN_STORAGE_KEY);
-    return isWodeAppSkinId(stored) ? stored : WODEAPP_DEFAULT_SKIN_ID;
+    const fileId = (window as Window & { __WODEAPP_SKIN_FILE_ID__?: string | null }).__WODEAPP_SKIN_FILE_ID__;
+    const cacheId = window.localStorage.getItem(WODEAPP_SKIN_STORAGE_KEY);
+    return resolveWodeAppSkinId({ fileId, cacheId });
   } catch {
     return WODEAPP_DEFAULT_SKIN_ID;
   }
@@ -242,8 +266,21 @@ export function readStoredWodeAppSkin(): WodeAppSkinId {
 export function storeWodeAppSkin(skin: WodeAppSkinId): void {
   if (typeof window === "undefined") return;
   try {
+    const previous = window.localStorage.getItem(WODEAPP_SKIN_STORAGE_KEY);
     window.localStorage.setItem(WODEAPP_SKIN_STORAGE_KEY, skin);
+    (window as Window & { __WODEAPP_SKIN_FILE_ID__?: string }).__WODEAPP_SKIN_FILE_ID__ = skin;
+    if (previous !== skin) {
+      window.dispatchEvent(new CustomEvent(WODEAPP_SKIN_CHANGED_EVENT, { detail: skin }));
+    }
   } catch {
     // The skin still applies for the current session when storage is unavailable.
+  }
+  const invoke = (
+    window as Window & {
+      __OPENWORK_ELECTRON__?: { invokeDesktop?: (command: string, payload: { id: string }) => Promise<unknown> };
+    }
+  ).__OPENWORK_ELECTRON__?.invokeDesktop;
+  if (typeof invoke === "function") {
+    void invoke("skinFileWrite", { id: skin });
   }
 }

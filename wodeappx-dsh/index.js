@@ -11,6 +11,7 @@ import {
   planEvolve,
   probeBridgeHealth,
 } from "./lib/core.js";
+import { getSkin, listSkins, setSkin } from "./lib/skin-store.js";
 
 export const name = "wodeappx-dsh";
 export const inject = ["tools"];
@@ -70,5 +71,32 @@ export function apply(ctx) {
       userConfirmed: { type: "boolean" },
     },
     async (input = {}) => (input.userConfirmed === true ? applyEvolve(input) : { ok: false, plan: planEvolve(input), error: "evolve requires userConfirmed" }),
+  ));
+  ctx.tools.register(tool(
+    "wodeappx_list_skins",
+    "Visible skins from wodeapp-skins.ts plus current id. No confirm. No new tokens.",
+    {},
+    async () => {
+      const health = await probeBridgeHealth();
+      return listSkins({ desktopUp: health.up === true });
+    },
+  ));
+  ctx.tools.register(tool(
+    "wodeappx_get_skin",
+    "Current skin id and label from ~/.wodeapp/skin.json. No confirm.",
+    {},
+    async () => getSkin(),
+  ));
+  ctx.tools.register(tool(
+    "wodeappx_set_skin",
+    "Write ~/.wodeapp/skin.json {id}. Requires userConfirmed. Does not launch Electron or write CSS.",
+    {
+      id: { type: "string" },
+      userConfirmed: { type: "boolean" },
+    },
+    async (input = {}) => {
+      const health = input.userConfirmed === true ? await probeBridgeHealth() : { up: false };
+      return setSkin(input, { desktopUp: health.up === true });
+    },
   ));
 }
