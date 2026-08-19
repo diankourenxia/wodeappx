@@ -1211,7 +1211,6 @@ const WODEAPP_DOMAIN_TEMPLATES = [
   "wodeapp-assistant-html-fence.ts",
   "wodeapp-provider-capability.ts",
   "wodeapp-provider-capability-panel.tsx",
-  "wodeapp-vendor-key-paste.ts",
   "wodeapp-agent-browser-state.ts",
   "wodeapp-automation-client.ts",
   "wodeapp-agent-handoff.ts",
