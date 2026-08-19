@@ -1,0 +1,27 @@
+{
+  "name": "wodeappx-dsh",
+  "version": "0.1.0",
+  "description": "Thin WodeAppX adapter for DeepSeek Harness. Not a second desktop.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "lib",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/diankourenxia/wodeappx.git"
+  },
+  "keywords": [
+    "dsh",
+    "wodeappx"
+  ]
+}
