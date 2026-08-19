@@ -21,7 +21,7 @@
     "typecheck:electron": "pnpm --dir ../server exec tsc -p ../desktop/tsconfig.electron.json --noEmit",
     "prepare:sidecar": "node ./scripts/prepare-sidecar.mjs",
     "prepare:browser-native-host": "node ../../../../scripts/build-browser-native-host.mjs",
-    "test": "node --test electron/browser-native-host.test.mjs electron/runtime.test.mjs electron/updater.test.mjs electron/remote-workspace.test.mjs electron/workspace-store.test.mjs"
+    "test": "node --test electron/browser-native-host.test.mjs electron/runtime.test.mjs electron/updater.test.mjs electron/remote-workspace.test.mjs electron/workspace-store.test.mjs electron/workspace-atomic-write.test.mjs"
   },
   "dependencies": {
     "sherpa-onnx": "1.13.4",

@@ -1,7 +1,7 @@
 {
   "name": "wodeappx",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Open-source self-evolving AI desktop you build (WodeAppX): operable skills; best models for image & video; local-first",
   "license": "Apache-2.0",
   "repository": {
@@ -29,7 +29,7 @@
     "ops:demo-prepare-newbie": "node scripts/ops-demo-prepare-newbie.mjs",
     "openwork:bootstrap": "node scripts/bootstrap-openwork.mjs",
     "openwork:patch": "pnpm openwork:patch:test && node scripts/apply-openwork-integration.mjs",
-    "openwork:patch:test": "node --test scripts/openwork-patch-text.test.mjs scripts/opencode-sidecar-version.test.mjs scripts/patch-opencode-dynamic-tools.test.mjs scripts/openwork-workspace-activation-patch.test.mjs scripts/openwork-electron-dev-patch.test.mjs scripts/filter-local-brand-agents.test.mjs scripts/pack-self-evolve-source.test.mjs scripts/self-evolve-guard-packaged-git.test.mjs scripts/wodeapp-self-evolve-source-bundle.test.mjs scripts/wodeapp-edition.test.mjs scripts/rewrite-updater-yml.test.mjs integrations/browser-control/tests/browser-agent-call.test.mjs integrations/openwork/fork/apps/desktop/electron/browser-native-host.test.mjs integrations/openwork/fork/apps/desktop/scripts/electron-after-pack.test.mjs integrations/openwork/fork/apps/desktop/electron/wodeapp-self-evolve-workspaces.test.mjs integrations/openwork/fork/apps/desktop/electron/wodeapp-supor-workspaces.test.mjs integrations/wodeapp-cloud/electron/login-bridge.test.mjs integrations/wodeapp-cloud/electron/wodeapp-local-runtime.test.mjs && node scripts/test-openwork-patch-idempotency.mjs",
+    "openwork:patch:test": "node --test scripts/openwork-patch-text.test.mjs scripts/opencode-sidecar-version.test.mjs scripts/patch-opencode-dynamic-tools.test.mjs scripts/openwork-workspace-activation-patch.test.mjs scripts/openwork-electron-dev-patch.test.mjs scripts/filter-local-brand-agents.test.mjs scripts/pack-self-evolve-source.test.mjs scripts/self-evolve-guard-packaged-git.test.mjs scripts/wodeapp-self-evolve-source-bundle.test.mjs scripts/wodeapp-edition.test.mjs scripts/rewrite-updater-yml.test.mjs integrations/browser-control/tests/browser-agent-call.test.mjs integrations/openwork/fork/apps/desktop/electron/browser-native-host.test.mjs integrations/openwork/fork/apps/desktop/scripts/electron-after-pack.test.mjs integrations/openwork/fork/apps/desktop/electron/wodeapp-self-evolve-workspaces.test.mjs integrations/openwork/fork/apps/desktop/electron/wodeapp-supor-workspaces.test.mjs integrations/openwork/fork/apps/desktop/electron/workspace-atomic-write.test.mjs integrations/wodeapp-cloud/electron/login-bridge.test.mjs integrations/wodeapp-cloud/electron/wodeapp-local-runtime.test.mjs && node scripts/test-openwork-patch-idempotency.mjs",
     "pack:self-evolve-source": "node scripts/pack-self-evolve-source.mjs",
     "openwork:patch-cloud": "node scripts/apply-wodeapp-cloud-integration.mjs",
     "check:skin-contrast": "node scripts/check-skin-contrast.mjs",

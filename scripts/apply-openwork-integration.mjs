@@ -1211,6 +1211,7 @@ const WODEAPP_DOMAIN_TEMPLATES = [
   "wodeapp-assistant-html-fence.ts",
   "wodeapp-provider-capability.ts",
   "wodeapp-provider-capability-panel.tsx",
+  "wodeapp-vendor-key-paste.ts",
   "wodeapp-agent-browser-state.ts",
   "wodeapp-automation-client.ts",
   "wodeapp-agent-handoff.ts",
@@ -1387,6 +1388,8 @@ const FORK_OWNED_OPENWORK_TEMPLATES = [
   ["fork/apps/desktop/electron/wodeapp-self-evolve-packaged.mjs", "apps/desktop/electron/wodeapp-self-evolve-packaged.mjs"],
   ["fork/apps/desktop/electron/wodeapp-self-evolve-workspaces.test.mjs", "apps/desktop/electron/wodeapp-self-evolve-workspaces.test.mjs"],
   ["fork/apps/desktop/electron/wodeapp-supor-workspaces.test.mjs", "apps/desktop/electron/wodeapp-supor-workspaces.test.mjs"],
+  ["fork/apps/desktop/electron/workspace-atomic-write.mjs", "apps/desktop/electron/workspace-atomic-write.mjs"],
+  ["fork/apps/desktop/electron/workspace-atomic-write.test.mjs", "apps/desktop/electron/workspace-atomic-write.test.mjs"],
   ["fork/apps/desktop/electron/wodeapp-edition.mjs", "apps/desktop/electron/wodeapp-edition.mjs"],
   ["fork/apps/desktop/electron/ipc-security.mjs", "apps/desktop/electron/ipc-security.mjs"],
   ["fork/apps/desktop/electron/ipc-security.test.mjs", "apps/desktop/electron/ipc-security.test.mjs"],
@@ -2841,7 +2844,7 @@ async function applyBrandingPatch() {
   ]);
 
   await patchFile("apps/app/overlay.html", [
-    [["<title>OpenWork Overlay</title>", "<title>WodeAppX Overlay</title>", "<title>我的AppX Overlay</title>", "<title>WodeAppX Overlay</title>", "<title>小灵通 Overlay</title>", "<title>店智囊 Overlay</title>"], "<title>WodeAppX Overlay</title>"],
+    [["<title>OpenWork Overlay</title>", "<title>WodeAppX Overlay</title>", "<title>我的AppX Overlay</title>", "<title>小灵通 AI Overlay</title>", "<title>小灵通 Overlay</title>", "<title>店智囊 Overlay</title>"], "<title>WodeAppX Overlay</title>"],
   ]);
 
   await patchFile(
@@ -2927,8 +2930,8 @@ async function applyBrandingPatch() {
         'toast.warning("图片添加功能需要重启 WodeAppX 后生效")',
         'toast.warning("图片添加功能需要重启WodeAppX后生效")',
         'toast.warning("图片添加功能需要重启 WodeAppX后生效")',
-        'toast.warning("图片添加功能需要重启WodeAppX 后生效")',
-        'toast.warning("图片添加功能需要重启WodeAppX后生效")',
+        'toast.warning("图片添加功能需要重启小灵通 AI 后生效")',
+        'toast.warning("图片添加功能需要重启小灵通 AI后生效")',
       ],
       to: 'toast.warning("图片添加功能需要重启 WodeAppX 后生效")',
     }, file),
@@ -2943,14 +2946,14 @@ async function applyBrandingPatch() {
         'const APP_NAME = process.env.OPENWORK_ELECTRON_APP_NAME?.trim() || (isDevMode ? "OpenWork - Dev" : "OpenWork");',
         'const APP_NAME = process.env.OPENWORK_ELECTRON_APP_NAME?.trim() || (isDevMode ? "WodeAppX - Dev" : "WodeAppX");',
         'const APP_NAME = process.env.OPENWORK_ELECTRON_APP_NAME?.trim() || (isDevMode ? "我的AppX - Dev" : "我的AppX");',
-        'const APP_NAME = process.env.OPENWORK_ELECTRON_APP_NAME?.trim() || (isDevMode ? "WodeAppX - Dev" : "WodeAppX");',
+        'const APP_NAME = process.env.OPENWORK_ELECTRON_APP_NAME?.trim() || (isDevMode ? "WodeAppX - Dev" : "小灵通");',
         'const APP_NAME = process.env.OPENWORK_ELECTRON_APP_NAME?.trim() || (isDevMode ? "WodeAppX - Dev" : "WodeAppX");',
         `const APP_NAME = isTestInstance
   ? process.env.OPENWORK_ELECTRON_APP_NAME?.trim() || "我的AppX - Test"
   : "我的AppX";`,
         `const APP_NAME = isTestInstance
   ? process.env.OPENWORK_ELECTRON_APP_NAME?.trim() || "WodeAppX - Test"
-  : "WodeAppX";`,
+  : "小灵通";`,
         `const APP_NAME = isTestInstance
   ? process.env.OPENWORK_ELECTRON_APP_NAME?.trim() || "WodeAppX - Test"
   : "WodeAppX";`,
@@ -3399,6 +3402,33 @@ applyApplicationIcon(APP_ICON_PATH);`,
     let changed = false;
 
     let r = insertAfterIfMissing(content, {
+      marker: "workspace-atomic-write",
+      anchor: 'import { exportWorkspaceConfig, importWorkspaceConfig } from "./workspace-archive.mjs";',
+      insert: 'import { persistWorkspaceStateSafe, replaceFileAtomic } from "./workspace-atomic-write.mjs";',
+    }, file);
+    content = r.content;
+    changed ||= r.changed;
+
+    r = replaceAnyOrKeep(content, {
+      variants: [
+        "  await writeFile(tempPath, content, \"utf8\");\n  await rename(tempPath, outputPath);\n}",
+      ],
+      to: "  await writeFile(tempPath, content, \"utf8\");\n  await replaceFileAtomic(tempPath, outputPath);\n}",
+    }, file);
+    content = r.content;
+    changed ||= r.changed;
+
+    r = replaceAnyOrKeep(content, {
+      variants: [
+        "    await writeJsonFileAtomic(outputPath, output);\n    return output;",
+      ],
+      to: `    await persistWorkspaceStateSafe(outputPath, output);
+    return output;`,
+    }, file);
+    content = r.content;
+    changed ||= r.changed;
+
+    r = insertAfterIfMissing(content, {
       marker: "wodeapp-self-evolve-workspaces",
       anchor: 'import { exportWorkspaceConfig, importWorkspaceConfig } from "./workspace-archive.mjs";',
       insert: 'import { ensureSelfEvolveSourceWorkspaces } from "./wodeapp-self-evolve-workspaces.mjs";\nimport { ensureSuporBrandWorkspaces } from "./wodeapp-supor-workspaces.mjs";',
@@ -3421,7 +3451,7 @@ applyApplicationIcon(APP_ICON_PATH);`,
 
     r = replaceAnyOrKeep(content, {
       variants: [
-        'const WODEAPPX_DEFAULT_WORKSPACE_NAME = "WodeAppX";',
+        'const WODEAPPX_DEFAULT_WORKSPACE_NAME = "小灵通 AI";',
         'const WODEAPPX_DEFAULT_WORKSPACE_NAME = "OpenWork";',
         'const WODEAPPX_DEFAULT_WORKSPACE_NAME = "我的AppX";',
       ],
@@ -3667,6 +3697,14 @@ applyApplicationIcon(APP_ICON_PATH);`,
     changed ||= r.changed;
 
     return { content, changed };
+  });
+
+  await patchOpenWorkFile("apps/desktop/electron/workspace-store.test.mjs", (content, file) => {
+    return insertAfterIfMissing(content, {
+      marker: "WODEAPPX_DISABLE_SELF_EVOLVE_WORKSPACES",
+      anchor: 'import { createWorkspaceStore } from "./workspace-store.mjs";',
+      insert: '\nprocess.env.WODEAPPX_DISABLE_SELF_EVOLVE_WORKSPACES = "1";',
+    }, file);
   });
 
   await patchOpenWorkFile("apps/desktop/electron/wodeappx-capture.mjs", (content, file) => {
@@ -4026,8 +4064,8 @@ const candidates = [
     filter:
       - "**/*"`,
     ],
-    [["productName: OpenWork", "productName: WodeAppX", "productName: 我的AppX", "productName: WodeAppX", "productName: 小灵通", "productName: WodeAppX AI", "productName: 店智囊"], "productName: WodeAppX"],
-    [["  - name: OpenWork", "  - name: WodeAppX", "  - name: 我的AppX", "  - name: WodeAppX", "  - name: 小灵通", "  - name: WodeAppX AI", "  - name: 店智囊"], "  - name: WodeAppX"],
+    [["productName: OpenWork", "productName: WodeAppX", "productName: 我的AppX", "productName: 小灵通 AI", "productName: 小灵通", "productName: WodeAppX AI", "productName: 店智囊"], "productName: WodeAppX"],
+    [["  - name: OpenWork", "  - name: WodeAppX", "  - name: 我的AppX", "  - name: 小灵通 AI", "  - name: 小灵通", "  - name: WodeAppX AI", "  - name: 店智囊"], "  - name: WodeAppX"],
     ["artifactName: openwork-${os}-${arch}-${version}.${ext}", "artifactName: wodeappx-${os}-${arch}-${version}.${ext}"],
     ["    owner: different-ai", "    owner: wodeapp"],
     ["    repo: openwork", "    repo: wodeappx"],
@@ -4038,8 +4076,8 @@ const candidates = [
         "NSMicrophoneUsageDescription: WodeAppX 需要使用麦克风，以便你在语音模式中下达任务。",
         "NSMicrophoneUsageDescription: 我的AppX uses the microphone when you start Voice Mode so you can speak commands to your agent.",
         "NSMicrophoneUsageDescription: WodeAppX需要使用麦克风，以便你在语音模式中下达任务。",
-        "NSMicrophoneUsageDescription: WodeAppX 需要使用麦克风，以便你在语音模式中向电商智能体下达任务。",
-        "NSMicrophoneUsageDescription: WodeAppX需要使用麦克风，以便你在语音模式中下达任务。",
+        "NSMicrophoneUsageDescription: 小灵通 AI 需要使用麦克风，以便你在语音模式中向电商智能体下达任务。",
+        "NSMicrophoneUsageDescription: 小灵通 AI需要使用麦克风，以便你在语音模式中下达任务。",
       ],
       "NSMicrophoneUsageDescription: WodeAppX 需要使用麦克风，以便你在语音模式中下达任务。",
     ],
@@ -4093,6 +4131,33 @@ const candidates = [
       next = next.replace(
         winTarget,
         `${winTarget}nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  installerLanguages:
+    - zh_CN
+    - en_US
+  shortcutName: WodeAppX
+  uninstallDisplayName: WodeAppX
+`,
+      );
+      changed = true;
+    }
+    if (!next.includes("allowToChangeInstallationDirectory: true")) {
+      const nsisBrand = `nsis:
+  shortcutName: WodeAppX
+  uninstallDisplayName: WodeAppX
+`;
+      if (!next.includes(nsisBrand)) {
+        throw new Error(`OpenWork integration anchor not found in ${path.relative(root, file)}: nsis brand block for install directory`);
+      }
+      next = next.replace(
+        nsisBrand,
+        `nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  installerLanguages:
+    - zh_CN
+    - en_US
   shortcutName: WodeAppX
   uninstallDisplayName: WodeAppX
 `,
@@ -4125,6 +4190,31 @@ const candidates = [
 
   await patchOpenWorkFile("apps/desktop/electron/updater.mjs", (content, file) => {
     let changed = false;
+    let r = insertBeforeIfMissing(content, {
+      marker: "export function shouldInstallUpdateSilently",
+      anchor: "// electron-updater wiring. Packaged-only;",
+      insert: `// Windows NSIS must install silently so a user-chosen directory is reused.
+// Assisted installers (oneClick:false) would otherwise re-open the folder
+// wizard on every in-app update.
+export function shouldInstallUpdateSilently(platform = process.platform) {
+  return platform === "win32";
+}
+
+`,
+    }, file);
+    content = r.content;
+    changed ||= r.changed;
+
+    r = replaceAnyOrKeep(content, {
+      variants: [
+        "updater.quitAndInstall(false, true);",
+        "updater.quitAndInstall(process.platform === \"win32\", true);",
+      ],
+      to: "updater.quitAndInstall(shouldInstallUpdateSilently(), true);",
+    }, file);
+    content = r.content;
+    changed ||= r.changed;
+
     for (const replacement of [
       {
         variants: ["instead of the OpenWork app version"],
@@ -4152,6 +4242,59 @@ const candidates = [
       changed ||= r.changed;
     }
     return { content, changed };
+  });
+
+  await patchOpenWorkFile("apps/desktop/electron/updater.test.mjs", (content, file) => {
+    let changed = false;
+    let r = replaceAnyOrKeep(content, {
+      variants: [
+        'import { staleUpdaterStatePaths } from "./updater.mjs";',
+      ],
+      to: 'import { shouldInstallUpdateSilently, staleUpdaterStatePaths } from "./updater.mjs";',
+    }, file);
+    content = r.content;
+    changed ||= r.changed;
+    r = insertAfterIfMissing(content, {
+      marker: 'describe("shouldInstallUpdateSilently"',
+      anchor: `  it("is a no-op off macOS", { skip: process.platform === "darwin" }, () => {
+    assert.deepEqual(staleUpdaterStatePaths(fakeApp), []);
+  });
+});`,
+      insert: `
+describe("shouldInstallUpdateSilently", () => {
+  it("keeps Windows NSIS updates silent so the chosen install folder is reused", () => {
+    assert.equal(shouldInstallUpdateSilently("win32"), true);
+  });
+
+  it("leaves macOS / Linux on the existing non-silent quitAndInstall path", () => {
+    assert.equal(shouldInstallUpdateSilently("darwin"), false);
+    assert.equal(shouldInstallUpdateSilently("linux"), false);
+  });
+});`,
+    }, file);
+    content = r.content;
+    changed ||= r.changed;
+    return { content, changed };
+  });
+
+  await patchOpenWorkFile("apps/app/src/react-app/shell/loading-overlay.tsx", (content, file) => {
+    return replaceAnyOrKeep(content, {
+      variants: [
+        'const RELEASES_URL = "https://github.com/different-ai/openwork/releases";',
+        'const RELEASES_URL = "https://github.com/diankourenxia/wodeappx/releases";',
+        'const RELEASES_URL = "https://gitea.com/diankourenxia/wodeappx/releases/latest";',
+      ],
+      to: 'const RELEASES_URL = "https://x.wodeapp.cn/";',
+    }, file);
+  });
+
+  await patchOpenWorkFile("apps/app/src/react-app/shell/boot-state.tsx", (content, file) => {
+    return replaceAnyOrKeep(content, {
+      variants: [
+        '"starting-openwork-server": "Starting the OpenWork server"',
+      ],
+      to: '"starting-openwork-server": "Starting the local server"',
+    }, file);
   });
 
   await patchOpenWorkFile("apps/app/src/react-app/shell/architecture-mismatch-gate.tsx", (content, file) => {
@@ -4780,7 +4923,7 @@ import type { DesktopAppIconState } from "@/app/lib/desktop";`,
   });
 
   await patchFile("apps/app/index.html", [
-    [["<title>OpenWork</title>", "<title>WodeAppX</title>", "<title>我的AppX</title>", "<title>WodeAppX</title>", "<title>小灵通</title>", "<title>店智囊</title>"], "<title>WodeAppX</title>"],
+    [["<title>OpenWork</title>", "<title>WodeAppX</title>", "<title>我的AppX</title>", "<title>小灵通 AI</title>", "<title>小灵通</title>", "<title>店智囊</title>"], "<title>WodeAppX</title>"],
   ]);
 
   await patchOpenWorkFile("apps/app/src/i18n/locales/en.ts", (content, file) => insertAfterIfMissing(content, {
@@ -4816,8 +4959,8 @@ import type { DesktopAppIconState } from "@/app/lib/desktop";`,
         '"blueprint.welcome_title": "Welcome to WodeAppX",',
         '"blueprint.welcome_title": "欢迎使用 WodeAppX",',
         '"blueprint.welcome_title": "欢迎使用 我的AppX",',
-        '"blueprint.welcome_title": "欢迎使用WodeAppX",',
-        '"blueprint.welcome_title": "欢迎使用 WodeAppX",',
+        '"blueprint.welcome_title": "欢迎使用小灵通 AI",',
+        '"blueprint.welcome_title": "欢迎使用小灵通",',
       ],
       '"blueprint.welcome_title": "欢迎使用 WodeAppX",',
     ],
@@ -4827,8 +4970,8 @@ import type { DesktopAppIconState } from "@/app/lib/desktop";`,
         '"welcome.title": "Welcome to WodeAppX",',
         '"welcome.title": "欢迎使用 WodeAppX",',
         '"welcome.title": "欢迎使用 我的AppX",',
-        '"welcome.title": "欢迎使用WodeAppX",',
-        '"welcome.title": "欢迎使用 WodeAppX",',
+        '"welcome.title": "欢迎使用小灵通 AI",',
+        '"welcome.title": "欢迎使用小灵通",',
       ],
       '"welcome.title": "欢迎使用 WodeAppX",',
     ],
@@ -4860,8 +5003,8 @@ import type { DesktopAppIconState } from "@/app/lib/desktop";`,
         '"welcome.get_started": "Get started with WodeAppX",',
         '"welcome.get_started": "从 WodeApp 开始",',
         '"welcome.get_started": "开始使用 WodeAppX",',
-        '"welcome.get_started": "开始使用WodeAppX",',
-        '"welcome.get_started": "开始使用 WodeAppX",',
+        '"welcome.get_started": "开始使用小灵通 AI",',
+        '"welcome.get_started": "开始使用小灵通",',
       ],
       '"welcome.get_started": "开始使用 WodeAppX",',
     ],
@@ -4974,8 +5117,8 @@ import type { DesktopAppIconState } from "@/app/lib/desktop";`,
         '"welcome.folder_explanation": "This folder becomes your local workspace. WodeAppX can:",',
         '"welcome.folder_explanation": "这个文件夹会成为你的本地工作区，WodeAppX 可以：",',
         '"welcome.folder_explanation": "这个文件夹会成为你的本地工作区，我的AppX 可以：",',
-        '"welcome.folder_explanation": "这个文件夹会成为你的本地工作区，WodeAppX可以：",',
-        '"welcome.folder_explanation": "这个文件夹会成为你的本地工作区，WodeAppX 可以：",',
+        '"welcome.folder_explanation": "这个文件夹会成为你的本地工作区，小灵通 AI可以：",',
+        '"welcome.folder_explanation": "这个文件夹会成为你的本地工作区，小灵通可以：",',
       ],
       '"welcome.folder_explanation": "这个文件夹会成为你的本地工作区，WodeAppX 可以：",',
     ],
@@ -5008,8 +5151,8 @@ import type { DesktopAppIconState } from "@/app/lib/desktop";`,
         '"welcome.folder_drop_hint": "Add assets at any time and WodeAppX can continue working with them.",',
         '"welcome.folder_drop_hint": "之后随时把素材放进来，WodeAppX 可以继续处理。",',
         '"welcome.folder_drop_hint": "之后随时把素材放进来，我的AppX 可以继续处理。",',
-        '"welcome.folder_drop_hint": "之后随时把素材放进来，WodeAppX可以继续处理。",',
-        '"welcome.folder_drop_hint": "之后随时把素材放进来，WodeAppX 可以继续处理。",',
+        '"welcome.folder_drop_hint": "之后随时把素材放进来，小灵通 AI可以继续处理。",',
+        '"welcome.folder_drop_hint": "之后随时把素材放进来，小灵通可以继续处理。",',
       ],
       '"welcome.folder_drop_hint": "之后随时把素材放进来，WodeAppX 可以继续处理。",',
     ],
@@ -5180,7 +5323,7 @@ import type { DesktopAppIconState } from "@/app/lib/desktop";`,
         '"blueprint.welcome_title": "欢迎使用OpenWork"',
         '"blueprint.welcome_title": "欢迎使用 WodeAppX"',
         '"blueprint.welcome_title": "欢迎使用 我的AppX"',
-        '"blueprint.welcome_title": "欢迎使用WodeAppX"',
+        '"blueprint.welcome_title": "欢迎使用小灵通 AI"',
       ],
       '"blueprint.welcome_title": "欢迎使用 WodeAppX"',
     ],
@@ -5189,7 +5332,7 @@ import type { DesktopAppIconState } from "@/app/lib/desktop";`,
         '"blueprint.welcome_message": "你好，欢迎使用OpenWork！',
         '"blueprint.welcome_message": "你好，欢迎使用 WodeAppX！',
         '"blueprint.welcome_message": "你好，欢迎使用 我的AppX！',
-        '"blueprint.welcome_message": "你好，我是WodeAppX，你的 AI 电商智能体。',
+        '"blueprint.welcome_message": "你好，我是小灵通 AI，你的 AI 电商智能体。',
       ],
       '"blueprint.welcome_message": "你好，我是 WodeAppX。Agent 能自定义，模型随便搭。',
     ],
@@ -5198,7 +5341,7 @@ import type { DesktopAppIconState } from "@/app/lib/desktop";`,
         "大家用OpenWork在电脑上编写CSV文件、自动化浏览器任务，以及将联系人同步到Notion。",
         "你可以用 WodeAppX 在电脑上处理文件、自动化浏览器任务、连接 MCP，并调用 WodeApp 平台能力。",
         "你可以用 我的AppX 在电脑上处理文件、自动化浏览器任务、连接 MCP，并调用 WodeApp 平台能力。",
-        "把商品资料交给WodeAppX，就能继续生成上架内容、推广视频并执行运营任务。",
+        "把商品资料交给小灵通 AI，就能继续生成上架内容、推广视频并执行运营任务。",
       ],
       "你可以用 WodeAppX 处理内容、建站、浏览器任务和本地自动化。",
     ],
@@ -7984,7 +8127,7 @@ async function applyWodeAppMarketplacePatch() {
         'marketplaceName: "WodeAppX 内置能力",',
       ],
       [
-        'marketplaceName: "WodeAppX内置能力",',
+        'marketplaceName: "小灵通 AI内置能力",',
         'marketplaceName: "WodeAppX 内置能力",',
       ],
       [
@@ -7992,7 +8135,7 @@ async function applyWodeAppMarketplacePatch() {
         '{ id: "openwork-builtins", name: "WodeAppX 内置能力" }',
       ],
       [
-        '{ id: "openwork-builtins", name: "WodeAppX内置能力" }',
+        '{ id: "openwork-builtins", name: "小灵通 AI内置能力" }',
         '{ id: "openwork-builtins", name: "WodeAppX 内置能力" }',
       ],
       [
@@ -8000,7 +8143,7 @@ async function applyWodeAppMarketplacePatch() {
         "浏览 WodeAppX 内置能力和可安装的高级扩展。",
       ],
       [
-        "浏览WodeAppX内置能力和可安装的高级扩展。",
+        "浏览小灵通 AI内置能力和可安装的高级扩展。",
         "浏览 WodeAppX 内置能力和可安装的高级扩展。",
       ],
       [
@@ -12646,7 +12789,7 @@ const AGENT_REACH_INTERNET_INSTRUCTION =
         variants: [
           "You are OpenWork Voice Mode, a voice-first control layer inside OpenWork.",
           "You are WodeAppX Voice Mode, a voice-first control layer inside WodeAppX.",
-          "You are WodeAppX Voice Mode, a voice-first control layer inside WodeAppX.",
+          "You are 小灵通 AI Voice Mode, a voice-first control layer inside 小灵通 AI.",
         ],
         to: "You are WodeAppX Voice Mode, a voice-first control layer inside WodeAppX.",
       },
@@ -12654,7 +12797,7 @@ const AGENT_REACH_INTERNET_INSTRUCTION =
         variants: [
           "Help the user control OpenWork by using the semantic OpenWork UI tools.",
           "Help the user control WodeAppX by using the semantic WodeAppX UI tools.",
-          "Help the user control WodeAppX by using the semantic WodeAppX UI tools.",
+          "Help the user control 小灵通 AI by using the semantic 小灵通 AI UI tools.",
         ],
         to: "Help the user control WodeAppX by using the semantic WodeAppX UI tools.",
       },
@@ -12662,7 +12805,7 @@ const AGENT_REACH_INTERNET_INSTRUCTION =
         variants: [
           "- Ignore background speech that is not addressed to OpenWork.",
           "- Ignore background speech that is not addressed to WodeAppX.",
-          "- Ignore background speech that is not addressed to WodeAppX.",
+          "- Ignore background speech that is not addressed to 小灵通 AI.",
         ],
         to: "- Ignore background speech that is not addressed to WodeAppX.",
       },
@@ -12670,7 +12813,7 @@ const AGENT_REACH_INTERNET_INSTRUCTION =
         variants: [
           "OpenWork Models voice is active but the server is not fully configured.",
           "WodeAppX voice is active but the server is not fully configured.",
-          "WodeAppX语音模式已启动，但服务尚未完成配置。 Ask your admin to add an OpenAI key, or save your own OPENAI_API_KEY in Environment settings.",
+          "小灵通 AI语音模式已启动，但服务尚未完成配置。 Ask your admin to add an OpenAI key, or save your own OPENAI_API_KEY in Environment settings.",
         ],
         to: "WodeAppX 语音模式已启动，但服务尚未完成配置。",
       },
@@ -13008,7 +13151,7 @@ const LEGACY_PANEL_TAB_STORE_KEY = "openwork:panel-tabs:v1";`,
         '"status.openwork_ready": "WodeAppX is ready",',
         '"status.openwork_ready": "WodeAppX 已就绪",',
         '"status.openwork_ready": "我的AppX 已就绪",',
-        '"status.openwork_ready": "WodeAppX已就绪",',
+        '"status.openwork_ready": "小灵通 AI已就绪",',
       ],
       '"status.openwork_ready": "WodeAppX 已就绪",',
     ],
@@ -20242,7 +20385,7 @@ function controlOptionalStringArrayArgument(args: unknown, name: string) {
     workspace.path?.trim() ||
     t("workspace_list.workspace_fallback");
 
-  return label.toLowerCase() === "wodeapp" ? "WodeAppX" : label;
+  return label.toLowerCase() === "wodeapp" ? "小灵通 AI" : label;
 };`,
     ],
     to: `export const workspaceLabel = (workspace: WorkspaceInfo) => {
@@ -22253,7 +22396,7 @@ ${naturalVoiceBridge}
     let changed = false;
     const speech = replaceAnyOrKeep(content, {
       variants: [
-        "NSSpeechRecognitionUsageDescription: WodeAppX 使用设备上的语音识别将你的录音转成文字，录音不会发送到 WodeApp。",
+        "NSSpeechRecognitionUsageDescription: 小灵通 AI 使用设备上的语音识别将你的录音转成文字，录音不会发送到 WodeApp。",
         "NSSpeechRecognitionUsageDescription: OpenWork uses on-device speech recognition to turn your recording into text. Audio is not sent to WodeApp.",
       ],
       to: "NSSpeechRecognitionUsageDescription: WodeAppX 使用设备上的语音识别将你的录音转成文字，录音不会发送到 WodeApp。",

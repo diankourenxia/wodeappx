@@ -91,6 +91,8 @@ The dedicated Gitea tag is `updater-feed` so a Mac-only GitHub release cannot hi
 
 Auto-update UX: check, download, and install live in **Settings → Updates**. The sidebar does not show update buttons. The packaged updater does not toast a new version onto the workbench shell.
 
+Windows NSIS is an assisted installer (`oneClick: false`) so the user can pick the install folder. In-app updates stay silent and reuse that folder; they must not reopen the directory wizard.
+
 Monorepo CI publishes installers to `diankourenxia/wodeapp` GitHub Releases under tag `wodeappx-v<version>`. The public repo `diankourenxia/wodeappx` uses tag `v<version>`. Do not upload `.exe` / `.dmg` to gitea.com.
 
 ### Public download page

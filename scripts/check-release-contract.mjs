@@ -73,6 +73,9 @@ assertEqual(
 assertIncludes(builder, "productName: WodeAppX", "desktop package product name");
 assertIncludes(builder, "executableName: WodeAppX", "desktop executable must not inherit @openwork/desktop");
 assertIncludes(builder, "shortcutName: WodeAppX", "Windows Start Menu shortcut must be WodeAppX");
+assertIncludes(builder, "oneClick: false", "Windows installer must show the setup wizard");
+assertIncludes(builder, "allowToChangeInstallationDirectory: true", "Windows installer must let users choose the install folder");
+assertIncludes(updater, "shouldInstallUpdateSilently()", "Windows in-app updates must install silently into the chosen folder");
 assertIncludes(builder, "artifactName: wodeappx-${os}-${arch}-${version}.${ext}", "artifact naming must include product, OS, arch, and version");
 assertIncludes(builder, "from: resources/native-hosts", "desktop package must include browser native-host resources");
 assertIncludes(builder, "wodeappx-browser-native-host*", "desktop package must include the arch-specific browser native host");
@@ -152,6 +155,15 @@ assertIncludes(preload, 'invoke("wodeapp:auth"', "preload must bridge wodeapp:au
 assertIncludes(workspaceStore, "openwork-workspaces.json", "workspace state filename must stay stable");
 assertIncludes(workspaceStore, "selectedWorkspaceId", "workspace state must preserve legacy selected workspace key");
 assertIncludes(workspaceStore, "watchedWorkspaceId", "workspace state must preserve legacy watched workspace key");
+assertIncludes(workspaceStore, "replaceFileAtomic", "workspace persist must use Windows-safe replace");
+assertIncludes(workspaceStore, "persistWorkspaceStateSafe", "workspace persist must not crash boot on EPERM");
+await assertVendorFileExists(
+  "apps/desktop/electron/workspace-atomic-write.mjs",
+  "packaged desktop must include Windows-safe workspace atomic write",
+);
+const loadingOverlay = await readVendorText("apps/app/src/react-app/shell/loading-overlay.tsx");
+assertIncludes(loadingOverlay, "https://x.wodeapp.cn/", "boot error download page");
+assertNotIncludes(loadingOverlay, "github.com/different-ai/openwork/releases", "boot error must not send users to OpenWork GitHub");
 
 assertIncludes(architectureGate, "Install the correct WodeAppX build", "architecture mismatch page branding");
 assertIncludes(architectureGate, "workspaces, settings, and conversations", "architecture mismatch page conversation compatibility copy");
