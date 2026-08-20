@@ -23183,6 +23183,39 @@ async function applyOssLocaleOverridesPatch() {
   );
 }
 
+async function applyWodeappxFeedUpdateGatePatch() {
+  await patchOpenWorkFile("apps/app/src/react-app/domains/settings/state/electron-updater-state.ts", (content, file) => {
+    let changed = false;
+    let r = replaceAnyOrKeep(content, {
+      variants: [
+        `import { isAlphaUpdateAllowed, isUpdateAllowed } from "../../../../app/lib/version-gate";\n`,
+      ],
+      already: ["WodeAppX ships 1.x from wodeapp.cn"],
+      to: "",
+    }, file);
+    content = r.content;
+    changed ||= r.changed;
+
+    r = replaceAnyOrKeep(content, {
+      variants: [
+        `      const availableAllowed = result.available && result.latestVersion
+        ? checkedReleaseChannel === "alpha"
+          ? await isAlphaUpdateAllowed(result.latestVersion, desktopConfig)
+          : await isUpdateAllowed(result.latestVersion, desktopConfig)
+        : result.available;`,
+      ],
+      already: ["const availableAllowed = Boolean(result.available);"],
+      to: `      // WodeAppX ships 1.x from wodeapp.cn. OpenWork Den latest is 0.18.x, so
+      // isUpdateAllowed() treats every WodeAppX update as unsupported and the
+      // Settings page shows "up to date" even when check() returned available.
+      const availableAllowed = Boolean(result.available);`,
+    }, file);
+    content = r.content;
+    changed ||= r.changed;
+    return { content, changed };
+  });
+}
+
 async function applySettingsProductBrandLocalePatch() {
   await applyOssLocaleOverridesPatch();
   await patchOpenWorkFile("apps/app/src/i18n/locales/zh.ts", (content) =>
@@ -24319,6 +24352,7 @@ async function main() {
   await applyFileTreeExplorerPatch();
   await applyDirectoryOpenPatch();
   await applySettingsProductBrandLocalePatch();
+  await applyWodeappxFeedUpdateGatePatch();
   await applyEngineBrandApiErrorPatch();
   await applyExcludeVendoredPageFlipFromTypecheck();
   await applyCompactToolActivityTranslationsPatch();

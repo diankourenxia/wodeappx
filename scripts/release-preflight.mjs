@@ -80,6 +80,32 @@ run("session-sync canary", process.execPath, [
   `,
 ]);
 
+const updaterStatePath = path.join(
+  root,
+  "vendor/openwork/apps/app/src/react-app/domains/settings/state/electron-updater-state.ts",
+);
+run("updater den-gate canary", process.execPath, [
+  "-e",
+  `
+  import { readFileSync, existsSync } from 'node:fs';
+  const p = ${JSON.stringify(updaterStatePath)};
+  if (!existsSync(p)) {
+    console.log('updater den-gate canary skipped (vendor not bootstrapped)');
+    process.exit(0);
+  }
+  const src = readFileSync(p, 'utf8');
+  if (!src.includes('const availableAllowed = Boolean(result.available);')) {
+    console.error('electron-updater-state.ts still gates updates on OpenWork Den');
+    process.exit(1);
+  }
+  if (src.includes('await isUpdateAllowed(') || src.includes('await isAlphaUpdateAllowed(')) {
+    console.error('electron-updater-state.ts still calls Den isUpdateAllowed');
+    process.exit(1);
+  }
+  console.log('updater den-gate canary ok');
+  `,
+]);
+
 console.log("\npreflight ok — safe to release:macos / tag for Windows CI");
 if (!freshBootstrap) {
   console.log("tip: for CI-parity, re-run with --fresh-bootstrap (slower, re-downloads OpenWork).");
