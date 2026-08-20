@@ -32,7 +32,7 @@
  * 桌面设置界面授权过的 provider 由 server runtime config 从 auth.json 动态加回白名单。
  * OpenCode 内置的 openai / anthropic / openrouter 等目录默认不整体暴露。
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -425,7 +425,27 @@ const LOCAL_CHAT_PROVIDER_SPECS = [
     defaultModel: "doubao-seed-2-1-pro-260628",
     models: VOLCANO_CHAT_FLOOR,
   },
+  {
+    id: "grok-build",
+    name: "Grok Build",
+    envKeys: ["XAI_API_KEY"], // Fallback; prefer cached_token from `grok login`
+    // ACP provider - no baseURL, handled by stdio subprocess
+    _acpProvider: true,
+    defaultModel: "grok-build",
+    models: {
+      "grok-build": chatFloorModel("Grok Build (xAI)"),
+    },
+  },
 ];
+
+function isGrokCliAvailable() {
+  try {
+    const homeGrok = path.join(os.homedir(), ".grok", "bin", "grok");
+    return existsSync(homeGrok);
+  } catch {
+    return false;
+  }
+}
 
 function localChatProvidersFromEnv(env = {}, customProviders = {}) {
   const providers = {};
@@ -433,6 +453,25 @@ function localChatProvidersFromEnv(env = {}, customProviders = {}) {
   let defaultModel = "";
   for (const spec of LOCAL_CHAT_PROVIDER_SPECS) {
     if (customProviders[spec.id]) continue;
+    
+    // Grok Build is special - it's an ACP provider that uses stdio, not HTTP
+    if (spec._acpProvider) {
+      // Check if grok CLI is available
+      if (!isGrokCliAvailable()) continue;
+      
+      // For ACP providers, we don't check for API key - auth is handled by the CLI
+      // The user must have run `grok login` or set XAI_API_KEY
+      providers[spec.id] = {
+        _acpProvider: true,
+        name: spec.name,
+        models: { ...spec.models },
+      };
+      enabled.push(spec.id);
+      if (!defaultModel) defaultModel = `${spec.id}/${spec.defaultModel}`;
+      continue;
+    }
+    
+    // Standard HTTP provider - check for API key
     const apiKey = resolveEnvSecret(env, spec.envKeys);
     if (!apiKey) continue;
     providers[spec.id] = {

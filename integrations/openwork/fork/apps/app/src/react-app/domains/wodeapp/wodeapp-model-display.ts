@@ -203,6 +203,7 @@ const VENDOR_LABELS: Record<string, string> = {
   groq: "Groq",
   mistral: "Mistral",
   xai: "xAI",
+  "grok-build": "Grok Build",
   custom: "自定义",
   other: "其他",
 };
@@ -222,6 +223,7 @@ const VENDOR_PRIORITY = [
   "groq",
   "mistral",
   "xai",
+  "grok-build",
   "custom",
   "other",
 ];
@@ -253,11 +255,14 @@ const PROVIDER_VENDOR_ALIASES: Record<string, string> = {
   mistral: "mistral",
   xai: "xai",
   "x-ai": "xai",
+  "grok-build": "grok-build",
+  grok: "grok-build",
 };
 
 function vendorFromModelKey(modelKey: string): string {
   const key = String(modelKey || "").toLowerCase();
   if (key.includes("kimi") || key.includes("moonshot") || key.includes("kimicode")) return "kimi";
+  if (key.includes("grok-build") || key.includes("grok")) return "grok-build";
   if (key.includes("deepseek")) return "deepseek";
   if (key.includes("doubao") || key.includes("volc") || key.includes("bytedance") || key.includes("seedream") || key.includes("seedance") || /(^|[/-])ark([/-]|$)/.test(key)) {
     return "volcano";
