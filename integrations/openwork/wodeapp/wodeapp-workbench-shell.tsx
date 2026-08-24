@@ -71,6 +71,7 @@ import {
   WODEAPP_SKIN_CHANGED_EVENT,
   type WodeAppSkinId,
 } from "./wodeapp-skins";
+import { WodeAppAgentStageFloat } from "./wodeapp-agent-stage-float";
 import {
   WodeAppWorkbenchProvider,
   type WodeAppWorkbenchContextValue,
@@ -868,6 +869,11 @@ export function WodeAppWorkbenchShell({
             onOpenSettings={() => navigate("/settings/service")}
           />
         ) : null}
+        <WodeAppAgentStageFloat
+          agents={builtinAgents}
+          sessionKey={sidebar.selectedSessionId}
+          onOpenAgent={(agent) => handleSelectRuntimeProject(agent.id)}
+        />
       </div>
     </WodeAppWorkbenchProvider>
   );
