@@ -71,6 +71,7 @@ import {
 import { renderUserTextWithResourceChips } from "@/components/chat/sent-asset-mentions"
 import { ArtifactList } from "@/components/chat/artifact"
 import { TaskSuggestions } from "@/components/chat/task-suggestions"
+import { WodeAppDialogCards } from "@/react-app/domains/wodeapp/wodeapp-dialog-cards"
 import { ImageLightbox, type LightboxImage } from "@/components/markdown/image-lightbox"
 import {
   DescriptiveButtonContent,
@@ -2262,6 +2263,7 @@ export function MessageList({
         return renderTranscriptItem(row.item)
       })}
 
+      <WodeAppDialogCards />
       {showStickyProsePlaceholder ? (
         <StickyAssistantProsePlaceholder text={stickyProse} />
       ) : null}
