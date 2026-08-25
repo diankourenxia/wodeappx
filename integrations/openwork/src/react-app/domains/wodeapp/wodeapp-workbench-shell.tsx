@@ -13,6 +13,7 @@ import { workspaceSettingsRoute } from "@/react-app/shell/workspace-routes";
 import { getElectronBrowser } from "../session/panel/utils";
 import { openBuiltinAgentWithFeedback } from "./wodeapp-agent-open";
 import { buildBuiltinAgentTask } from "./wodeapp-auto-orchestration";
+import { recordWodeAppDialogCard } from "./wodeapp-dialog-card";
 import {
   isWodeAppFeishuAuthorizeDeepLink,
   parseWodeAppFeishuAuthorizeDeepLink,
@@ -21,10 +22,6 @@ import {
   bindFeishuAuthorizationPromptToSession,
   selectFeishuAuthorizationPromptForSession,
 } from "./wodeapp-feishu-authorization-scope";
-import {
-  VIDEO_GENERATION_AGENT_ID,
-  VISUAL_GENERATION_AGENT_ID,
-} from "./wodeapp-page-capabilities";
 import {
   WODEAPP_CREATE_AGENT_ID,
   WODEAPP_FEISHU_AGENT_ID,
@@ -652,19 +649,18 @@ export function WodeAppWorkbenchShell({
           handleCreateTaskWithPrompt(sidebar.selectedWorkspaceId, buildBuiltinAgentTask(agent));
           return;
         }
-        // 图片/视频：先建对话拿到 sessionId，再打开能力页，避免右栏挂在旧会话上被切会话关掉。
-        if (agent.id === VISUAL_GENERATION_AGENT_ID || agent.id === VIDEO_GENERATION_AGENT_ID) {
+        // 能力智能体：挂当前对话、插入调度卡，不新开会话。
+        if (
+          agent.abilityKind === "image"
+          || agent.abilityKind === "video"
+          || agent.abilityKind === "short-drama"
+          || agent.abilityKind === "canvas"
+        ) {
           selectSurface("agents");
           setSelectedRuntimeProjectId(agent.id);
-          const prompt = buildBuiltinAgentTask(agent, { autoSend: false });
-          let sessionId: string | undefined;
-          if (sidebar.onCreateTaskWithPrompt) {
-            const created = await Promise.resolve(
-              sidebar.onCreateTaskWithPrompt(sidebar.selectedWorkspaceId, prompt),
-            );
-            if (typeof created === "string" && created.trim()) sessionId = created.trim();
-          } else {
-            sidebar.onCreateTaskInWorkspace(sidebar.selectedWorkspaceId);
+          const sessionId = sidebar.selectedSessionId?.trim() || undefined;
+          if (sessionId) {
+            recordWodeAppDialogCard(sessionId, { agentId: agent.id, name: agent.name });
           }
           await openBuiltinAbilityPage(agent, sessionId);
           return;
