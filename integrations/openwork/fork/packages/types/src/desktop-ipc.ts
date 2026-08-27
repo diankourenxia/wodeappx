@@ -505,6 +505,28 @@ export type DesktopCommandMap = {
 
   // App / bridge info
   appBuildInfo: { args: []; result: AppBuildInfo };
+  keyQuota: {
+    args: [];
+    result: {
+      ok: boolean;
+      rows: Array<{
+        vendorId: string;
+        label: string;
+        preview: string;
+        active: boolean;
+        ok: boolean;
+        remainingPercent: number | null;
+        remaining: number | null;
+        limit: number | null;
+        used: number | null;
+        unit: "usd" | "cny" | null;
+        remainKind?: "weekly" | "plan" | "balance";
+        note?: string;
+        error?: string;
+      }>;
+      error?: string;
+    };
+  };
   perfMonitorStatus: { args: []; result: PerfMonitorStatus };
   perfMonitorSnapshot: { args: []; result: PerfMonitorSnapshot };
   perfMonitorSetEnabled: {
