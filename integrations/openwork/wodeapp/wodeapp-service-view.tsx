@@ -9,6 +9,7 @@ import { useWodeAppAuthSession } from "./use-wodeapp-auth-session";
 import { WodeAppByokGuideDialog, useWodeAppFirstMileOpenState } from "./wodeapp-byok-guide-dialog";
 import { WodeAppLocalKeyDialog } from "./wodeapp-local-key-dialog";
 import { WODEAPP_OPEN_LOCAL_KEY_EVENT } from "./wodeapp-model-display";
+import { WodeAppModelUsagePanel } from "./wodeapp-model-usage-panel";
 import { WodeAppProviderCapabilityPanel } from "./wodeapp-provider-capability-panel";
 import "./wodeapp-shell.css";
 
@@ -58,6 +59,7 @@ export function WodeAppServiceView() {
       </div>
 
       <WodeAppProviderCapabilityPanel />
+      <WodeAppModelUsagePanel />
 
       <section aria-label="当前配置状态" className="wapp-model-source-status">
         <div className="flex flex-col gap-1">

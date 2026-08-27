@@ -1201,6 +1201,8 @@ const WODEAPP_DOMAIN_TEMPLATES = [
   "wodeapp-local-byok-import-settings.tsx",
   "wodeapp-connectors-surface.tsx",
   "wodeapp-provider-billing-links.ts",
+  "wodeapp-model-usage-panel.tsx",
+  "wodeapp-key-quota.ts",
   "wodeapp-byok-guide.ts",
   "wodeapp-byok-guide-dialog.tsx",
   "wodeapp-local-key-dialog.tsx",
@@ -1404,6 +1406,8 @@ const FORK_OWNED_OPENWORK_TEMPLATES = [
   ["fork/apps/desktop/electron/wodeapp-pet-overlay.mjs", "apps/desktop/electron/wodeapp-pet-overlay.mjs"],
   ["fork/apps/desktop/electron/wodeapp-perf-monitor.mjs", "apps/desktop/electron/wodeapp-perf-monitor.mjs"],
   ["fork/apps/desktop/electron/wodeapp-perf-monitor.test.mjs", "apps/desktop/electron/wodeapp-perf-monitor.test.mjs"],
+  ["fork/apps/desktop/electron/wodeapp-key-quota-query.mjs", "apps/desktop/electron/wodeapp-key-quota-query.mjs"],
+  ["fork/apps/desktop/electron/wodeapp-key-quota-query.test.mjs", "apps/desktop/electron/wodeapp-key-quota-query.test.mjs"],
   ["fork/apps/desktop/electron/wodeapp-main-process-guard.mjs", "apps/desktop/electron/wodeapp-main-process-guard.mjs"],
   ["fork/apps/desktop/electron/wodeapp-main-process-guard.test.mjs", "apps/desktop/electron/wodeapp-main-process-guard.test.mjs"],
   ["fork/apps/desktop/electron/pet-overlay.html", "apps/desktop/electron/pet-overlay.html"],
@@ -1545,6 +1549,8 @@ const FORK_OWNED_OPENWORK_TEMPLATES = [
   ["wodeapp/wodeapp-tool-activity.ts", "apps/app/src/react-app/domains/wodeapp/wodeapp-tool-activity.ts"],
   ["wodeapp/wodeapp-desktop-diagnostics.ts", "apps/app/src/react-app/domains/wodeapp/wodeapp-desktop-diagnostics.ts"],
   ["wodeapp/wodeapp-hang-trace.ts", "apps/app/src/react-app/domains/wodeapp/wodeapp-hang-trace.ts"],
+  ["wodeapp/wodeapp-model-usage-panel.tsx", "apps/app/src/react-app/domains/wodeapp/wodeapp-model-usage-panel.tsx"],
+  ["wodeapp/wodeapp-key-quota.ts", "apps/app/src/react-app/domains/wodeapp/wodeapp-key-quota.ts"],
   ["wodeapp/wodeapp-perf-monitor.ts", "apps/app/src/react-app/domains/wodeapp/wodeapp-perf-monitor.ts"],
   ["wodeapp/wodeapp-perf-hud.tsx", "apps/app/src/react-app/domains/wodeapp/wodeapp-perf-hud.tsx"],
   ["wodeapp/wodeapp-session-bug-report.ts", "apps/app/src/react-app/domains/wodeapp/wodeapp-session-bug-report.ts"],
@@ -8392,6 +8398,10 @@ import { renderUserTextWithResourceChips } from "@/components/chat/sent-asset-me
   await syncOpenWorkTemplate(
     "tests/wodeapp-tool-activity.test.ts",
     "apps/app/tests/wodeapp-tool-activity.test.ts",
+  );
+  await syncOpenWorkTemplate(
+    "tests/wodeapp-key-quota.test.ts",
+    "apps/app/tests/wodeapp-key-quota.test.ts",
   );
   await syncOpenWorkTemplate(
     "tests/wodeapp-chat-attachments.test.ts",

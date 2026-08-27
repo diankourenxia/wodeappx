@@ -3094,3 +3094,117 @@ html[data-theme="dark"] .wapp-workspace-shell .wapp-topbar-session-rail-inner .w
   color: #fff;
   border-color: rgba(255, 255, 255, 0.28);
 }
+
+.wx-model-usage {
+  margin: 22px 0 0;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.wx-model-usage-head h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.wx-model-usage-head p,
+.wx-model-usage-empty {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--wapp-muted-fg, #64748b);
+  overflow-wrap: break-word;
+}
+
+.wx-model-usage-empty {
+  margin-top: 10px;
+}
+
+.wx-model-usage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.wx-key-quota-card {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--wapp-shell-border-subtle, #e5e7eb);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--wapp-muted-fg, #64748b) 8%, var(--wapp-surface-bg, transparent));
+}
+
+.wx-key-quota-card-head h4,
+.wx-key-quota-percent {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wx-key-quota-card-head h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.wx-key-quota-card-key,
+.wx-key-quota-remain,
+.wx-key-quota-note {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--wapp-muted-fg, #64748b);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+.wx-key-quota-card-key {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wx-key-quota-percent {
+  margin: 10px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-key-quota-bar {
+  margin-top: 8px;
+  height: 6px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--wapp-muted-fg, #64748b) 18%, transparent);
+  overflow: hidden;
+}
+
+.wx-key-quota-bar i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  background: var(--wapp-shell-fg, #1b1d23);
+}
+
+.wx-key-quota-card.is-low .wx-key-quota-percent,
+.wx-key-quota-card.is-empty .wx-key-quota-percent {
+  color: #b45309;
+}
+
+.wx-key-quota-card.is-low .wx-key-quota-bar i,
+.wx-key-quota-card.is-empty .wx-key-quota-bar i {
+  background: #b45309;
+}
+
+.wx-key-quota-card.is-unknown .wx-key-quota-bar i {
+  transform: scaleX(0);
+}

@@ -58,6 +58,7 @@ import { registerWodeAppLocalAssetsIpc } from "./wodeapp-cloud/wodeapp-local-ass
 import { expandUserPath, resolveMissingOpenPath } from "./open-path-resolver.mjs";
 import { resolveEditionAppName } from "./wodeapp-edition.mjs";
 import { registerWodeAppPetOverlay } from "./wodeapp-pet-overlay.mjs";
+import { loadWodeAppKeyQuota } from "./wodeapp-key-quota-query.mjs";
 import { createPerfMonitor } from "./wodeapp-perf-monitor.mjs";
 import { createCriticalLogger, installMainProcessGuards } from "./wodeapp-main-process-guard.mjs";
 
@@ -1355,6 +1356,7 @@ const desktopCommandHandlers = {
         openworkDevMode: process.env.OPENWORK_DEV_MODE === "1",
       };
   },
+  "keyQuota": async () => loadWodeAppKeyQuota(),
   "perfMonitorStatus": async () => perfMonitor.status(),
   "perfMonitorSnapshot": async () => perfMonitor.snapshot(),
   "perfMonitorSetEnabled": async (_event, ...args) => {

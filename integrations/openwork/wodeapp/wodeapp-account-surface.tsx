@@ -5,6 +5,7 @@ import { CircleUserRound, ExternalLink } from "lucide-react";
 import { usePlatform } from "@/react-app/kernel/platform";
 
 import { WODEAPP_PROVIDER_BILLING_LINKS } from "./wodeapp-provider-billing-links";
+import { WodeAppModelUsagePanel } from "./wodeapp-model-usage-panel";
 import { WodeAppProviderCapabilityPanel } from "./wodeapp-provider-capability-panel";
 import { WodeAppSurfaceFrame } from "./wodeapp-surface-frame";
 
@@ -15,11 +16,12 @@ export function WodeAppAccountModelBody() {
   return (
     <>
       <WodeAppProviderCapabilityPanel />
+      <WodeAppModelUsagePanel />
 
       <section className="wapp-vendor-billing" aria-label="厂商控制台">
         <div className="wapp-vendor-billing-head">
           <h3>厂商控制台</h3>
-          <p>上游额度不足时，用系统浏览器打开官网充值或查看用量。</p>
+          <p>官网看充值。上面卡片是本机 Key 剩余额度，不含云端 WodeApp 模型用量。</p>
         </div>
         <ul className="wapp-vendor-billing-list">
           {WODEAPP_PROVIDER_BILLING_LINKS.map((link) => (
